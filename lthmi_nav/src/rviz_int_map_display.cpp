@@ -54,7 +54,7 @@
 #include "rviz/validate_floats.h"
 #include "rviz/display_context.h"
 
-#include "lthmi_nav/rviz_colored_map_display.h"
+#include "lthmi_nav/rviz_int_map_display.h"
 
 //using namespace rviz;
 

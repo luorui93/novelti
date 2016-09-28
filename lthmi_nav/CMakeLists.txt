@@ -37,14 +37,14 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
 qt4_wrap_cpp(MOC_FILES
-  include/${PROJECT_NAME}/rviz_colored_map_display.h
+  include/${PROJECT_NAME}/rviz_int_map_display.h
   include/${PROJECT_NAME}/rviz_float_map_display.h
 )
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
 set(SOURCE_FILES
-  src/rviz_colored_map_display.cpp 
+  src/rviz_int_map_display.cpp 
   src/rviz_float_map_display.cpp
   ${MOC_FILES}
 )
