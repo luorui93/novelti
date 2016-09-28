@@ -304,11 +304,11 @@ unsigned char* makeRegionPalette() {
     *palette_ptr++ = 0; // blue
     *palette_ptr++ = 255; // alpha
   }
-  // legal -1 value is tasteful blueish greenish grayish color
-  *palette_ptr++ = 255; // red
-  *palette_ptr++ = 255; // green
-  *palette_ptr++ = 255; // blue
-  *palette_ptr++ = 255; // alpha
+  // legal -1 value transparent
+  *palette_ptr++ = 0; // red
+  *palette_ptr++ = 0; // green
+  *palette_ptr++ = 0; // blue
+  *palette_ptr++ = 0; // alpha
 
   return palette;
 }

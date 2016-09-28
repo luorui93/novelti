@@ -25,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 
 
-
+########### rviz plugin for IntMap and FloatMap displays ##############
 ## This plugin includes Qt widgets, so we must include Qt like so:
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
@@ -211,8 +211,8 @@ include_directories(
 
 
 
-add_library(lthmi_rviz_plugin ${SOURCE_FILES})
-target_link_libraries(lthmi_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
+add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
+target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 
 
 # add_executable(map_publisher src/map_publisher.cpp)
