@@ -47,8 +47,8 @@ def publishDetectedCmd(pub, period, interface_matrix_thresholds):
     
 if __name__=="__main__":
     global pub, interface_matrix, period, delay
-    sub = rospy.Subscriber('/intended_command', Command, intendedCommandReceived)
-    pub = rospy.Publisher('/detected_command', Command)
+    sub = rospy.Subscriber('/cmd_intended', Command, intendedCommandReceived)
+    pub = rospy.Publisher('/cmd_detected', Command, queue_size=10)
     rospy.init_node('stochastic_hmi_model')
     
     #read parameters

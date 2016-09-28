@@ -18,8 +18,8 @@ def getKey():
 if __name__=="__main__":
     settings = termios.tcgetattr(sys.stdin)
     
-    pub = rospy.Publisher('/intended_user_command', Command)
-    rospy.init_node('emulator_keyboard')
+    pub = rospy.Publisher('/cmd_intended', Command, queue_size=10)
+    rospy.init_node('keyboard_commander')
     
     #read parameters
     key_mappings  = rospy.get_param('~key_mappings', ['0','1','2','3'])

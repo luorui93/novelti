@@ -22,18 +22,18 @@ def command_callback(msg):
 
 
 if __name__=="__main__":
-    rospy.init_node('emulator_keyboard_test')
+    rospy.init_node('keyboard_commander_test')
     
     #read parameters
     interface_matrix = array(rospy.get_param('~interface_matrix', []))
     cmd_counters =[0]*len(interface_matrix)
-    tested_index =rospy.get_param('~tested_index', 0)
+    tested_cmd =rospy.get_param('~tested_cmd', 0)
     #delay =rospy.get_param('~delay', 0.0)
     #use_latest =rospy.get_param('~use_latest', True)
  
     # prepare additional vars
-    tested_vector = interface_matrix[tested_index]
+    tested_vector = interface_matrix[tested_cmd]
     
-    pub = rospy.Subscriber('/detected_user_command', Command, command_callback)
+    pub = rospy.Subscriber('/cmd_detected', Command, command_callback)
 
     rospy.spin()

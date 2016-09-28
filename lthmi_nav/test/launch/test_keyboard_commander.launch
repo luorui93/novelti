@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="tested_cmd" /> <!-- 0 to N -->
+    <arg name="period" default="0.0" />  <!-- 0.0 means publish only when keyboard command recceived -->
+    <arg name="delay" default="0.0001" />  
+    
+    <rosparam>
+        key_mappings: ['q','w', 'e', 'r']
+        interface_matrix: [[0.9, 0.04, 0.03, 0.03], [0.1, 0.72, 0.06, 0.12], [0.32, 0.02, 0.5, 0.16], [0.005, 0.002, 0.003, 0.99],]
+    </rosparam>
+    
+    <!--rosparam>
+        key_mappings: ['q','w']
+        interface_matrix: [[0.9, 0.1], [0.2, 0.8]]
+    </rosparam-->
+    
+    <node pkg="lthmi_nav" type="keyboard_commander.py" 
+        name="keyboard_commander" >
+        <remap from="~key_mappings" to="/key_mappings"/>
+        <remap from="~interface_matrix" to="/interface_matrix"/>
+    </node>
+
+    
+    <node pkg="lthmi_nav" type="test_keyboard_commander.py" 
+        name="keyboard_commander_test" >
+        <param name="tested_cmd" value="$(arg tested_cmd)" />
+        <remap from="~interface_matrix" to="/interface_matrix"/>
+    </node>
+    
+    <node pkg="lthmi_nav" type="stochastic_hmi_model.py" name="stochastic_hmi_model" output="screen" >
+        <param name="number_of_commands" value="4" />
+        <remap from="~interface_matrix" to="/interface_matrix"/>
+        <param name="delay" value="$(arg delay)"/>
+        <param name="period" value="$(arg period)"/>
+    </node>
+</launch>
