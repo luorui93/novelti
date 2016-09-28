@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="tested_index" default="0" />
+    
+    <rosparam>
+        <!--key_mappings: ['q','w', 'e', 'r']-->
+        global_interface_matrix: [[0.9, 0.04, 0.03, 0.03], [0.1, 0.72, 0.06, 0.12], [0.32, 0.02, 0.5, 0.16], [0.005, 0.002, 0.003, 0.99],]
+    </rosparam>
+    
+    
+    
+    
+    <!-- Environment model -->
+    <node pkg="low_throughput_hmi" type="destination_generator.py" name="destination_generator" output="screen" >
+        <param name="prob_threshold" value="0.90" />
+    </node>
+    <node pkg="low_throughput_hmi" type="human_model.py" name="human_model" output="screen" >
+    </node>
+    <node pkg="low_throughput_hmi" type="stochastic_hmi_model.py" name="stochastic_hmi_model" output="screen" >
+        <param name="number_of_commands" value="4" />
+        <remap from="~interface_matrix" to="/global_interface_matrix"/>
+        <param name="period" value="5.0" />
+    </node>
+    <node pkg="low_throughput_hmi" type="robot_model.py" name="robot_model" output="screen" >
+        <param name="timeToDist" value="4.7" />
+        <param name="initX" value="0.3" />
+        <param name="initY" value="0.3" />
+        <param name="pubPeriod" value="0.1" />
+    </node>
+    <node pkg="low_throughput_hmi" type="map_publisher" name="map_publisher" output="screen" >
+        <param name="maze_name" value="pi" />
+    </node> 
+    
+    
+    <!-- Shared Control -->
+    <node pkg="low_throughput_hmi" type="inference_module.py" name="inference_module" output="screen" >
+        <remap from="~interface_matrix" to="/global_interface_matrix"/>
+    </node>    
+    <node pkg="low_throughput_hmi" type="best_pose_finder_node" name="best_pose_finder_node" output="screen" >
+        <param name="max_velocity" value="0.5" />
+        <param name="period" value="5.0" />
+    </node>
+    <node pkg="low_throughput_hmi" type="space_divider_node" name="space_divider_node" output="screen" >
+        <param name="max_velocity" value="0.5" />
+        <param name="period" value="5.0" />
+    </node>
+    
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz" 
+        args="-d $(find low_throughput_hmi)/rviz/test_workflow.rviz" />
+    
+</launch>

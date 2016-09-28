@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <node pkg="low_throughput_hmi" type="experimentator.py" name="experimentator" output="screen" >
+        <rosparam command="load" file="$(find low_throughput_hmi)/exp/experiment_set_1.yaml" />
+        <param name="is_test" value="1" />
+    </node>
+    
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz" 
+        args="-d $(find low_throughput_hmi)/rviz/test_experimentator.rviz" />
+    
+</launch>

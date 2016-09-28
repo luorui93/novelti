@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+<node name="test_cost_calc"
+    pkg="low_throughput_hmi" 
+    type="arc"
+    respawn="false" output="screen" 
+    launch-prefix="xterm -e gdb --args" >
+    
+</node>
+
+</launch>

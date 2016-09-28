@@ -1,0 +1,206 @@
+== How the test was run ==
+for i in $(seq 1 10); do echo $seq; make cwave-vs-other >>  arena2-test-raw-results.txt; done
+
+
+== Regexps to turn raw results in format suitable for table export ==
+Replace
+    \./EXP_A_EUC arena2\nTotal time spent: ([\d\.]+)ms\.\n\n\./EXP_A_OCT arena2\nTotal time spent: ([\d\.]+)ms\.\n\n\./EXP_T arena2\nTotal time spent: ([\d\.]+)ms\.\n\n\./EXP_L arena2\nTotal time spent: ([\d\.]+)ms\.\n\n\./EXP_F arena2\nTotal time spent: ([\d\.]+)ms\.\n\n\./EXP_WAVE arena2\nTotal time spent: ([\d\.]+)ms\.\n\n
+With
+    \1\t\2\t\3\t\4\t\5\t\6\n
+
+== Table data ==
+A*90deg A*45deg Theta*  L-Theta Field A C-Wave
+3829.68	4191.45	12093.2	6259.47	7063.37	1383.27
+3804.83	4124.32	12165.7	6222.65	7030.37	1389.76
+3792.02	4180.84	12219.3	6183.44	7008.34	1385.87
+3752.39	4215.39	12362.9	6212.24	7092.64	1445.22
+3929.81	4338.25	12149.9	6235.92	7006.41	1383.56
+3766.94	4133.99	12269.3	6406.35	7044.81	1382.81
+3817.98	4118.87	12076.8	6309.54	7065.36	1388.19
+3733.25	4143.62	12562	6297.26	7172.39	1388.65
+3815.94	4150.07	12284.6	6188.12	6979.28	1384.17
+3824.27	4230.36	12200.6	6268.44	7182.65	1385.89
+
+
+
+== Raw test results ==
+./EXP_A_EUC arena2
+Total time spent: 3829.68ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4191.45ms.
+
+./EXP_T arena2
+Total time spent: 12093.2ms.
+
+./EXP_L arena2
+Total time spent: 6259.47ms.
+
+./EXP_F arena2
+Total time spent: 7063.37ms.
+
+./EXP_WAVE arena2
+Total time spent: 1383.27ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3804.83ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4124.32ms.
+
+./EXP_T arena2
+Total time spent: 12165.7ms.
+
+./EXP_L arena2
+Total time spent: 6222.65ms.
+
+./EXP_F arena2
+Total time spent: 7030.37ms.
+
+./EXP_WAVE arena2
+Total time spent: 1389.76ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3792.02ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4180.84ms.
+
+./EXP_T arena2
+Total time spent: 12219.3ms.
+
+./EXP_L arena2
+Total time spent: 6183.44ms.
+
+./EXP_F arena2
+Total time spent: 7008.34ms.
+
+./EXP_WAVE arena2
+Total time spent: 1385.87ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3752.39ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4215.39ms.
+
+./EXP_T arena2
+Total time spent: 12362.9ms.
+
+./EXP_L arena2
+Total time spent: 6212.24ms.
+
+./EXP_F arena2
+Total time spent: 7092.64ms.
+
+./EXP_WAVE arena2
+Total time spent: 1445.22ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3929.81ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4338.25ms.
+
+./EXP_T arena2
+Total time spent: 12149.9ms.
+
+./EXP_L arena2
+Total time spent: 6235.92ms.
+
+./EXP_F arena2
+Total time spent: 7006.41ms.
+
+./EXP_WAVE arena2
+Total time spent: 1383.56ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3766.94ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4133.99ms.
+
+./EXP_T arena2
+Total time spent: 12269.3ms.
+
+./EXP_L arena2
+Total time spent: 6406.35ms.
+
+./EXP_F arena2
+Total time spent: 7044.81ms.
+
+./EXP_WAVE arena2
+Total time spent: 1382.81ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3817.98ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4118.87ms.
+
+./EXP_T arena2
+Total time spent: 12076.8ms.
+
+./EXP_L arena2
+Total time spent: 6309.54ms.
+
+./EXP_F arena2
+Total time spent: 7065.36ms.
+
+./EXP_WAVE arena2
+Total time spent: 1388.19ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3733.25ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4143.62ms.
+
+./EXP_T arena2
+Total time spent: 12562ms.
+
+./EXP_L arena2
+Total time spent: 6297.26ms.
+
+./EXP_F arena2
+Total time spent: 7172.39ms.
+
+./EXP_WAVE arena2
+Total time spent: 1388.65ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3815.94ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4150.07ms.
+
+./EXP_T arena2
+Total time spent: 12284.6ms.
+
+./EXP_L arena2
+Total time spent: 6188.12ms.
+
+./EXP_F arena2
+Total time spent: 6979.28ms.
+
+./EXP_WAVE arena2
+Total time spent: 1384.17ms.
+
+./EXP_A_EUC arena2
+Total time spent: 3824.27ms.
+
+./EXP_A_OCT arena2
+Total time spent: 4230.36ms.
+
+./EXP_T arena2
+Total time spent: 12200.6ms.
+
+./EXP_L arena2
+Total time spent: 6268.44ms.
+
+./EXP_F arena2
+Total time spent: 7182.65ms.
+
+./EXP_WAVE arena2
+Total time spent: 1385.89ms.
+

@@ -1,0 +1,21 @@
+<library path="lib/liblthmi_rviz_plugin">
+  <class 
+        name="low_throughput_hmi/IntMap" 
+        type="rviz::IntMapDisplay" 
+        base_class_type="rviz::Display">
+    <description>
+      Displays a map of float-point numbers, such as pdf on the ground plane from a low_thoughput_hmi/IntMap. Basede on Rviz Map plugin, modifed for Low thorughput HMI package by Dmitry Sinyukov
+    </description>
+    <message_type>low_throughput_hmi/IntMap</message_type>
+  </class>
+  
+  <class 
+        name="low_throughput_hmi/FloatMap" 
+        type="rviz::FloatMapDisplay" 
+        base_class_type="rviz::Display">
+    <description>
+      Displays a map of float-point numbers, such as pdf on the ground plane from a low_thoughput_hmi/FloatMap. Basede on Rviz Map plugin, modifed for Low thorughput HMI package by Dmitry Sinyukov
+    </description>
+    <message_type>low_thoughput_hmi/FloatMap</message_type>
+  </class>
+</library>
