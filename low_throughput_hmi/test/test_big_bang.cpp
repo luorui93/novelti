@@ -361,7 +361,7 @@ void test_all_pixels_move_by_key(Galaxy& glx, const char*  maze_index, int dista
 
 int main() {   
 
-    sleep(2);
+    //sleep(2);
     initscr();
     
     my_map = new Map2D(W, H);

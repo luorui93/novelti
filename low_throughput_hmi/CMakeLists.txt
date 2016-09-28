@@ -237,6 +237,7 @@ target_link_libraries(test_best_pose_finder
    ${catkin_LIBRARIES}
    ncurses
 )
+add_dependencies(test_best_pose_finder ${PROJECT_NAME}_generate_messages_cpp)
 
 add_executable(best_pose_finder_node src/best_pose_finder_node.cpp src/map.cpp)
 target_link_libraries(best_pose_finder_node
@@ -263,12 +264,13 @@ target_link_libraries(map_publisher
    ${catkin_LIBRARIES}
    ncurses
 )
-
+add_dependencies(map_publisher ${PROJECT_NAME}_generate_messages_cpp)
 
 add_executable(robot_model src/robot_model.cpp)
 target_link_libraries(robot_model
    ${catkin_LIBRARIES}
 )
+add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
 
 #install(TARGETS default_plugin
 #  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
