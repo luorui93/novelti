@@ -184,93 +184,49 @@ include_directories(
 ## same as for the library above
 # add_dependencies(low_throughput_hmi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
-####target_link_libraries(arc
-####   ${catkin_LIBRARIES}
-####   ncurses
-####)
 
 
 
+# add_executable(test_best_pose_finder test/test_best_pose_finder.cpp src/best_pose_finder.cpp src/map.cpp)
+# target_link_libraries(test_best_pose_finder
+#    ${catkin_LIBRARIES}
+#    ncurses
+# )
+# add_dependencies(test_best_pose_finder ${PROJECT_NAME}_generate_messages_cpp)
+# 
+# add_executable(best_pose_finder_node src/best_pose_finder_node.cpp src/map.cpp)
+# target_link_libraries(best_pose_finder_node
+#    ${catkin_LIBRARIES}
+#    ncurses
+# )
+# add_dependencies(best_pose_finder_node ${PROJECT_NAME}_generate_messages_cpp)
+# 
+# 
+# add_executable(space_divider_node src/space_divider_node.cpp src/map.cpp)
+# target_link_libraries(space_divider_node
+#    ${catkin_LIBRARIES}
+#    ncurses
+# )
+# add_dependencies(space_divider_node ${PROJECT_NAME}_generate_messages_cpp)
 
-add_executable(test_arc_ranges test/test_arc_ranges.cpp src/fast_dist.cpp src/map.cpp)
-target_link_libraries(test_arc_ranges
-   ${catkin_LIBRARIES}
-   ncurses
-)
-
-add_executable(test_star_with_obstacles test/test_star_with_obstacles.cpp src/fast_dist.cpp src/map.cpp)
-target_link_libraries(test_star_with_obstacles
-   ${catkin_LIBRARIES}
-   ncurses
-)
-
-add_executable(test_for_diag_nbps test/test_for_diag_nbps.cpp src/fast_dist.cpp src/map.cpp)
-target_link_libraries(test_for_diag_nbps
-   ${catkin_LIBRARIES}
-   ncurses
-)
-
-add_executable(test_for_special_nbps test/test_for_special_nbps.cpp)
-target_link_libraries(test_for_special_nbps
-   ${catkin_LIBRARIES}
-   ncurses
-)
-
-add_executable(test_big_bang test/test_big_bang.cpp src/fast_dist.cpp src/map.cpp)
-target_link_libraries(test_big_bang
-   ${catkin_LIBRARIES}
-   ncurses
-)
-# uncomment next line to debug fast_dist.cpp:
-#set_target_properties(test_big_bang PROPERTIES COMPILE_DEFINITIONS "CWAVE_DEBUG")
-
-
-#add_executable(test_space_divider test/test_space_divider.cpp src/space_divider.cpp src/map.cpp)
-#target_link_libraries(test_space_divider
-#   ${catkin_LIBRARIES}
-#   ncurses
-#)
-
-add_executable(test_best_pose_finder test/test_best_pose_finder.cpp src/best_pose_finder.cpp src/map.cpp)
-target_link_libraries(test_best_pose_finder
-   ${catkin_LIBRARIES}
-   ncurses
-)
-add_dependencies(test_best_pose_finder ${PROJECT_NAME}_generate_messages_cpp)
-
-add_executable(best_pose_finder_node src/best_pose_finder_node.cpp src/map.cpp)
-target_link_libraries(best_pose_finder_node
-   ${catkin_LIBRARIES}
-   ncurses
-)
-add_dependencies(best_pose_finder_node ${PROJECT_NAME}_generate_messages_cpp)
-
-
-add_executable(space_divider_node src/space_divider_node.cpp src/map.cpp)
-target_link_libraries(space_divider_node
-   ${catkin_LIBRARIES}
-   ncurses
-)
-add_dependencies(space_divider_node ${PROJECT_NAME}_generate_messages_cpp)
 
 
 add_library(lthmi_rviz_plugin ${SOURCE_FILES})
 target_link_libraries(lthmi_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 
 
-add_executable(map_publisher src/map_publisher.cpp)
-target_link_libraries(map_publisher
-   ${catkin_LIBRARIES}
-   ncurses
-)
-add_dependencies(map_publisher ${PROJECT_NAME}_generate_messages_cpp)
-
-add_executable(robot_model src/robot_model.cpp)
-target_link_libraries(robot_model
-   ${catkin_LIBRARIES}
-)
-add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
+# add_executable(map_publisher src/map_publisher.cpp)
+# target_link_libraries(map_publisher
+#    ${catkin_LIBRARIES}
+#    ncurses
+# )
+# add_dependencies(map_publisher ${PROJECT_NAME}_generate_messages_cpp)
+# 
+# add_executable(robot_model src/robot_model.cpp)
+# target_link_libraries(robot_model
+#    ${catkin_LIBRARIES}
+# )
+# add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
 
 #install(TARGETS default_plugin
 #  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
