@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="division_policy" default="extremals" />
+    <arg name="interface_matrix" default="ideal_interface_matrix" />
+
+    <rosparam>
+        ideal_interface_matrix: [[1.0, 0.0, 0.0, 0.0],    [0.0, 1.0, 0.0, 0.0],    [0.0, 0.0, 1.0, 0.0],    [0.0, 0.0, 0.0, 1.0],]
+        interface_matrix1:      [[0.9, 0.04, 0.03, 0.03], [0.1, 0.72, 0.06, 0.12], [0.32, 0.02, 0.5, 0.16], [0.005, 0.002, 0.003, 0.99],]
+    </rosparam>
+    
+    <node pkg="lthmi_nav" type="experimentator.py" name="experimentator" output="screen" >
+        <rosparam>
+            dependent_nodes: ['inference_module', 'space_divider', ]
+            wait_for_srvs: ['/rviz/reload_shaders', ]
+            experiments:
+                -
+                    map: "mini.map"
+                    #map: "office2.map"
+                    resolution: 0.1
+                    poses: [[3,3], [12,15]]
+        </rosparam>
+        <param name="map_prefix" value="$(find lthmi_nav)/map/" />
+    </node>
+    
+    <!-- Shared Control -->
+    <node pkg="lthmi_nav" type="inference_module.py" name="inference_module" output="screen" >
+        <remap from="~interface_matrix" to="/$(arg interface_matrix)"/>
+    </node>
+
+    <node pkg="lthmi_nav" type="space_divider_node" name="space_divider" output="screen" launch-prefix="xterm  -geometry 200x30+10+900 -e gdb --args" >
+        <param name="division_policy" value="$(arg division_policy)" />
+    </node>
+    
+    
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
+            args="-d $(find lthmi_nav)/rviz/test_space_divider.rviz" >
+        <remap from="/move_base_simple/goal" to="/optimal_pose" />
+    </node>
+    
+</launch>

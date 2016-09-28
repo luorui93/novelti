@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="div" default="vert_tiles" /> <!-- division policy:   vert_tiles    horiz_tiles    extremals    equidists    mixed2 -->
+    <arg name="pos" default="tomaxprob" />        <!-- best_pose_finder method:   opt  localopt    maxprob  tomaxprob  cog cog2 cog2lopt all3cog all3lopt all3gopt -->
+    
+    <arg name="expset"/>      <!-- name of the experiment from the experiment_set, set to "" to use experiments instead of experiment -->    
+    <arg name="T" default="1.0" />
+    <arg name="vel" default="5.0" />       <!-- robot max velocity -->
+    <arg name="mx" default="ideal_mx" />    <!-- name of interface matrix (see below)-->    
+
+    <arg name="record" default="1" />
+    <arg name="monitor" default="1" />
+    <arg name="output_dir" default="$(find lthmi_nav)/exp/$(arg expset)" />
+    <arg name="by_key" default="0" />
+    <arg name="velocity_safety_coef" default="1.3" />
+    <arg name="rvizcfg" default="static" /> <!-- autocam or static -->
+    
+    <arg name="output_file_prefix" default="$(arg expset)_$(arg div)_$(arg pos)_$(arg mx)_T=$(arg T)_V=$(arg vel)" />
+    <arg name="record_to" default="$(arg output_dir)/$(arg output_file_prefix).bag" />
+    <arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" />
+    
+    <rosparam>
+        ideal_mx: [[1.0, 0.0, 0.0, 0.0],    [0.0, 1.0, 0.0, 0.0],    [0.0, 0.0, 1.0, 0.0],    [0.0, 0.0, 0.0, 1.0],]
+        mx91:     [[0.91, 0.03, 0.03, 0.03], [0.03, 0.91, 0.03, 0.03], [0.03, 0.03, 0.91, 0.03], [0.03, 0.03, 0.03, 0.91],]
+        mx85:     [[0.85, 0.05, 0.05, 0.05], [0.05, 0.85, 0.05, 0.05], [0.05, 0.05, 0.85, 0.05], [0.05, 0.05, 0.05, 0.85],]
+        mx55:     [[0.55, 0.15, 0.15, 0.15], [0.15, 0.55, 0.15, 0.15], [0.15, 0.15, 0.55, 0.15], [0.15, 0.15, 0.15, 0.55],]
+    </rosparam>
+    
+    <node pkg="lthmi_nav" type="experimentator.py" name="experimentator" output="screen" required="true" >
+        <rosparam command="load" file="$(find lthmi_nav)/exp/$(arg expset)/experiments.yaml"/>
+        <rosparam>
+            dependent_nodes: ['inference_module', 'robot_model', 'best_pose_finder', 'space_divider', 'human_model', 'monitor', ]
+            wait_for_srvs: ['/rviz/reload_shaders', '/rosbag_record/get_loggers']
+            map_prefix: "/home/sd/ws/src/lthmi_nav/lthmi_nav/map/"
+        </rosparam>
+    </node>
+    
+    
+    <!-- Environment model -->
+    <node pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" >
+        <param name="max_lin_velocity" value="$(arg vel)" />
+        <param name="max_ang_velocity" value="10.0" />
+        <param name="pub_period" value="0.025" />
+    </node>
+    <!--node pkg="lthmi_nav" type="robot_model.py" name="robot_model" output="screen" >
+        <param name="timeToDist" value="0.4" />
+        <param name="pubPeriod" value="0.1" />
+    </node-->
+    
+    <node pkg="lthmi_nav" type="human_model.py" name="human_model" output="screen" >
+    </node>
+    
+    
+    <!-- Shared Control -->
+    <node pkg="lthmi_nav" type="inference_module.py" name="inference_module" output="screen" >
+        <remap from="~interface_matrix" to="/$(arg mx)"/>
+    </node>
+    <node pkg="lthmi_nav" type="best_pose_finder_node" name="best_pose_finder" output="screen" >
+        <param name="method" value="$(arg pos)" />
+        <param name="max_velocity" value="$(arg vel)" />
+        <param name="velocity_safety_coef" value="$(arg velocity_safety_coef)" />
+        <param name="period" value="$(arg T)" />
+    </node>
+    <node pkg="lthmi_nav" type="space_divider_node" name="space_divider" output="screen" ><!--launch-prefix="xterm -geometry 200x30+10+20 -e gdb - -args"-->
+        <param name="division_policy" value="$(arg div)" />
+    </node>
+    <node pkg="lthmi_nav" type="stochastic_hmi_model.py" name="stochastic_hmi_model" output="screen" >
+        <param name="number_of_commands" value="4" />
+        <remap from="~interface_matrix" to="/$(arg mx)"/>
+        <param if="$(arg by_key)"     name="delay" value="0.0"/>
+        <param unless="$(arg by_key)" name="delay" value="$(arg T)"/>
+    </node>
+    
+    
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find lthmi_nav)/rviz/experimentator_$(arg rvizcfg).rviz" />
+    
+    
+    <!-- Recording -->
+    <node if="$(arg record)"  pkg="rosbag" type="record" name="rosbag_record"
+       args="-O $(arg record_to) /rosout /scene /intended_pose /current_pose /optimal_pose /identified_intended_pose /intended_command /detected_command /pdf /divided_map" />
+
+   <!-- Monitoring -->
+    <node if="$(arg monitor)" pkg="lthmi_nav" type="monitor.py" name="monitor" output="screen">
+        <param name="output_prefix" value="$(arg monitor_output_prefix)"/>
+    </node>
+
+</launch>

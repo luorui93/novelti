@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <node pkg="lthmi_nav" type="experimentator.py" name="experimentator" output="screen" >
+        <rosparam command="load" file="$(find lthmi_nav)/exp/experiment_set_1.yaml" />
+        <param name="is_test" value="1" />
+    </node>
+    
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz" 
+        args="-d $(find lthmi_nav)/rviz/test_experimentator.rviz" />
+    
+</launch>
