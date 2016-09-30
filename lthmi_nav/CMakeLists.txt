@@ -89,15 +89,13 @@ add_message_files(
   Command.msg
   FloatMap.msg
   IntMap.msg
-  Experiment.msg
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  StartExperiment.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -209,6 +207,12 @@ include_directories(
 # )
 # add_dependencies(space_divider_node ${PROJECT_NAME}_generate_messages_cpp)
 
+
+add_executable(map_divider src/node_map_divider.cpp src/map_divider.cpp)
+target_link_libraries(map_divider
+    ${catkin_LIBRARIES}
+)
+add_dependencies(map_divider ${PROJECT_NAME}_generate_messages_cpp)
 
 
 add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
