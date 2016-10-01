@@ -89,8 +89,11 @@ class GridMap:
     def put(self, x, y, val):
         self.data[x+self.width*y] = val
 
+    def isFree(self, x,y):
+        return self.get(x,y)==self.FREE
+
     def isVertexUnblocked(self, x,y):
-        return self.get(x,y  )==self.FREE or self.get(x-1,y)==self.FREE or self.get(x,y-1)==self.FREE or self.get(x-1,y-1)==self.FREE
+        return self.isFree(x,y  ) or self.isFree(x-1,y) or self.isFree(x,y-1) or self.isFree(x-1,y-1)
 
     def addBorder(self):
         newdata = [self.OCCUPIED]*(self.width+2)*(self.height+2)
@@ -123,21 +126,38 @@ class GridMap:
     def findDiagObst(self, stopOnFirst=True):
         diags = []
         for x in range(self.width-1):
-            for y in range(0,self.height-1):
-                if self.get(x,y)==self.FREE and self.get(x+1,y+1)==self.FREE and self.get(x+1,y)==self.OCCUPIED and self.get(x,y+1)==self.OCCUPIED:
+            for y in range(self.height-1):
+                if self.isFree(x,y) and self.isFree(x+1,y+1) and (not self.isFree(x+1,y)) and (not self.isFree(x,y+1)):
                     diags.append(  ((x+1,y),(x,y+1))  )
                     if stopOnFirst:
                         return diags
-                elif self.get(x,y)==self.OCCUPIED and self.get(x+1,y+1)==self.OCCUPIED and self.get(x+1,y)==self.FREE and self.get(x,y+1)==self.FREE:
+                elif (not self.isFree(x,y)) and (not self.isFree(x+1,y+1)) and self.isFree(x+1,y) and self.isFree(x,y+1):
                     diags.append(  ((x,y),(x+1,y+1))  )
                     if stopOnFirst:
                         return diags
         return diags
 
+    def calcStats(self):
+        stats = {'width': self.width, 'height': self.height, 
+                 'cells': {'free': 0, 'total': self.width * self.height}, 
+                 'verts': {'unblocked': 0, 'total': (self.width+1) * (self.height+1)}}
+        for x in range(self.width):
+            for y in range(self.height): 
+                #stats['cells']['total'] += 1
+                if self.isFree(x,y):
+                    stats['cells']['free'] += 1
+                if x<self.width-1 and y<self.height-1 and self.isVertexUnblocked(x+1,y+1):
+                    stats['verts']['unblocked'] += 1
+        stats['cells']['occup']   = stats['cells']['total'] - stats['cells']['free']
+        stats['verts']['blocked'] = stats['verts']['total'] - stats['verts']['unblocked']
+        stats['cells']['ratio']   = float(stats['cells']['occup'])/stats['cells']['total']
+        stats['verts']['ratio']   = float(stats['verts']['blocked'])/stats['verts']['total']
+        return stats
+
     def printAsText(self, outputFile):
         outputFile.write("type octile\nheight %d\nwidth %d\nmap\n" % (self.height, self.width))
         for y in range(self.height-1,-1,-1):
-            line = ''.join(('.' if self.get(x,y)==self.FREE else '@') for x in range(self.width))
+            line = ''.join(('.' if self.isFree(x,y) else '@') for x in range(self.width))
             outputFile.write(line+"\n")
 
     def genScene(self, outputFile, n_blocks, block_size=1, display_map_path="anonymous.map"):
@@ -154,6 +174,9 @@ import sys
 import StringIO
 doc="""
 USAGE:
+    Calculate map stsistics (number of free cells, number of unblocked vertices, etc):
+        /MapTools.py stats <input.bmp
+
     Convert image file into map file:
         ./MapTools.py img2map [{free_pixel_min_intensity}] <input.bmp >output.map
         
@@ -188,6 +211,13 @@ if __name__=="__main__":
         action = sys.argv[1]
         if action=="help":
             sys.stdout.write(doc)
+        elif action=="stats":
+            mapFile = StringIO.StringIO(sys.stdin.read())
+            grid = GridMap.fromText(mapFile)
+            s = grid.calcStats()
+            sys.stdout.write("Map statistics:\n    resolution: %(width)d x %(height)d\n" % s)
+            sys.stdout.write("    cells:\n        total: %(total)d\n        free: %(free)d\n        occup: %(occup)d\n        occup/total: %(ratio)f\n" % s['cells'])
+            sys.stdout.write("    verts:\n        total: %(total)d\n        unblocked: %(unblocked)d\n        blocked: %(blocked)d\n        blocked/total: %(ratio)f\n" % s['verts'])
         elif action=="img2map":
             imgFile = StringIO.StringIO(sys.stdin.read())
             intensity = int(sys.argv[2]) if len(sys.argv)>2 else 100
