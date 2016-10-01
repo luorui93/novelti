@@ -6,7 +6,7 @@
 
     <!-- Visualization -->
     <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
-            args="-d $(find lthmi_nav)/test/rviz/test_rviz_plugin.rviz" >
+            args="-d $(find lthmi_nav)/test/rviz/test_rviz_int_map.rviz" >
     </node>
     
 </launch>
