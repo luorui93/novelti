@@ -134,17 +134,18 @@ class GridMap:
                         return diags
         return diags
 
-    def genScen():
-        pass #todo
-        """
-        
-        """
-
     def printAsText(self, outputFile):
         outputFile.write("type octile\nheight %d\nwidth %d\nmap\n" % (self.height, self.width))
         for y in range(self.height-1,-1,-1):
             line = ''.join(('.' if self.get(x,y)==self.FREE else '@') for x in range(self.width))
             outputFile.write(line+"\n")
+
+    def genScene(self, outputFile, n_blocks, block_size=1, display_map_path="anonymous.map"):
+        outputFile.write("version 1\n")
+        for block in range(n_blocks):
+            for k in range(block_size):
+                pair = self.genRandPath()
+                outputFile.write("%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t1.0000\n" % (block, display_map_path, self.width, self.height, pair[0][0], pair[0][1], pair[1][0], pair[1][1]));
 
 
 
@@ -154,7 +155,7 @@ import StringIO
 doc="""
 USAGE:
     Convert image file into map file:
-        ./MapTools.py img2map [free_pixel_min_intensity] <input.bmp >output.map
+        ./MapTools.py img2map [{free_pixel_min_intensity}] <input.bmp >output.map
         
     Add 1 occupied cell border:
         ./MapTools.py add_border <input.map >output.map
@@ -171,8 +172,8 @@ USAGE:
     Remove closures:   NOT YET IMPLEMENTED
         ./MapTools.py del_closures <input.map >output.map
         
-    Generate scene file:   NOT YET IMPLEMENTED
-        ./MapTools.py gen_scene [options] <input.map >output.map.scene
+    Generate scene file:
+        ./MapTools.py gen_scene {number_of_blocks} [{block_size}] [{display_map_path}] <input.map >output.map.scene
         
 Map notation:
 """+map_notation
@@ -214,6 +215,16 @@ if __name__=="__main__":
             grid = GridMap.fromText(mapFile)
             path = grid.genRandPath(npoints)
             sys.stderr.write(str(path)+"\n")
+        elif action=="gen_scene":
+            if len(sys.argv)<3:
+                sys.stderr.write("ERROR: gen_scene requires minimum 1 additional parameters. Run './MapTools.py help'\n\n")
+                exit(1)
+            n_blocks = int(sys.argv[2])
+            block_size = int(sys.argv[3]) if len(sys.argv)>=4 else 1
+            path_to_show = sys.argv[4] if len(sys.argv)>=5 else "anonymous.map"
+            map_file = StringIO.StringIO(sys.stdin.read())
+            grid = GridMap.fromText(map_file)
+            grid.genScene(sys.stdout, n_blocks, block_size, path_to_show)
         else:
             sys.stderr.write(doc)
             exit(1)
