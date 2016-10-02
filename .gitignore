@@ -1,0 +1,6 @@
+#Compiled file
+*.pyc
+
+#Temporary text editor files
+*~
+*kate-swp
