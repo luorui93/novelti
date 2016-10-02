@@ -15,7 +15,7 @@
 
 using namespace lthmi_nav;
 
-class MapDivider : SynchronizableNode {
+class MapDivider : public SynchronizableNode {
 public:
     enum State { WAITING, ONLY_POSE, ONLY_PDF };
     State state;
@@ -44,6 +44,7 @@ public:
     }*/
     void divideAndPublish();
     void divide(){};
+    
 };
 
 #endif

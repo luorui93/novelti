@@ -51,15 +51,15 @@ public:
     bool srvStart(lthmi_nav::StartExperiment::Request& req, lthmi_nav::StartExperiment::Response& resp) {
         if (!neverStarted) {
             stop();
-            ROS_INFO_NAMED(getNamespace(), "stopped Experiment");
+            ROS_INFO("%s: stopped Experiment", getName().c_str());
         }
         neverStarted = false;
         start(req);
-        ROS_INFO_NAMED(getNamespace(), "started a new Experiment");
+        ROS_INFO("%s: started a new Experiment", getName().c_str());
         return true;
     }
     
-    int run1() {
+    int run() {
         ros::spin();
         return 0;
     }

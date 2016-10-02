@@ -8,7 +8,9 @@ from lthmi_nav.msg import IntMap
 from lthmi_nav.msg import FloatMap
 from lthmi_nav.srv import StartExperiment
 
-import lthmi_nav.MapTools
+from lthmi_nav.MapTools import GridMap
+import random
+import math
 
 
 def wait_for_srvs():
@@ -41,7 +43,7 @@ def gen_pdf(grid, resolution):
     pdf.info.resolution = 0.1
     pdf.data = [-1.0 for x in range(pdf.info.width*pdf.info.height)]
 
-    k = randint(0, pdf.info.width)
+    k = random.randint(0, pdf.info.width)
     total = 0.0
     for x in range(1,pdf.info.width-1):
         for y in range(1,pdf.info.height-1):
@@ -63,16 +65,7 @@ def gen_pose(grid, resolution):
     
 if __name__=="__main__":
     rospy.init_node('test_map_divider')
-    
-    #import os
-    #try:
-        #user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
-        #rospy.logwarn("PATH: %s" % str(user_paths))
-    #except KeyError:
-        #user_paths = []
-    
-    
-    maps = rospy.get_param('~maps', [])
+    map_file = rospy.get_param('~map')
     resolution = rospy.get_param('~resolution', 0.1)
     
     pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=2) #, latch=False)
@@ -80,11 +73,10 @@ if __name__=="__main__":
     
     rate = rospy.Rate(1) 
     srv = wait_for_srvs()
-    for map_file in maps:
-        grid = MapTools.fromText(open(map_file, 'r'))
+    for k in range(3): #map_file in maps:
+        grid = GridMap.fromText(open(map_file, 'r'))
         start(srv, grid)
         for k in range(5):
             pdf_publisher.publish(gen_pdf(grid, resolution)) 
             pose_publisher.publish(gen_pose(grid, resolution))
-            rospy.spinOnce()
             rate.sleep()

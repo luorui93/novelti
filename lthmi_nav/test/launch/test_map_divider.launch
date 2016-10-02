@@ -2,6 +2,8 @@
 <launch>
 
     <node pkg="lthmi_nav" type="test_map_divider.py" name="test_map_divider" output="screen" >
+        <param name="map" value="$(find lthmi_nav)/map/arena2.map" />
+        <param name="resolution" value="0.1" />
     </node>
 
     <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen">

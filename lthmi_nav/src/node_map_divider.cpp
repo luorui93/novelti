@@ -29,7 +29,9 @@ int main(int argc, char **argv) {
     //ros::NodeHandle n("~");
     //std::string p;
     //n.getParam("division_policy", p);
-    VertTileMapDivider mdiv();
+    //VertTileMapDivider* mdiv = new VertTileMapDivider();
+    VertTileMapDivider mdiv;
+    mdiv.run();
     return 0;//mdiv.run1();
 //    if      (p=="vert_tiles")  return VertTileMapDivider().run();
 //     else if (p=="horiz_tiles") mdiv = Tile2by2MapDividerNode(false);

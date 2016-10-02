@@ -11,7 +11,7 @@
 
 namespace lthmi_nav {
 
-class VertTileMapDivider :  MapDivider {
+class VertTileMapDivider :  public MapDivider {
     public:
         double half;
 
