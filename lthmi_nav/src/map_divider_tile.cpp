@@ -46,13 +46,14 @@ class VertTileMapDivider :  public MapDivider {
         void actuallyDivide() {
             probs_actual = std::vector<double>(probs_optimal.size(),0);
             double prob=0;
-            int cur_region = 0;
+            int idx, cur_region = 0;
             double p;
             for (int y=0; y<pdf->info.height;y++) {
                 for (int x=0; x<=half;x++)  {
-                    p = pdf->data[y*pdf->info.width+x];
+                    idx = x + y*(pdf->info.width);
+                    p = pdf->data[idx];
                     if (p>=0.0) {
-                        map_divided.data[y*pdf->info.width+x] = cur_region;
+                        map_divided.data[idx] = cur_region;
                         prob += p;
                         if (cur_region==0 && prob >= probs_optimal[cur_region]) {
                             probs_actual[cur_region] = prob;
@@ -68,9 +69,10 @@ class VertTileMapDivider :  public MapDivider {
             
             for (int y=0; y<pdf->info.height;y++) {
                 for (int x=half+1; x<pdf->info.width;x++)  {
-                    p = pdf->data[y*pdf->info.width+x];
+                    idx = x + y*(pdf->info.width);
+                    p = pdf->data[idx];
                     if (p>=0.0) {
-                        map_divided.data[y*pdf->info.width+x] = cur_region;
+                        map_divided.data[idx] = cur_region;
                         prob += p;
                         if (cur_region==2 && prob >= probs_optimal[cur_region]) {
                             probs_actual[cur_region] = prob;

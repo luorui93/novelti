@@ -40,9 +40,9 @@ void MapDivider::stop() {
 void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
     state = WAITING;
     map_divided.info.resolution = req.map.info.resolution;
-    map_divided.info.width = req.map.info.width;
-    map_divided.info.height = req.map.info.height;
-    map_divided.data = std::vector<int>(req.map.data.size(), 0);
+    map_divided.info.width = req.map.info.width+1;
+    map_divided.info.height = req.map.info.height+1;
+    map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
     pub_map_div   = node.advertise<lthmi_nav::IntMap>("/map_divided", 1, false); //not latched
     sub_pose_opt  = node.subscribe("/pose_optimal", 1, &MapDivider::poseOptCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &MapDivider::pdfCallback, this);
