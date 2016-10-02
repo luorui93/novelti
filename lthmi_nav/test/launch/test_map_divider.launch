@@ -7,6 +7,9 @@
     </node>
 
     <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen">
+        <rosparam>
+            probs_optimal: [0.25, 0.25, 0.25, 0.25]
+        </rosparam>
     </node>
     
     <node name="rviz" pkg="rviz" type="rviz"  output="screen" 

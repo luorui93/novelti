@@ -27,6 +27,8 @@ MapDivider::MapDivider() :
         SynchronizableNode()
 {
     node.getParam("probs_optimal", probs_optimal);
+    if (probs_optimal.size()==0)
+        throw ros::Exception("ERROR: probs_optimal parameter should be specified and have length>0");
 }
     
 void MapDivider::stop() {
@@ -71,7 +73,7 @@ void MapDivider::pdfCallback(lthmi_nav::FloatMapConstPtr msg){
 void MapDivider::divideAndPublish() {
     ROS_INFO("%s: starting to divide", getName().c_str());
     divide();
-    ROS_INFO("%s: finished dividing", getName().c_str());
     pub_map_div.publish(map_divided);
+    ROS_INFO("%s: published divided map", getName().c_str());
 }
 

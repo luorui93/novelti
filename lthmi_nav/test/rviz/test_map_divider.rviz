@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /FloatMap1
-        - /FloatMap1/Status1
         - /IntMap1
       Splitter Ratio: 0.5
     Tree Height: 565
@@ -37,7 +36,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
-      Enabled: true
+      Enabled: false
       Line Style:
         Line Width: 0.03
         Value: Lines
@@ -50,22 +49,22 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
-      Value: true
-    - Alpha: 0.7
+      Value: false
+    - Alpha: 1
       Class: lthmi_nav/FloatMap
       Color Scheme: float
-      Draw Behind: false
+      Draw Behind: true
       Enabled: true
       Name: FloatMap
       Topic: /pdf
       Value: true
-    - Alpha: 0.7
+    - Alpha: 1
       Class: lthmi_nav/IntMap
-      Color Scheme: map
+      Color Scheme: regions
       Draw Behind: false
       Enabled: true
       Name: IntMap
-      Topic: ""
+      Topic: /map_divided
       Value: true
   Enabled: true
   Global Options:
@@ -91,22 +90,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10
+      Distance: 57.0154
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 13.4932
+        Y: 10.0694
+        Z: -1.99352
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.785398
+      Pitch: 1.5498
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.785398
+      Yaw: 4.70858
     Saved: ~
 Window Geometry:
   Displays:
@@ -124,5 +123,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 99
-  Y: 24
+  X: 59
+  Y: 14

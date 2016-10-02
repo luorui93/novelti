@@ -43,7 +43,7 @@ public:
         pdf=msg;
     }*/
     void divideAndPublish();
-    void divide(){};
+    virtual void divide(){};
     
 };
 

@@ -31,6 +31,7 @@ class VertTileMapDivider :  public MapDivider {
             double p;
             for (int x=0; x<pdf->info.width;x++)
                 for (int y=0; y<pdf->info.height;y++) {
+                    //ROS_INFO(">>>>>>>>>>>>>>>>>>>>>>>> %d,%d", x,y);
                     p = pdf->data[y*pdf->info.width+x];
                     if (p>0.0) {
                         prob += p;

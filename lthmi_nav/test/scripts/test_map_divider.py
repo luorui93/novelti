@@ -41,6 +41,7 @@ def gen_pdf(grid, resolution):
     pdf.info.width  = grid.width+1
     pdf.info.height = grid.height+1
     pdf.info.resolution = 0.1
+    #pdf.info.origin.position.z = -0.001
     pdf.data = [-1.0 for x in range(pdf.info.width*pdf.info.height)]
 
     k = random.randint(0, pdf.info.width)
@@ -48,7 +49,7 @@ def gen_pdf(grid, resolution):
     for x in range(1,pdf.info.width-1):
         for y in range(1,pdf.info.height-1):
             if grid.isVertexUnblocked(x,y):
-                p = 2.0+ math.cos(  math.sqrt(  ((x-k)/5.0)**2 + ((y-k)/3.0)**2)  )
+                p = 2.0+ math.cos(  math.sqrt(  ((x-k)/30.0)**2 + ((y-k)/21.0)**2)  )
                 total +=p 
                 pdf.data[x+ y*pdf.info.width] = p
     pdf.data = [p/total if p>0.0 else p for p in pdf.data]
@@ -73,7 +74,7 @@ if __name__=="__main__":
     
     rate = rospy.Rate(1) 
     srv = wait_for_srvs()
-    for k in range(3): #map_file in maps:
+    for k in range(20): #map_file in maps:
         grid = GridMap.fromText(open(map_file, 'r'))
         start(srv, grid)
         for k in range(5):
