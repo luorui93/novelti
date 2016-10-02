@@ -7,6 +7,7 @@
     </node>
 
     <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen">
+        <param name="method" value="htile" />
         <rosparam>
             probs_optimal: [0.25, 0.25, 0.25, 0.25]
         </rosparam>
