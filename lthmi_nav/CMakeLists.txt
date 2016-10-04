@@ -6,9 +6,10 @@ project(lthmi_nav)
 #cmake -D CMAKE_BUILD_TYPE=Debug  -D CATKIN_DEVEL_PREFIX=../../../devel ../../../src/lthmi_nav/lthmi_nav
 #make
 
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++0x -O3")  #optimized
-#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++0x -Winline -gdwarf-2 -g3  " ) #for debug
-
+#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++0x -O3")  #optimized
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++0x -Winline -gdwarf-2 -g3  " ) #for debug
+SET( CWAVE_LIB_DIR  "/home/sd/ws_old/src/cwave") 
+SET( CWAVE_INCLUDE_DIR  "/home/sd/ws_old/src/cwave/include")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -163,6 +164,7 @@ include_directories(
   /usr/include/OGRE  #temporary dirty workaround
   ${OGRE_OV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${CWAVE_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -209,11 +211,12 @@ include_directories(
 
 
 add_executable(map_divider src/node_map_divider.cpp src/map_divider.cpp)
+target_compile_definitions(map_divider PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1)
 target_link_libraries(map_divider
     ${catkin_LIBRARIES}
+    ${CWAVE_LIB_DIR}/libcwaveproc.a
 )
 add_dependencies(map_divider ${PROJECT_NAME}_generate_messages_cpp)
-
 
 add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
 target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})

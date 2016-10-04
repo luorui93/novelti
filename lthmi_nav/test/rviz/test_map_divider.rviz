@@ -54,10 +54,10 @@ Visualization Manager:
       Class: lthmi_nav/FloatMap
       Color Scheme: float
       Draw Behind: true
-      Enabled: true
+      Enabled: false
       Name: FloatMap
       Topic: /pdf
-      Value: true
+      Value: false
     - Alpha: 1
       Class: lthmi_nav/IntMap
       Color Scheme: regions
@@ -123,5 +123,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 59
+  X: 55
   Y: 14

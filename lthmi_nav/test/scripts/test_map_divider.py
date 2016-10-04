@@ -25,7 +25,7 @@ def start(div_srv, grid):
     name = "qwe"
     mapa = IntMap()
     mapa.header.frame_id = "/map"
-    mapa.data = [(1 if v else 0) for v in grid.data]
+    mapa.data = [(0 if v==grid.FREE else 1) for v in grid.data]
     mapa.info.width = grid.width
     mapa.info.height = grid.height
     mapa.info.resolution = 0.1

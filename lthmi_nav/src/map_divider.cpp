@@ -39,6 +39,7 @@ void MapDivider::stop() {
 
 void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
     state = WAITING;
+    probs_actual = std::vector<double>(probs_optimal.size(),0.0);
     map_divided.info.resolution = req.map.info.resolution;
     map_divided.info.width = req.map.info.width+1;
     map_divided.info.height = req.map.info.height+1;
@@ -50,7 +51,8 @@ void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
 
 void MapDivider::poseOptCallback(const geometry_msgs::PoseStamped& pose) {
     ROS_INFO("%s: received pose", getName().c_str());
-    ///vx(pose, 0.1);//(double)(pdf->info.resolution));
+    //vx(pose, 0.1);//(double)(pdf->info.resolution));
+    new (&vx) Vertex(pose, (double)(map_divided.info.resolution));
     if (state==ONLY_PDF) {
         divideAndPublish();
         state = WAITING;

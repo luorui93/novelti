@@ -23,7 +23,7 @@ public:
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     
-    ///Vertex vx;
+    Vertex vx;
     //lthmi_nav::FloatMapConstPtr pdf;
     //boost::shared_ptr<lthmi_nav::FloatMap const> pdf;
     lthmi_nav::FloatMapConstPtr pdf;

@@ -44,7 +44,6 @@ class VertTileMapDivider :  public MapDivider {
         }
             
         void actuallyDivide() {
-            probs_actual = std::vector<double>(probs_optimal.size(),0);
             double prob=0;
             int idx, cur_region = 0;
             double p;
