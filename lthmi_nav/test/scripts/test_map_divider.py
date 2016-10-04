@@ -72,7 +72,7 @@ if __name__=="__main__":
     pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=2) #, latch=False)
     pose_publisher = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=2)#, latch=False)
     
-    rate = rospy.Rate(1) 
+    rate = rospy.Rate(0.1) 
     srv = wait_for_srvs()
     for k in range(20): #map_file in maps:
         grid = GridMap.fromText(open(map_file, 'r'))
@@ -80,4 +80,4 @@ if __name__=="__main__":
         for k in range(5):
             pdf_publisher.publish(gen_pdf(grid, resolution)) 
             pose_publisher.publish(gen_pose(grid, resolution))
-            rate.sleep()
+            rospy.sleep(10)

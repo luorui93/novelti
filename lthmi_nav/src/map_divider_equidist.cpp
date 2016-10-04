@@ -51,7 +51,7 @@ public:
         prob += p;
         map_divided.data[pt.x + pt.y*map_divided.info.width] = region;
         if ( prob >= probs_optimal[region] ) {
-            probs_actual[region] = prob;;
+            probs_actual[region] = prob;
             prob = 0.0;
             region++;
         }
@@ -68,7 +68,15 @@ public:
     }
 
     void onAddStar(Star& s) {};
-    void onDistanceCorrection(Point& p, int old_dist, int new_dist) {};
+    void onDistanceCorrection(Point& pt, int old_dist, int new_dist) {
+        if (old_dist==MAP_POINT_UNEXPLORED) {
+            visitVertex(pt);
+        }
+    };
+    
+    void finish() {
+        probs_actual[region] = prob;
+    }
 };
 
 
@@ -95,7 +103,9 @@ class EquidistMapDivider :  public MapDivider {
             CWave2 cw(cmap);
             cw.setProcessor(&cwave_processor);
             cw.calc(Point(vx.x,vx.y));
+            cwave_processor.finish();
             cmap.clearDist();
+            //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
         }
 };
 }
