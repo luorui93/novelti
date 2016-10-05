@@ -26,7 +26,7 @@ using namespace cwave;
 namespace lthmi_nav {
 
 
-
+/*
 class CWaveProc2: public CWave2Processor {
 public:
     IntMap& map_divided;
@@ -77,35 +77,89 @@ public:
     void finish() {
         probs_actual[region] = prob;
     }
-};
+};*/
 
 
 
-class ExtremalMapDivider :  public MapDivider {
-    public:
-        CompoundMap cmap;
+class ExtremalMapDivider :  public MapDivider, public CWave2Processor {
+public:
+    CompoundMap cmap;
+    std::vector<int> track_stars;
+    IntMap track_map;
+    int region;
+    double prob;
+    
+    
+    ExtremalMapDivider() :
+        MapDivider() 
+    { }
+    
+    void start(lthmi_nav::StartExperiment::Request& req) {
+        new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
+        for (int x=0; x<req.map.info.width; x++)
+            for (int y=0; y<req.map.info.height; y++)
+                if (req.map.data[x + y*req.map.info.width]==0)
+                    cmap.setPixel(x,y, FREED); //free
+        MapDivider::start(req);
+    }
+    
+
+    
+    void divide() {
+        beforeCWave();
+        CWave2 cw(cmap);
+        cw.setProcessor(this);
+        Point center(vx.x,vx.y);
+        cw.calc(center);
+        afterCwave();
+        //v = findBoundaryVertex(center);
+
+        cmap.clearDist();
+        //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+    }
+    
+    /*Point findBoundaryVertex(Point pt) {
+        do {
+        } while (cmap.
+    }*/
         
-        ExtremalMapDivider() :
-            MapDivider() 
-        { }
         
-        void start(lthmi_nav::StartExperiment::Request& req) {
-            new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
-            for (int x=0; x<req.map.info.width; x++)
-                for (int y=0; y<req.map.info.height; y++)
-                    if (req.map.data[x + y*req.map.info.width]==0)
-                        cmap.setPixel(x,y, FREED); //free
-            MapDivider::start(req);
+    void visitVertex(Point& pt) {
+        double p = pdf->data[pt.x + pt.y*pdf->info.width];
+        prob += p;
+        map_divided.data[pt.x + pt.y*map_divided.info.width] = region;
+        if ( prob >= probs_optimal[region] ) {
+            probs_actual[region] = prob;
+            prob = 0.0;
+            region++;
         }
-        
-        void divide() {
-            CWaveProc2 cwave_processor(map_divided, pdf, probs_optimal, probs_actual);
-            CWave2 cw(cmap);
-            cw.setProcessor(&cwave_processor);
-            cw.calc(Point(vx.x,vx.y));
-            cwave_processor.finish();
-            cmap.clearDist();
-            //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+    }
+    
+    void onInitSource(Point& pt) {
+        visitVertex(pt);
+    }
+    
+    void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& pt, int old_dist, int new_dist) {
+        if (old_dist==MAP_POINT_UNEXPLORED) {
+            visitVertex(pt);
         }
+    }
+
+    void onAddStar(Star& s) {};
+    void onDistanceCorrection(Point& pt, int old_dist, int new_dist) {
+        if (old_dist==MAP_POINT_UNEXPLORED) {
+            visitVertex(pt);
+        }
+    };
+    
+    void beforeCWave() {
+        region = 0;
+        prob = 0.0;
+    }
+    
+    void afterCwave() {
+        probs_actual[region] = prob;
+    }
+        
 };
 }
