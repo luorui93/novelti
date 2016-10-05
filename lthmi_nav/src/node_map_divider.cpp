@@ -22,6 +22,7 @@
 #include "map_divider_vtile.cpp"
 #include "map_divider_htile.cpp"
 #include "map_divider_equidist.cpp"
+#include "map_divider_extremal.cpp"
 
 using namespace lthmi_nav;
 
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
     if      (p=="vtile")    mdiv = new VertTileMapDivider();
     else if (p=="htile")    mdiv = new HorizTileMapDivider();
     else if (p=="equidist") mdiv = new EquidistMapDivider();    
+    else if (p=="extremal") mdiv = new ExtremalMapDivider();  
 //     else if (p=="extremals")   mdiv = ExtremalsMapDividerNode();
 //     else if (p=="mixed1")      mdiv = Mixed1MapDividerNode();
 //     else if (p=="mixed2")      mdiv = Mixed2MapDividerNode();

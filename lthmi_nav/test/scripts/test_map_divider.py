@@ -69,8 +69,8 @@ if __name__=="__main__":
     map_file = rospy.get_param('~map')
     resolution = rospy.get_param('~resolution', 0.1)
     
-    pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=2) #, latch=False)
-    pose_publisher = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=2)#, latch=False)
+    pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=1) #, latch=False)
+    pose_publisher = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1)#, latch=False)
     
     rate = rospy.Rate(0.1) 
     srv = wait_for_srvs()
