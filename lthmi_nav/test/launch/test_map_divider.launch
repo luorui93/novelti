@@ -1,13 +1,19 @@
 <?xml version="1.0"?>
 <launch>
-
-    <node pkg="lthmi_nav" type="test_map_divider.py" name="test_map_divider" output="screen" required="true">
+    <arg name="debug" default="1" />
+    
+    <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 200x30+10+20 -e gdb - -args" />
+    <arg unless="$(arg debug)" name="prefix" default="" />
+    
+    <node pkg="lthmi_nav" type="test_map_divider.py" name="test_map_divider" 
+            output="screen" required="true">
         <param name="map" value="$(find lthmi_nav)/map/arena2.map" />
         <param name="resolution" value="0.1" />
     </node>
 
-    <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen">
-        <param name="method" value="extremal" />
+    <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen"
+            launch-prefix="$(arg prefix)">
+        <param name="method" value="extremal" /> <!-- vtile htile equidist extremal    -->
         <rosparam>
             probs_optimal: [0.25, 0.25, 0.25, 0.25]
         </rosparam>

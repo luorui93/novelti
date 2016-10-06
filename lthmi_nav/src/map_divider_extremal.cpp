@@ -1,19 +1,19 @@
+#define EXTREMAL_MAP_DIVIDER_DEBUG 1
         /* +--------------------------------+
-         * |                                |
-         * |                                |
-         * |                                |
-         * |        _____________           |
-         * |      _/             \_         |
-         * |     /    _________    \        |
-         * |    |    /         \    \       |
-         * |   /    /   ____    \    \      |
-         * |  |    |   /    \   |    |      |
-         * |  |    |  |  0   | 1|  2 |   3  |
-         * |  |    |   \____/   |    |      |
-         * |  \     \          /     /      |
-         * |   \     \________/     |       |
-         * |    \_                _/        |
-         * |      \______________/          |
+         * |                 \              |
+         * |  ____            \             |
+         * | /    \           |             |
+         * |/      \   1      |      0      |
+         * |        \        /              |
+         * |         \     _/               |
+         * |          \   /                 |
+         * |           --+------------------|
+         * |             |            _     |
+         * |             |___   3    | \    |
+         * |     2           \       |  \   |
+         * |                  \______|   \  |
+         * |                              \ |
+         * |                               \|
          * |                                |
          * +--------------------------------+  */
         
@@ -26,73 +26,41 @@ using namespace cwave;
 namespace lthmi_nav {
 
 
-/*
-class CWaveProc2: public CWave2Processor {
-public:
-    IntMap& map_divided;
-    FloatMapConstPtr& pdf;
-    std::vector<double>& probs_optimal;
-    std::vector<double>& probs_actual;
-    int region;
-    double prob;
-    
-    CWaveProc2(IntMap& map_divided1, FloatMapConstPtr& pdf1, std::vector<double>& probs_optimal1, std::vector<double>& probs_actual1):
-        map_divided(map_divided1),
-        pdf(pdf1),
-        probs_optimal(probs_optimal1),
-        probs_actual(probs_actual1)
-    {
-        region = 0;
-        prob = 0.0;
-    }
-    
-    void visitVertex(Point& pt) {
-        double p = pdf->data[pt.x + pt.y*pdf->info.width];
-        prob += p;
-        map_divided.data[pt.x + pt.y*map_divided.info.width] = region;
-        if ( prob >= probs_optimal[region] ) {
-            probs_actual[region] = prob;
-            prob = 0.0;
-            region++;
-        }
-    }
-    
-    void onInitSource(Point& pt) {
-        visitVertex(pt);
-    }
-    
-    void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& pt, int old_dist, int new_dist) {
-        if (old_dist==MAP_POINT_UNEXPLORED) {
-            visitVertex(pt);
-        }
-    }
-
-    void onAddStar(Star& s) {};
-    void onDistanceCorrection(Point& pt, int old_dist, int new_dist) {
-        if (old_dist==MAP_POINT_UNEXPLORED) {
-            visitVertex(pt);
-        }
-    };
-    
-    void finish() {
-        probs_actual[region] = prob;
-    }
-};*/
-
-
-
 class ExtremalMapDivider :  public MapDivider, public CWave2Processor {
 public:
+    enum WalkerState {DiagUnreach, DiagReach, StraightReach};
+    typedef struct {
+        int x;
+        int y;
+        double dist;
+    } MyStar;
+    
+    const int OCT2CELL[8][2] = {{0,0}, {-1,0}, {-1,0}, {-1,-1}, {-1,-1},  {0,-1}, {0,-1},  {0,0}}; 
+    const int OCT2POINT[8][2] = {{1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1},  {0,-1}, {1,-1},  {1,0}};
+    
     CompoundMap cmap;
-    std::vector<int> track_stars;
+    std::vector<MyStar> track_stars;
     IntMap track_map;
     int region;
     double prob;
     
+    Point wp; //walker point/position
+    char woct; //walker orientation (octant: 0, 1...7)
+    WalkerState wstate; //walker state
+    int wstar;
+    
+    #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+        ros::Publisher pub_debug_pose_border;
+    #endif
+    
     
     ExtremalMapDivider() :
         MapDivider() 
-    { }
+    { 
+        #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+            pub_debug_pose_border   = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, false); //not latched
+        #endif
+    }
     
     void start(lthmi_nav::StartExperiment::Request& req) {
         new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
@@ -101,65 +69,148 @@ public:
                 if (req.map.data[x + y*req.map.info.width]==0)
                     cmap.setPixel(x,y, FREED); //free
         MapDivider::start(req);
+        track_map = map_divided; //copy
+        //track_stars = std::vector<MyStar>(50);
     }
     
 
     
     void divide() {
-        beforeCWave();
+        //beforeCWave();
         CWave2 cw(cmap);
         cw.setProcessor(this);
         Point center(vx.x,vx.y);
         cw.calc(center);
-        afterCwave();
-        //v = findBoundaryVertex(center);
+        //afterCwave();
+        
+        bool moved;ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!--1"); 
+        Point start = boundaryWalkerInit(center);ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!--2"); 
+        do {
+            #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+                publishBoundaryPose();ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!--3"); 
+            #endif
+            moved = boundaryWalkerUpdate();ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4"); 
+        } while (!boundaryWalkerLooped(start));
 
         cmap.clearDist();
         //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
     }
     
-    /*Point findBoundaryVertex(Point pt) {
-        do {
-        } while (cmap.
-    }*/
-        
-        
-    void visitVertex(Point& pt) {
-        double p = pdf->data[pt.x + pt.y*pdf->info.width];
-        prob += p;
-        map_divided.data[pt.x + pt.y*map_divided.info.width] = region;
-        if ( prob >= probs_optimal[region] ) {
-            probs_actual[region] = prob;
-            prob = 0.0;
-            region++;
+    int getParentStar(int star_id) { //returns id of the star that is the parent of the star with id==star_id
+        return track_map.data[ track_stars[star_id].x  +   track_stars[star_id].y*track_map.info.width];
+    }
+    
+    bool isPointIn(Point& pt) {
+        int s = track_map.data[ pt.x  +   pt.y*track_map.info.width];
+        if (s==wstar) {
+            return true;
+        } else if (s!=0 && getParentStar(s)==wstar) {
+            wstar =s;
+            return true;
+        } else if (wstar!=0 && getParentStar(wstar)==s) {
+            wstar = s;
+            return true;
+        }
+        return false;
+    }
+    
+    Point findBoundaryVertex(Point pt) {
+        while (track_map.data[pt.x+1 + pt.y* track_map.info.width] == 0) {
+            pt.x++;
+        }
+        return pt;
+    }
+    
+    Point boundaryWalkerInit(Point& center) {//returns first walker
+        wp = findBoundaryVertex(center);
+        woct = 1;
+        wstate = DiagUnreach;
+        wstar = 0;
+        return wp;
+    }
+    
+    bool boundaryWalkerLooped(Point& start) {
+        return start.x==wp.x && start.y==wp.y && woct==1;
+    }
+    
+    bool boundaryWalkerUpdate() {
+        bool moved = false;
+        Point pt;
+        switch (wstate) {
+            case DiagUnreach:
+                ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-1");
+                if (cmap.isPixelOccupied(wp.x+OCT2CELL[woct][0], wp.y+OCT2CELL[woct][1])) {
+                    woct += 2; woct &= 7; //turn by +90deg
+                    ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-1-1");
+                } else {
+                    ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-1-2");
+                    pt.x = wp.x+OCT2POINT[woct][0];
+                    pt.y = wp.y+OCT2POINT[woct][1];
+                    if (isPointIn(pt)) {
+                        woct -= 2; woct &= 7; //turn by -90deg
+                        wp = pt;
+                        moved = true;
+                    } else {
+                        wstate = StraightReach;
+                        woct += 1; woct &= 7; //turn by +45deg
+                    }
+                }
+                return moved;
+            case DiagReach:
+                ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-2");
+                pt.x = wp.x+OCT2POINT[woct][0];
+                pt.y = wp.y+OCT2POINT[woct][1];
+                if (isPointIn(pt)) {
+                    wstate = StraightReach;
+                    woct -= 1; woct &= 7; //turn by -45deg
+                    wp = pt;
+                    moved = true;
+                } else {
+                    woct += 1; woct &= 7; //turn by +45deg
+                }
+                return moved;
+            case StraightReach:
+                ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-3");
+                if (cmap.isPixelOccupied(wp.x+OCT2CELL[woct][0], wp.y+OCT2CELL[woct][1])) {
+                    woct += 1; woct &= 7; //turn by +45deg
+                    wstate = DiagUnreach;
+                } else {
+                    wstate = DiagReach;
+                    pt.x = wp.x+OCT2POINT[woct][0];
+                    pt.y = wp.y+OCT2POINT[woct][1];
+                    if (isPointIn(pt)) {
+                        woct += 1; woct &= 7; //turn by +45deg
+                    } else {
+                        woct -= 1; woct &= 7; //turn by -45deg
+                        moved = true;
+                    }
+                }
+                return moved;
         }
     }
     
-    void onInitSource(Point& pt) {
-        visitVertex(pt);
-    }
+    
+    #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+        void publishBoundaryPose() {
+            ROS_WARN("Boundary pose: (%d,%d), oct=%d", wp.x, wp.y, woct);
+            geometry_msgs::PoseStamped msg = Vertex::toPose(wp.x, wp.y, map_divided.info.resolution);
+            msg.header.frame_id="/map";
+            pub_debug_pose_border.publish(msg);
+        }
+    #endif
+    
+    
     
     void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& pt, int old_dist, int new_dist) {
-        if (old_dist==MAP_POINT_UNEXPLORED) {
-            visitVertex(pt);
-        }
+        track_map.data[pt.x + pt.y*track_map.info.width] = star.id;
     }
 
-    void onAddStar(Star& s) {};
-    void onDistanceCorrection(Point& pt, int old_dist, int new_dist) {
-        if (old_dist==MAP_POINT_UNEXPLORED) {
-            visitVertex(pt);
-        }
-    };
-    
-    void beforeCWave() {
-        region = 0;
-        prob = 0.0;
-    }
-    
-    void afterCwave() {
-        probs_actual[region] = prob;
-    }
+    void onAddStar(Star& s) {
+        track_stars.push_back({s.c.x, s.c.y, s.dist});
+        if (s.id!= track_stars.size()-1)
+            ROS_ERROR("!!!!!!!!!!!!!!!!!!!!!!!!!!!!qwe qwedfgjnfg!!!!"); 
         
+    }
+
 };
 }

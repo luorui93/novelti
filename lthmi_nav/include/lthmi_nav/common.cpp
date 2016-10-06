@@ -22,6 +22,10 @@ public:
     }
 
     geometry_msgs::PoseStamped toPose(double resolution) {
+        return toPose(x,y,resolution);
+    }
+    
+    static geometry_msgs::PoseStamped toPose(int x, int y, double resolution) {
         geometry_msgs::PoseStamped pose;
         pose.pose.position.x = x*resolution;
         pose.pose.position.y = y*resolution;

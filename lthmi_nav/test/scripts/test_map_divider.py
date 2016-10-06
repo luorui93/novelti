@@ -68,16 +68,23 @@ if __name__=="__main__":
     rospy.init_node('test_map_divider')
     map_file = rospy.get_param('~map')
     resolution = rospy.get_param('~resolution', 0.1)
+    n_experiments = rospy.get_param('~n_experiments', 1)
+    n_poses = rospy.get_param('~n_poses', 1)
+    sleep_forever = rospy.get_param('~sleep_forever', True)
     
-    pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=1) #, latch=False)
-    pose_publisher = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1)#, latch=False)
+    pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
+    pose_publisher = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1, latch=True)#, latch=False)
     
     rate = rospy.Rate(0.1) 
     srv = wait_for_srvs()
-    for k in range(20): #map_file in maps:
+    for k in range(n_experiments): #map_file in maps:
         grid = GridMap.fromText(open(map_file, 'r'))
         start(srv, grid)
-        for k in range(5):
-            pdf_publisher.publish(gen_pdf(grid, resolution)) 
+        for k in range(n_poses):
+            pdf = gen_pdf(grid, resolution)
+            pdf_publisher.publish(pdf) 
+            rospy.loginfo("test_map_divider: published pdf (%d,%d), resolution=%f" % (pdf.info.width, pdf.info.height, pdf.info.resolution))
+            
             pose_publisher.publish(gen_pose(grid, resolution))
-            rospy.sleep(10)
+            rospy.sleep(5)
+    rospy.spin()
