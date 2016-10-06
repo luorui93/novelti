@@ -19,7 +19,7 @@ def wait_for_srvs():
     rospy.wait_for_service(srv_path)
     return rospy.ServiceProxy(srv_path, StartExperiment)
 
-def start(div_srv, grid):
+def start(div_srv, grid, resolution):
     seq = 0
     stamp = rospy.Time.now()
     name = "qwe"
@@ -28,19 +28,31 @@ def start(div_srv, grid):
     mapa.data = [(0 if v==grid.FREE else 1) for v in grid.data]
     mapa.info.width = grid.width
     mapa.info.height = grid.height
-    mapa.info.resolution = 0.1
+    mapa.info.resolution = resolution
     init_pose = Pose()
     try:
         div_srv(seq, stamp, name, mapa, init_pose)
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
 
+def gen_map(grid, resolution):
+    m = IntMap()
+    m.header.frame_id = "/map"
+    m.info.width  = grid.width
+    m.info.height = grid.height
+    m.info.resolution = resolution
+    m.info.origin.position.x = 0.5*resolution
+    m.info.origin.position.y = 0.5*resolution
+    #m.info.origin.position.z = -0.001
+    m.data = [255 if grid.isFree(k) else 254 for k in range(len(grid.data))] #255 - transparent, 254 - black
+    return m
+    
 def gen_pdf(grid, resolution):
     pdf = FloatMap()
     pdf.header.frame_id = "/map"
     pdf.info.width  = grid.width+1
     pdf.info.height = grid.height+1
-    pdf.info.resolution = 0.1
+    pdf.info.resolution = resolution
     #pdf.info.origin.position.z = -0.001
     pdf.data = [-1.0 for x in range(pdf.info.width*pdf.info.height)]
 
@@ -74,13 +86,16 @@ if __name__=="__main__":
     
     pdf_publisher  = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
     pose_publisher = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1, latch=True)#, latch=False)
+    map_publisher  = rospy.Publisher('/map', IntMap, queue_size=1, latch=True)#, latch=False)
     
     rate = rospy.Rate(0.1) 
     srv = wait_for_srvs()
     for k in range(n_experiments): #map_file in maps:
         grid = GridMap.fromText(open(map_file, 'r'))
-        start(srv, grid)
+        start(srv, grid, resolution)
         for k in range(n_poses):
+            map_publisher.publish(gen_map(grid, resolution))
+            
             pdf = gen_pdf(grid, resolution)
             pdf_publisher.publish(pdf) 
             rospy.loginfo("test_map_divider: published pdf (%d,%d), resolution=%f" % (pdf.info.width, pdf.info.height, pdf.info.resolution))

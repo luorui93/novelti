@@ -89,8 +89,11 @@ class GridMap:
     def put(self, x, y, val):
         self.data[x+self.width*y] = val
 
-    def isFree(self, x,y):
-        return self.get(x,y)==self.FREE
+    def isFree(self, x,y=None):
+        if y is None:
+            return self.data[x]==self.FREE
+        else:
+            return self.get(x,y)==self.FREE
 
     def isVertexUnblocked(self, x,y):
         return self.isFree(x,y  ) or self.isFree(x-1,y) or self.isFree(x,y-1) or self.isFree(x-1,y-1)
