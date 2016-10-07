@@ -41,7 +41,8 @@ public:
     } MyStar;
     
     const int OCT2CELL[8][2] = {{0,0}, {-1,0}, {-1,0}, {-1,-1}, {-1,-1},  {0,-1}, {0,-1},  {0,0}}; 
-    const int OCT2POINT[8][2] = {{1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1},  {0,-1}, {1,-1},  {1,0}};
+    //const int OCT2POINT[8][2] = {{1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1},  {0,-1}, {1,-1},  {1,0}};
+    const int OCT2POINT[8][2] = {{0,1}, {0,1}, {-1,0}, {-1,0}, {0,-1}, {0,-1}, {1,0},  {1,0}};
     
     CompoundMap cmap;
     std::vector<MyStar> track_stars;
@@ -93,17 +94,84 @@ public:
         #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
             pub_debug_track_map.publish(track_map);
         #endif
-        bool moved;
+        prob = 0.0;
+        region = 0;
+        bool moved=true;
         Point start = boundaryWalkerInit(center);
         do {
+            if (moved)
+                processBoundaryVertex();
             #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
                 publishBoundaryPose();
+                pub_map_div.publish(map_divided);
             #endif
             moved = boundaryWalkerUpdate();
         } while (!boundaryWalkerLooped(start));
 
         cmap.clearDist();
         //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+    }
+    
+    #define LINE_WALK_MACRO(xx, yy) \
+        do {\
+            if (leps>=0) {leps -= dx; y++;}\
+            leps += dy; x++;\
+            visitVertex(s.x+(xx), s.y+(yy));\
+        } while (x<dx); \
+        break;
+    
+    void processBoundaryVertex() {
+        MyStar s = track_stars[track_map.data[wp.x + wp.y*track_map.info.width]];
+        int dx = wp.x-s.x, 
+            dy = wp.y-s.y,
+            x, y;
+        char oct;
+        
+        if (abs(dx)>=abs(dy))
+            if (dx>0)
+                if (dy>=0)  { x=+dx; y=+dy; oct=0+(dx==dy);}
+                else        { x=+dx; y=-dy; oct=7;}
+            else
+                if (dy>0)   { x=-dx; y=+dy; oct=3;}
+                else        { x=-dx; y=-dy; oct=4+(dx==dy);}
+        else
+            if (dy>=0)
+                if (dx>0)   { x=+dy; y=+dx; oct=1;}
+                else        { x=+dy; y=-dx; oct=2;}
+            else
+                if (dx>=0)  { x=-dy; y=+dx; oct=6;}
+                else        { x=-dy; y=-dx; oct=5;}
+    
+        dx=x; dy=y; x=0; y=0;
+        int leps = dy - (oct%2==0 ? dx : 1);
+        
+        visitVertex(s.x, s.y);
+        switch(oct) {
+            case 0: LINE_WALK_MACRO( x,  y); 
+            case 1: LINE_WALK_MACRO( y,  x); 
+            case 2: LINE_WALK_MACRO(-y,  x); 
+            case 3: LINE_WALK_MACRO(-x,  y); 
+            case 4: LINE_WALK_MACRO(-x, -y); 
+            case 5: LINE_WALK_MACRO(-y, -x); 
+            case 6: LINE_WALK_MACRO( y, -x); 
+            case 7: LINE_WALK_MACRO( x, -y); 
+        }/**/
+    }
+    
+    
+    void visitVertex(int x, int y) {
+        double p;
+        int cur = map_divided.data[x + y*map_divided.info.width];
+        if (cur == 255) {
+            p = pdf->data[x + y*pdf->info.width];
+            prob += p;
+            map_divided.data[x + y*map_divided.info.width] = region;
+            if ( prob >= probs_optimal[region] ) {
+                probs_actual[region] = prob;
+                prob = 0.0;
+                region++;
+            }
+        }
     }
     
     int getParentStar(int star_id) { //returns id of the star that is the parent of the star with id==star_id
@@ -164,10 +232,10 @@ public:
                 }
                 return moved;
             case DiagReach:
+                wstate = StraightReach;
                 pt.x = wp.x+OCT2POINT[woct][0];
                 pt.y = wp.y+OCT2POINT[woct][1];
                 if (isPointIn(pt)) {
-                    wstate = StraightReach;
                     woct -= 1; woct &= 7; //turn by -45deg
                     wp = pt;
                     moved = true;
@@ -180,14 +248,15 @@ public:
                     woct += 1; woct &= 7; //turn by +45deg
                     wstate = DiagUnreach;
                 } else {
-                    wstate = DiagReach;
                     pt.x = wp.x+OCT2POINT[woct][0];
                     pt.y = wp.y+OCT2POINT[woct][1];
                     if (isPointIn(pt)) {
-                        woct += 1; woct &= 7; //turn by +45deg
-                    } else {
+                        wstate = DiagReach;
                         woct -= 1; woct &= 7; //turn by -45deg
+                        wp = pt;
                         moved = true;
+                    } else {
+                        woct += 2; woct &= 7; //turn by +45deg
                     }
                 }
                 return moved;
@@ -210,6 +279,7 @@ public:
     
     void onInitSource(Point& pt) {
         track_map.data[pt.x + pt.y*track_map.info.width] = 0;
+        track_stars.push_back({pt.x, pt.y, 0.0});
     }
 
     void onDistanceCorrection(Star& star, Point& pt, int old_dist, int new_dist) {
@@ -223,6 +293,7 @@ public:
     }
 
     void onAddStar(Star& parent_star, Star& s) {
+        //ROS_WARN("------------ star %d = (%d,%d)", s.id, s.c.x, s.c.y);
         track_stars.push_back({s.c.x, s.c.y, s.dist});
     }
 

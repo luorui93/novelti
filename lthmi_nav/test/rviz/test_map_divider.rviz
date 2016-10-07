@@ -5,10 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
-        - /Grid1
-        - //pose_optimal1
-        - //debug_pose_border1
       Splitter Ratio: 0.625
     Tree Height: 507
   - Class: rviz/Selection
@@ -63,10 +59,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: /map_divided
       Topic: /map_divided
-      Value: false
+      Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -109,10 +105,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: /debug_track_map
       Topic: /debug_track_map
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 202; 202; 202
@@ -168,4 +164,4 @@ Window Geometry:
     collapsed: false
   Width: 1274
   X: 586
-  Y: 14
+  Y: 35
