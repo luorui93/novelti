@@ -67,8 +67,8 @@ public:
         }
     }
 
-    void onAddStar(Star& s) {};
-    void onDistanceCorrection(Point& pt, int old_dist, int new_dist) {
+    void onAddStar(Star& s, Star& ps) {};
+    void onDistanceCorrection(Star& ps, Point& pt, int old_dist, int new_dist) {
         if (old_dist==MAP_POINT_UNEXPLORED) {
             visitVertex(pt);
         }

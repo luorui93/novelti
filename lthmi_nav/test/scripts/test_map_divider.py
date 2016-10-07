@@ -41,8 +41,8 @@ def gen_map(grid, resolution):
     m.info.width  = grid.width
     m.info.height = grid.height
     m.info.resolution = resolution
-    m.info.origin.position.x = 0.5*resolution
-    m.info.origin.position.y = 0.5*resolution
+    #m.info.origin.position.x = 0.5*resolution
+    #m.info.origin.position.y = 0.5*resolution
     #m.info.origin.position.z = -0.001
     m.data = [255 if grid.isFree(k) else 254 for k in range(len(grid.data))] #255 - transparent, 254 - black
     return m
@@ -53,10 +53,12 @@ def gen_pdf(grid, resolution):
     pdf.info.width  = grid.width+1
     pdf.info.height = grid.height+1
     pdf.info.resolution = resolution
+    pdf.info.origin.position.x = -0.5*resolution
+    pdf.info.origin.position.y = -0.5*resolution
     #pdf.info.origin.position.z = -0.001
     pdf.data = [-1.0 for x in range(pdf.info.width*pdf.info.height)]
 
-    k = random.randint(0, pdf.info.width)
+    k = 20 #random.randint(0, pdf.info.width)
     total = 0.0
     for x in range(1,pdf.info.width-1):
         for y in range(1,pdf.info.height-1):
@@ -70,11 +72,11 @@ def gen_pdf(grid, resolution):
 def gen_pose(grid, resolution):
     pose = PoseStamped()
     pose.header.stamp = rospy.Time.now()
-    v = grid.genRandUnblockedVertex()
+    v = [15,10] #grid.genRandUnblockedVertex()
     pose.pose.position.x = v[0]*resolution
     pose.pose.position.y = v[1]*resolution
     pose.header.frame_id="/map"
-    return pose
+    return (v, pose) 
     
 if __name__=="__main__":
     rospy.init_node('test_map_divider')
@@ -100,6 +102,8 @@ if __name__=="__main__":
             pdf_publisher.publish(pdf) 
             rospy.loginfo("test_map_divider: published pdf (%d,%d), resolution=%f" % (pdf.info.width, pdf.info.height, pdf.info.resolution))
             
-            pose_publisher.publish(gen_pose(grid, resolution))
+            (vert, pose) = gen_pose(grid, resolution)
+            pose_publisher.publish(pose)
+            rospy.loginfo("test_map_divider: published /pose_optimal vert=(%d,%d), pose=(%f,%f) " % (vert[0], vert[1], pose.pose.position.x, pose.pose.position.y))
             rospy.sleep(5)
     rospy.spin()

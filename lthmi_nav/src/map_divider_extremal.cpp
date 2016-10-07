@@ -21,6 +21,11 @@
 #include <CompoundMap.h>
 #include <CWave2.h>
 
+#ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+    #include <tf/transform_datatypes.h>
+#endif    
+
+
 using namespace cwave;
 
 namespace lthmi_nav {
@@ -51,6 +56,7 @@ public:
     
     #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
         ros::Publisher pub_debug_pose_border;
+        ros::Publisher pub_debug_track_map;
     #endif
     
     
@@ -59,6 +65,7 @@ public:
     { 
         #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
             pub_debug_pose_border   = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, false); //not latched
+            pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, false); //not latched
         #endif
     }
     
@@ -80,16 +87,19 @@ public:
         CWave2 cw(cmap);
         cw.setProcessor(this);
         Point center(vx.x,vx.y);
+        ROS_WARN("----------------, (%d,%d)", vx.x,vx.y);
         cw.calc(center);
         //afterCwave();
-        
-        bool moved;ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!--1"); 
-        Point start = boundaryWalkerInit(center);ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!--2"); 
+        #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+            pub_debug_track_map.publish(track_map);
+        #endif
+        bool moved;
+        Point start = boundaryWalkerInit(center);
         do {
             #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
-                publishBoundaryPose();ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!--3"); 
+                publishBoundaryPose();
             #endif
-            moved = boundaryWalkerUpdate();ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4"); 
+            moved = boundaryWalkerUpdate();
         } while (!boundaryWalkerLooped(start));
 
         cmap.clearDist();
@@ -138,12 +148,9 @@ public:
         Point pt;
         switch (wstate) {
             case DiagUnreach:
-                ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-1");
                 if (cmap.isPixelOccupied(wp.x+OCT2CELL[woct][0], wp.y+OCT2CELL[woct][1])) {
                     woct += 2; woct &= 7; //turn by +90deg
-                    ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-1-1");
                 } else {
-                    ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-1-2");
                     pt.x = wp.x+OCT2POINT[woct][0];
                     pt.y = wp.y+OCT2POINT[woct][1];
                     if (isPointIn(pt)) {
@@ -157,7 +164,6 @@ public:
                 }
                 return moved;
             case DiagReach:
-                ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-2");
                 pt.x = wp.x+OCT2POINT[woct][0];
                 pt.y = wp.y+OCT2POINT[woct][1];
                 if (isPointIn(pt)) {
@@ -170,7 +176,6 @@ public:
                 }
                 return moved;
             case StraightReach:
-                ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!!-4-3");
                 if (cmap.isPixelOccupied(wp.x+OCT2CELL[woct][0], wp.y+OCT2CELL[woct][1])) {
                     woct += 1; woct &= 7; //turn by +45deg
                     wstate = DiagUnreach;
@@ -195,21 +200,30 @@ public:
             ROS_WARN("Boundary pose: (%d,%d), oct=%d", wp.x, wp.y, woct);
             geometry_msgs::PoseStamped msg = Vertex::toPose(wp.x, wp.y, map_divided.info.resolution);
             msg.header.frame_id="/map";
+            msg.pose.orientation = tf::createQuaternionMsgFromYaw((double)(woct)*M_PI/4);
             pub_debug_pose_border.publish(msg);
         }
     #endif
     
     
     
+    
+    void onInitSource(Point& pt) {
+        track_map.data[pt.x + pt.y*track_map.info.width] = 0;
+    }
+
+    void onDistanceCorrection(Star& star, Point& pt, int old_dist, int new_dist) {
+        track_map.data[pt.x + pt.y*track_map.info.width] = star.id;
+    };
+    
+    
     void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& pt, int old_dist, int new_dist) {
+        //ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!--345, (%d,%d) k=%d", pt.x, pt.y, pt.x + pt.y*track_map.info.width); 
         track_map.data[pt.x + pt.y*track_map.info.width] = star.id;
     }
 
-    void onAddStar(Star& s) {
+    void onAddStar(Star& parent_star, Star& s) {
         track_stars.push_back({s.c.x, s.c.y, s.dist});
-        if (s.id!= track_stars.size()-1)
-            ROS_ERROR("!!!!!!!!!!!!!!!!!!!!!!!!!!!!qwe qwedfgjnfg!!!!"); 
-        
     }
 
 };

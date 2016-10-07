@@ -7,7 +7,7 @@
     
     <node pkg="lthmi_nav" type="test_map_divider.py" name="test_map_divider" 
             output="screen" required="true">
-        <param name="map" value="$(find lthmi_nav)/map/arena2.map" />
+        <param name="map" value="$(find lthmi_nav)/map/mini.map" />
         <param name="resolution" value="0.1" />
     </node>
 

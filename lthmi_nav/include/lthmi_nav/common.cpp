@@ -17,8 +17,8 @@ public:
     }
     
     Vertex(const geometry_msgs::PoseStamped& pose, double resolution) {
-        x = (int) floor( pose.pose.position.x / resolution);
-        y = (int) floor( pose.pose.position.y / resolution);
+        x = (int) round( pose.pose.position.x / resolution);
+        y = (int) round( pose.pose.position.y / resolution);
     }
 
     geometry_msgs::PoseStamped toPose(double resolution) {
