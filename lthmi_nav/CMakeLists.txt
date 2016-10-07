@@ -211,7 +211,7 @@ include_directories(
 
 
 add_executable(map_divider src/node_map_divider.cpp src/map_divider.cpp)
-target_compile_definitions(map_divider PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1)
+target_compile_definitions(map_divider PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1)
 target_link_libraries(map_divider
     ${catkin_LIBRARIES}
     ${CWAVE_LIB_DIR}/libcwaveproc.a

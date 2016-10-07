@@ -45,8 +45,7 @@ public:
     const int OCT2POINT[8][2] = {{0,1}, {0,1}, {-1,0}, {-1,0}, {0,-1}, {0,-1}, {1,0},  {1,0}};
     
     CompoundMap cmap;
-    std::vector<MyStar> track_stars;
-    IntMap track_map;
+    IntMap track_map_msg;
     int region;
     double prob;
     
@@ -77,7 +76,7 @@ public:
                 if (req.map.data[x + y*req.map.info.width]==0)
                     cmap.setPixel(x,y, FREED); //free
         MapDivider::start(req);
-        track_map = map_divided; //copy
+        track_map_msg = map_divided; //copy
         //track_stars = std::vector<MyStar>(50);
     }
     
@@ -92,7 +91,8 @@ public:
         cw.calc(center);
         //afterCwave();
         #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
-            pub_debug_track_map.publish(track_map);
+            track_map_msg.data = cmap.track_map;
+            pub_debug_track_map.publish(track_map_msg);
         #endif
         prob = 0.0;
         region = 0;
@@ -107,9 +107,12 @@ public:
             #endif
             moved = boundaryWalkerUpdate();
         } while (!boundaryWalkerLooped(start));
-
+        probs_actual[region] = prob;
+        
         cmap.clearDist();
-        //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+        
+        float p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
+        ROS_INFO("probs_actual=[%f,%f,%f,%f], sum=%f", p0,p1,p2,p3, p0+p1+p2+p3);
     }
     
     #define LINE_WALK_MACRO(xx, yy) \
@@ -121,7 +124,7 @@ public:
         break;
     
     void processBoundaryVertex() {
-        MyStar s = track_stars[track_map.data[wp.x + wp.y*track_map.info.width]];
+        TrackStar s = cmap.getTrackStar(cmap.getTrackStarId(wp.x, wp.y));
         int dx = wp.x-s.x, 
             dy = wp.y-s.y,
             x, y;
@@ -175,11 +178,12 @@ public:
     }
     
     int getParentStar(int star_id) { //returns id of the star that is the parent of the star with id==star_id
-        return track_map.data[ track_stars[star_id].x  +   track_stars[star_id].y*track_map.info.width];
+        TrackStar s = cmap.getTrackStar(star_id);
+        return cmap.getTrackStarId(s.x, s.y);
     }
     
     bool isPointIn(Point& pt) {
-        int s = track_map.data[ pt.x  +   pt.y*track_map.info.width];
+        int s = cmap.getTrackStarId(pt.x, pt.y);
         if (s==wstar) {
             return true;
         } else if (s!=0 && getParentStar(s)==wstar) {
@@ -193,7 +197,7 @@ public:
     }
     
     Point findBoundaryVertex(Point pt) {
-        while (track_map.data[pt.x+1 + pt.y* track_map.info.width] == 0) {
+        while (cmap.getTrackStarId(pt.x+1, pt.y) == 0) {
             pt.x++;
         }
         return pt;
@@ -276,7 +280,7 @@ public:
     
     
     
-    
+    /*
     void onInitSource(Point& pt) {
         track_map.data[pt.x + pt.y*track_map.info.width] = 0;
         track_stars.push_back({pt.x, pt.y, 0.0});
@@ -295,7 +299,7 @@ public:
     void onAddStar(Star& parent_star, Star& s) {
         //ROS_WARN("------------ star %d = (%d,%d)", s.id, s.c.x, s.c.y);
         track_stars.push_back({s.c.x, s.c.y, s.dist});
-    }
+    }*/
 
 };
 }

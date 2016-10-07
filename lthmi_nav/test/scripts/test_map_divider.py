@@ -72,7 +72,7 @@ def gen_pdf(grid, resolution):
 def gen_pose(grid, resolution):
     pose = PoseStamped()
     pose.header.stamp = rospy.Time.now()
-    v = [15,10] #grid.genRandUnblockedVertex()
+    v =  grid.genRandUnblockedVertex() #[2,10] #grid.genRandUnblockedVertex() #[15,10] #grid.genRandUnblockedVertex()
     pose.pose.position.x = v[0]*resolution
     pose.pose.position.y = v[1]*resolution
     pose.header.frame_id="/map"

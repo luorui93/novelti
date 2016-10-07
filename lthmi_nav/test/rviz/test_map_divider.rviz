@@ -59,10 +59,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: /map_divided
       Topic: /map_divided
-      Value: true
+      Value: false
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -105,10 +105,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: /debug_track_map
       Topic: /debug_track_map
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 202; 202; 202
@@ -163,5 +163,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1274
-  X: 586
-  Y: 35
+  X: 770
+  Y: 14
