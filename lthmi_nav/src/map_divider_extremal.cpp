@@ -186,12 +186,32 @@ public:
         int s = cmap.getTrackStarId(pt.x, pt.y);
         if (s==wstar) {
             return true;
-        } else if (s!=0 && getParentStar(s)==wstar) {
-            wstar =s;
-            return true;
-        } else if (wstar!=0 && getParentStar(wstar)==s) {
-            wstar = s;
-            return true;
+        } else if (s!=0 && getParentStar(s)==wstar) {//parent->child
+            TrackStar child  = cmap.getTrackStar(s);
+            TrackStar parent = cmap.getTrackStar(wstar);
+            int Qx=wp.x-parent.x,       Qy=wp.y-parent.y;
+            int Rx=pt.x-parent.x,       Ry=pt.y-parent.y;
+            int Cx=child.x-parent.x,    Cy=child.y-parent.y;
+/*            int cx = pt.x-child.x,      cy = pt.y-child.y;
+            int px = child.x-parent.x,  py = child.y-parent.y;
+            if ((child.x==wp.x && child.y==wp.y)||px*cy-py*cx >= 0) {*/
+            if ((Qx*Cy-Qy*Cx)*(Cx*Ry-Cy*Rx)>=0) {
+                wstar = s;
+                return true;
+            }
+        } else if (wstar!=0 && getParentStar(wstar)==s) {//child->parent
+            TrackStar child  = cmap.getTrackStar(wstar);
+            TrackStar parent = cmap.getTrackStar(s);
+            /*int cx = wp.x-child.x,      cy = wp.y-child.y;
+            int px = child.x-parent.x,  py = child.y-parent.y;
+            if ((child.x==pt.x && child.y==pt.y  ) || cx*py-cy*px >= 0) {*/
+            int Qx=wp.x-parent.x,       Qy=wp.y-parent.y;
+            int Rx=pt.x-parent.x,       Ry=pt.y-parent.y;
+            int Cx=child.x-parent.x,    Cy=child.y-parent.y;
+            if ((Qx*Cy-Qy*Cx)*(Cx*Ry-Cy*Rx)>=0) {
+                wstar = s;
+                return true;
+            }
         }
         return false;
     }
