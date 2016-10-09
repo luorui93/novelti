@@ -1,0 +1,32 @@
+define d
+    b lthmi_nav::ExtremalMapDivider::divide
+end
+define f
+    b lthmi_nav::ExtremalMapDivider::findBoundaryVertex
+end
+define u
+    b lthmi_nav::ExtremalMapDivider::boundaryWalkerUpdate
+end
+define v
+    b lthmi_nav::ExtremalMapDivider::visitVertex
+end
+
+define sp
+    b cwave:: Walker::setPoint
+end
+
+#b cwave::qqq if (x==2 && y==19)
+
+#b cwave::CWave2::addStar if (s.c.x==10 && s.c.y==14)
+
+#b lthmi_nav::ExtremalMapDivider::isPointIn if (pt.x==6 && pt.y==19)
+
+define dline
+    b lthmi_nav::ExtremalMapDivider::processBoundaryVertex if (wp.x==17 && wp.y==16)
+    b lthmi_nav::ExtremalMapDivider::visitVertex if (wp.x==17 && wp.y==16)
+end
+
+dline
+#d
+#u
+r
