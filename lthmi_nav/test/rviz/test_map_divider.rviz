@@ -124,10 +124,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: /debug_track_map
       Topic: /debug_track_map
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 202; 202; 202
@@ -182,5 +182,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 717
-  Y: 14
+  X: 131
+  Y: 51

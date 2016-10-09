@@ -34,6 +34,6 @@ if __name__=="__main__":
     # prepare additional vars
     tested_vector = interface_matrix[tested_cmd]
     
-    pub = rospy.Subscriber('/cmd_detected', Command, command_callback)
+    sub = rospy.Subscriber('/cmd_detected', Command, command_callback)
 
     rospy.spin()
