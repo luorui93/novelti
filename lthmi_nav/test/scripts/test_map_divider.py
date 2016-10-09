@@ -80,7 +80,7 @@ class MapDividerTester (SyncingNode):
     def publishPose(self):
         pose = PoseStamped()
         pose.header.stamp = rospy.Time.now()
-        optimalVertex =  self.grid.genRandUnblockedVertex() #[16,5] #grid.genRandUnblockedVertex() #[23,2] #grid.genRandUnblockedVertex() #[2,10] #grid.genRandUnblockedVertex() #[15,10] #grid.genRandUnblockedVertex()
+        optimalVertex =  [114,22] #self.grid.genRandUnblockedVertex() 
         pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
         pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
         pose.header.frame_id="/map"
