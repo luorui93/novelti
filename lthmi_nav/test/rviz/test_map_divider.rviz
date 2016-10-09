@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Grid Thick1
       Splitter Ratio: 0.625
     Tree Height: 376
   - Class: rviz/Selection
@@ -29,6 +30,24 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
+    - Alpha: 0.5
+      Cell Size: 0.5
+      Class: rviz/Grid
+      Color: 0; 0; 0
+      Enabled: true
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Name: Grid Thick
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 100
+      Reference Frame: <Fixed Frame>
+      Value: true
     - Alpha: 0.5
       Cell Size: 0.1
       Class: rviz/Grid
@@ -105,10 +124,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: /debug_track_map
       Topic: /debug_track_map
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 202; 202; 202
@@ -141,11 +160,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 256.109
+      Scale: 246.773
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 1.31507
-      Y: 0.999895
+      X: 1.42126
+      Y: 1.02245
     Saved: ~
 Window Geometry:
   Displays:
@@ -163,5 +182,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 737
+  X: 717
   Y: 14

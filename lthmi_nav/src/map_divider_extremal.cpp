@@ -45,7 +45,6 @@ public:
     const int OCT2POINT[8][2] = {{0,1}, {0,1}, {-1,0}, {-1,0}, {0,-1}, {0,-1}, {1,0},  {1,0}};
     
     CompoundMap cmap;
-    IntMap track_map_msg;
     int region;
     double prob;
     
@@ -54,7 +53,11 @@ public:
     WalkerState wstate; //walker state
     int wstar;
     
+    vector<int> branch1;
+    vector<int> branch2;
+    
     #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+        IntMap track_map_msg;
         ros::Publisher pub_debug_pose_border;
         ros::Publisher pub_debug_track_map;
     #endif
@@ -76,7 +79,9 @@ public:
                 if (req.map.data[x + y*req.map.info.width]==0)
                     cmap.setPixel(x,y, FREED); //free
         MapDivider::start(req);
-        track_map_msg = map_divided; //copy
+        #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+            track_map_msg = map_divided; //copy
+        #endif
         //track_stars = std::vector<MyStar>(50);
     }
     
@@ -84,10 +89,10 @@ public:
     
     void divide() {
         //beforeCWave();
+        map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
         CWave2 cw(cmap);
         cw.setProcessor(this);
         Point center(vx.x,vx.y);
-        ROS_WARN("----------------, (%d,%d)", vx.x,vx.y);
         cw.calc(center);
         //afterCwave();
         #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
@@ -110,6 +115,7 @@ public:
         probs_actual[region] = prob;
         
         cmap.clearDist();
+        cmap.clearTrack();
         
         float p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
         ROS_INFO("probs_actual=[%f,%f,%f,%f], sum=%f", p0,p1,p2,p3, p0+p1+p2+p3);
@@ -177,6 +183,68 @@ public:
         }
     }
     
+    int findLowestCommonAncestor(int s1, int s2) {
+        branch1.resize(0);
+        branch2.resize(0);
+        int s = s1;
+        while (true) {
+            branch1.push_back(s);
+            if (s==0) 
+                break;
+            s = getParentStar(s);
+        }
+        s = s2;
+        while (true) {
+            branch2.push_back(s);
+            if (s==0) 
+                break;
+            s = getParentStar(s);
+        }
+        int k1=branch1.size()-1, k2=branch2.size()-1;
+        while (branch1[k1] == branch2[k2]) {
+            k1--; k2--;
+        }
+        s = branch1[k1+1];
+        return s;
+    }
+    
+    bool isContinuousTurnPath(vector<int>& path, Point& start, int end_id, bool isClockwise) {
+        int k=0;
+        TrackStar s2, s1 = cmap.getTrackStar(path[k]);
+        int v1x = start.x-s1.x, v1y = start.y-s1.y;
+        int v2x, v2y;
+        int crit;
+        while (path[k] != end_id) {
+            k++;
+            s2 = cmap.getTrackStar(path[k]);
+            v2x = s1.x-s2.x;    v2y = s1.y-s2.y;
+            crit = v1x*v2y - v1y*v2x;
+            if (isClockwise)
+                crit = -crit;
+            if (crit<0)
+                return false;
+            v1x = v2x;  v1y = v2y;
+            s1 = s2;
+        }
+        return true;
+    }
+            
+    bool isStarBetweenVectors(Point& rightVec, Point& leftVec, TrackStar& pivot, TrackStar star) {
+        Point testVec(star.x-pivot.x, star.y-pivot.y);
+        return (rightVec.x*testVec.y - rightVec.y*testVec.x>=0) &&
+               (testVec.x*leftVec.y - testVec.y*leftVec.x>=0);
+    }
+    
+    bool allWayPointsBetweenVectors(Point& rightVec, Point& leftVec, TrackStar& pivot, vector<int>& waypoints, int end_id) {
+        int k=0;
+        while(waypoints[k]!=end_id) {
+            if (!isStarBetweenVectors(rightVec, leftVec, pivot, cmap.getTrackStar(waypoints[k])))
+                return false;
+            k++;
+        }
+        return true;
+    }
+    
     int getParentStar(int star_id) { //returns id of the star that is the parent of the star with id==star_id
         TrackStar s = cmap.getTrackStar(star_id);
         return cmap.getTrackStarId(s.x, s.y);
@@ -209,6 +277,18 @@ public:
             int Rx=pt.x-parent.x,       Ry=pt.y-parent.y;
             int Cx=child.x-parent.x,    Cy=child.y-parent.y;
             if ((Qx*Cy-Qy*Cx)*(Cx*Ry-Cy*Rx)>=0) {
+                wstar = s;
+                return true;
+            }
+        } else {
+            int lca = findLowestCommonAncestor(wstar, s);
+            TrackStar pivotStar = cmap.getTrackStar(lca);
+            Point rightVec(wp.x-pivotStar.x, wp.y-pivotStar.y);
+            Point leftVec(pt.x-pivotStar.x, pt.y-pivotStar.y);
+            if (allWayPointsBetweenVectors(rightVec, leftVec, pivotStar, branch1, lca) &&
+                allWayPointsBetweenVectors(rightVec, leftVec, pivotStar, branch2, lca)) {
+            /*if (isContinuousTurnPath(branch1, wp, lca, false) &&
+                isContinuousTurnPath(branch2, pt, lca, true)) {*/
                 wstar = s;
                 return true;
             }
@@ -290,7 +370,7 @@ public:
     
     #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
         void publishBoundaryPose() {
-            ROS_WARN("Boundary pose: (%d,%d), oct=%d", wp.x, wp.y, woct);
+            //ROS_WARN("Boundary pose: (%d,%d), oct=%d", wp.x, wp.y, woct);
             geometry_msgs::PoseStamped msg = Vertex::toPose(wp.x, wp.y, map_divided.info.resolution);
             msg.header.frame_id="/map";
             msg.pose.orientation = tf::createQuaternionMsgFromYaw((double)(woct)*M_PI/4);
@@ -298,28 +378,8 @@ public:
         }
     #endif
     
-    
-    
-    /*
-    void onInitSource(Point& pt) {
-        track_map.data[pt.x + pt.y*track_map.info.width] = 0;
-        track_stars.push_back({pt.x, pt.y, 0.0});
-    }
-
-    void onDistanceCorrection(Star& star, Point& pt, int old_dist, int new_dist) {
-        track_map.data[pt.x + pt.y*track_map.info.width] = star.id;
-    };
-    
-    
-    void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& pt, int old_dist, int new_dist) {
-        //ROS_WARN("!!!!!!!!!!!!!!!!!!!!!!!!!!!--345, (%d,%d) k=%d", pt.x, pt.y, pt.x + pt.y*track_map.info.width); 
-        track_map.data[pt.x + pt.y*track_map.info.width] = star.id;
-    }
-
-    void onAddStar(Star& parent_star, Star& s) {
-        //ROS_WARN("------------ star %d = (%d,%d)", s.id, s.c.x, s.c.y);
-        track_stars.push_back({s.c.x, s.c.y, s.dist});
-    }*/
-
 };
+
+
+
 }

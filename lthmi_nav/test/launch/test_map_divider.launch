@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="debug" default="1" />
-    <arg name="map" default="mini2" />
+    <arg name="map" default="mini" />
     
-    <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 200x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_map_divider - -args" />
+    <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_map_divider - -args" />
     <arg unless="$(arg debug)" name="prefix" default="" />
     
     <node pkg="lthmi_nav" type="test_map_divider.py" name="test_map_divider" 
             output="screen" required="true">
         <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
         <param name="resolution" value="0.1" />
+        <param name="n_experiments" value="1" />
+        <param name="n_poses" value="1" />
+        <param name="sleep_forever" value="1" />
     </node>
 
     <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen"

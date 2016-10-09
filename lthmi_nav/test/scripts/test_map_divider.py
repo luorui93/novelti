@@ -72,7 +72,7 @@ def gen_pdf(grid, resolution):
 def gen_pose(grid, resolution):
     pose = PoseStamped()
     pose.header.stamp = rospy.Time.now()
-    v =  [23,2] #grid.genRandUnblockedVertex() #[2,10] #grid.genRandUnblockedVertex() #[15,10] #grid.genRandUnblockedVertex()
+    v =  [27,17] #grid.genRandUnblockedVertex() #[16,5] #grid.genRandUnblockedVertex() #[23,2] #grid.genRandUnblockedVertex() #[2,10] #grid.genRandUnblockedVertex() #[15,10] #grid.genRandUnblockedVertex()
     pose.pose.position.x = v[0]*resolution
     pose.pose.position.y = v[1]*resolution
     pose.header.frame_id="/map"
@@ -104,6 +104,7 @@ if __name__=="__main__":
             
             (vert, pose) = gen_pose(grid, resolution)
             pose_publisher.publish(pose)
-            rospy.loginfo("test_map_divider: published /pose_optimal vert=(%d,%d), pose=(%f,%f) " % (vert[0], vert[1], pose.pose.position.x, pose.pose.position.y))
+            rospy.loginfo("test_map_divider: published /pose_optimal vertex=(%d,%d), pose=(%f,%f) " % (vert[0], vert[1], pose.pose.position.x, pose.pose.position.y))
             rospy.sleep(5)
-    rospy.spin()
+    if sleep_forever:
+        rospy.spin()
