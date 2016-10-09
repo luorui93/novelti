@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Grid Thick1
+        - /Grid 1 cell1
       Splitter Ratio: 0.625
     Tree Height: 376
   - Class: rviz/Selection
@@ -30,40 +30,58 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
-    - Alpha: 0.5
-      Cell Size: 0.5
+    - Alpha: 1
+      Cell Size: 5
       Class: rviz/Grid
       Color: 0; 0; 0
       Enabled: true
       Line Style:
         Line Width: 0.03
         Value: Lines
-      Name: Grid Thick
+      Name: Grid 50 cells
       Normal Cell Count: 0
       Offset:
         X: 0
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 100
+      Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 0.5
-      Cell Size: 0.1
+      Cell Size: 0.5
       Class: rviz/Grid
-      Color: 160; 160; 164
+      Color: 131; 131; 131
       Enabled: true
       Line Style:
         Line Width: 0.03
         Value: Lines
-      Name: Grid
+      Name: Grid 5 cells
       Normal Cell Count: 0
       Offset:
         X: 0
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 100
+      Plane Cell Count: 150
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Alpha: 0.1
+      Cell Size: 0.1
+      Class: rviz/Grid
+      Color: 255; 255; 255
+      Enabled: true
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Name: Grid 1 cell
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 1000
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
@@ -160,11 +178,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 246.773
+      Scale: 28.3866
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 1.42126
-      Y: 1.02245
+      X: 11.2667
+      Y: 7.47691
     Saved: ~
 Window Geometry:
   Displays:
@@ -182,5 +200,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 131
-  Y: 51
+  X: 518
+  Y: 40
