@@ -2,6 +2,7 @@
 <launch>
     <arg name="debug" default="1" />
     <arg name="map" default="mini" />
+    <arg name="period" default="0.0" />
     
     <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_map_divider - -args" />
     <arg unless="$(arg debug)" name="prefix" default="" />
@@ -10,9 +11,13 @@
             output="screen" required="true">
         <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
         <param name="resolution" value="0.1" />
-        <param name="n_experiments" value="1" />
-        <param name="n_poses" value="1" />
-        <param name="sleep_forever" value="1" />
+        <param name="n_experiments" value="10" />
+        <param name="n_poses" value="10" />
+        <param name="period" value="$(arg period)" />
+        <rosparam>
+            synced_nodes: ['/map_divider']
+            waited_srvs:  ['/rviz/reload_shaders']
+        </rosparam>
     </node>
 
     <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen"
