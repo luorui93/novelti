@@ -1,4 +1,4 @@
-#define EXTREMAL_MAP_DIVIDER_DEBUG 1
+//#define EXTREMAL_MAP_DIVIDER_DEBUG 1
         /* +--------------------------------+
          * |                 \              |
          * |  ____            \             |
@@ -13,7 +13,7 @@
          * |     2           \       |  \   |
          * |                  \______|   \  |
          * |                              \ |
-         * |                               \|44,72
+         * |                               \|
          * |                                |
          * +--------------------------------+  */
         
@@ -124,11 +124,11 @@ public:
     }
     
     #define LINE_WALK_MACRO(xx, yy) \
-        do {\
+        while (x<dx) {\
             if (leps>=0) {leps -= dx; y++;}\
             leps += dy; x++;\
             visitVertex(s.x+(xx), s.y+(yy));\
-        } while (x<dx); \
+        }; \
         break;
     
     void processBoundaryVertex() {
@@ -364,15 +364,15 @@ public:
                         woct -= 1; woct &= 7; //turn by -45deg
                         moved = true;
                     } else {
-                        pt.x = wp.x+OCT2POINT[woct][0];
+                        /*pt.x = wp.x+OCT2POINT[woct][0];
                         pt.y = wp.y+OCT2POINT[woct][1];
                         if (isPointIn(pt)) {
                             wp = pt;
                             woct -= 2; woct &= 7; //turn by -90deg
                             moved = true;
-                        } else {
+                        } else {*/
                             woct += 2; woct &= 7; //turn by +90deg
-                        }
+                        //}
                     }
                 }
                 return moved;

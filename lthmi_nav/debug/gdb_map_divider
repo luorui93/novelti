@@ -5,10 +5,10 @@ define f
     b lthmi_nav::ExtremalMapDivider::findBoundaryVertex
 end
 define u
-    b lthmi_nav::ExtremalMapDivider::boundaryWalkerUpdate
+    b lthmi_nav::ExtremalMapDivider::boundaryWalkerUpdate if (region==3 && wp.x==399 && wp.y==348)
 end
 define v
-    b lthmi_nav::ExtremalMapDivider::visitVertex
+    b lthmi_nav::ExtremalMapDivider::visitVertex if (x==399 && y>=347)
 end
 
 define sp
@@ -22,15 +22,17 @@ end
 b lthmi_nav::ExtremalMapDivider::isPointIn if (pt.x==58 && pt.y==119)
 
 define dline
-    b lthmi_nav::ExtremalMapDivider::processBoundaryVertex if (wp.x==17 && wp.y==16)
-    b lthmi_nav::ExtremalMapDivider::visitVertex if (wp.x==17 && wp.y==16)
+    b lthmi_nav::ExtremalMapDivider::processBoundaryVertex if (region==3 && wp.x==399 && wp.y==348)
+    b lthmi_nav::ExtremalMapDivider::visitVertex if (region==3 && wp.x==399 && wp.y==348)
 end
 
 #b map_divider_extremal.cpp:387 if (x==199 && y==110)
 #b lthmi_nav::ExtremalMapDivider::removeSingleUnassigned
 
+#b lthmi_nav::MapDivider::divideAndPublish
 
-#dline
+dline
 #d
-u
+#u
+#v
 r

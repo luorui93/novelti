@@ -13,7 +13,7 @@
 #include <lthmi_nav/common.cpp>
 
 
-using namespace lthmi_nav;
+namespace lthmi_nav {
 
 class MapDivider : public SynchronizableNode {
 public:
@@ -46,5 +46,6 @@ public:
     virtual void divide(){};
     
 };
+}
 
 #endif
