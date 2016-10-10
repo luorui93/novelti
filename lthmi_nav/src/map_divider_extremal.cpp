@@ -45,6 +45,7 @@
     neighbours, vertex v3 will missed.
 
 #2 There are configurations when boundary walker can get stuck in an infinite loop:
+    git commit 75717690a235022d8d86b86d4f4feb4b8098671d
     $ roslaunch lthmi_nav test_map_divider.launch map:=office4 debug:=1 px:=44 py:=72
 */
 #include <lthmi_nav/map_divider.h>
