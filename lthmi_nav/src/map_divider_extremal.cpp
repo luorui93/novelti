@@ -353,15 +353,16 @@ public:
                     woct += 1; woct &= 7; //turn by +45deg
                     wstate = DiagUnreach;
                 } else {
-                    wstate = DiagReach;
                     pt.x = wp.x+OCT2POINT[woct][0];
                     pt.y = wp.y+OCT2POINT[woct][1];
                     if (isPointIn(pt)) {
-                        wp.x += OCT2POINT_MOVE[woct][0];
-                        wp.y += OCT2POINT_MOVE[woct][1];
-                        woct -= 1; woct &= 7; //turn by -45deg
+                        //wp.x += OCT2POINT_MOVE[woct][0];
+                        //wp.y += OCT2POINT_MOVE[woct][1];
+                        wp = pt;
+                        woct -= 2; woct &= 7; //turn by -45deg
                         moved = true;
                     } else {
+                        wstate = DiagReach;
                         woct += 1; woct &= 7; //turn by +45deg
                     }
                 }
