@@ -6,6 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from lthmi_nav.msg import IntMap
 from lthmi_nav.msg import FloatMap
 
+from datetime import datetime
 import random
 import math
 
@@ -20,15 +21,21 @@ class MapDividerTester (SyncingNode):
             'resolution':    rospy.get_param('~resolution', 0.1),
             'n_experiments': rospy.get_param('~n_experiments', 1),
             'n_poses':       rospy.get_param('~n_poses', 1),
+            'pose_x':        rospy.get_param('~pose_x', 0), #0 means random pose
+            'pose_y':        rospy.get_param('~pose_y', 0), 
             'delay':         rospy.get_param('~delay', -1.0) #negative means forever
             #'period':        rospy.get_param('~period', -1.0) #0.0 means wait forever
         })
+        rospy.get_param('~px', None)
+        rospy.get_param('~py', None)
+        
         self.pdf_publisher   = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
         self.pose_publisher  = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1, latch=True)#, latch=False)
         self.pose_publisher  = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1, latch=True)#, latch=False)
         self.map_divided_sub = rospy.Subscriber('/map_divided', IntMap, self.mapDividedCallback)
         self.exps_left       = self.cfg['n_experiments']
         self.poses_left      = 0
+        random.seed(datetime.now())
     
     def publishNextPose(self):
         if self.poses_left==0:
@@ -80,7 +87,11 @@ class MapDividerTester (SyncingNode):
     def publishPose(self):
         pose = PoseStamped()
         pose.header.stamp = rospy.Time.now()
-        optimalVertex =  [114,22] #self.grid.genRandUnblockedVertex() 
+        if self.cfg['pose_x'] != 0:
+            optimalVertex = [self.cfg['pose_x'], self.cfg['pose_y']]
+        else:
+            optimalVertex = self.grid.genRandUnblockedVertex() #[114,22]
+        print  optimalVertex[0]
         pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
         pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
         pose.header.frame_id="/map"

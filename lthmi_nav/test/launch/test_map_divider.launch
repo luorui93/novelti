@@ -3,6 +3,8 @@
     <arg name="debug" default="1" />
     <arg name="map" default="office4" />
     <arg name="delay" default="0.0" />
+    <arg name="px" default="0" /> <!-- empty list [] means random -->
+    <arg name="py" default="0" /> <!-- empty list [] means random -->
     
     <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_map_divider - -args" />
     <arg unless="$(arg debug)" name="prefix" default="" />
@@ -14,6 +16,8 @@
         <param name="n_experiments" value="10" />
         <param name="n_poses" value="10" />
         <param name="delay" value="$(arg delay)" />
+        <param name="pose_x" value="$(arg px)" />
+        <param name="pose_y" value="$(arg py)" />
         <rosparam>
             synced_nodes: ['/map_divider']
             waited_srvs:  ['/rviz/reload_shaders']

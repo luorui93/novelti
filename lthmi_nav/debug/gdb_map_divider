@@ -19,7 +19,7 @@ end
 
 #b cwave::CWave2::addStar if (s.c.x==10 && s.c.y==14)
 
-#b lthmi_nav::ExtremalMapDivider::isPointIn if (pt.x==6 && pt.y==19)
+b lthmi_nav::ExtremalMapDivider::isPointIn if (pt.x==58 && pt.y==119)
 
 define dline
     b lthmi_nav::ExtremalMapDivider::processBoundaryVertex if (wp.x==17 && wp.y==16)
@@ -28,5 +28,5 @@ end
 
 #dline
 d
-#u
+u
 r

@@ -1,4 +1,4 @@
-//#define EXTREMAL_MAP_DIVIDER_DEBUG 1
+#define EXTREMAL_MAP_DIVIDER_DEBUG 1
         /* +--------------------------------+
          * |                 \              |
          * |  ____            \             |
@@ -42,7 +42,8 @@ public:
     
     const int OCT2CELL[8][2] = {{0,0}, {-1,0}, {-1,0}, {-1,-1}, {-1,-1},  {0,-1}, {0,-1},  {0,0}}; 
     //const int OCT2POINT[8][2] = {{1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1},  {0,-1}, {1,-1},  {1,0}};
-    const int OCT2POINT[8][2] = {{0,1}, {0,1}, {-1,0}, {-1,0}, {0,-1}, {0,-1}, {1,0},  {1,0}};
+    const int OCT2POINT[8][2] = {{1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1}, {0,-1}, {1,-1},  {1,0}};
+    const int OCT2POINT_MOVE[8][2] = {{0,1}, {55,55}, {-1,0}, {55,55}, {0,-1}, {55,55}, {1,0},  {55,55}};
     
     CompoundMap cmap;
     int region;
@@ -352,15 +353,16 @@ public:
                     woct += 1; woct &= 7; //turn by +45deg
                     wstate = DiagUnreach;
                 } else {
+                    wstate = DiagReach;
                     pt.x = wp.x+OCT2POINT[woct][0];
                     pt.y = wp.y+OCT2POINT[woct][1];
                     if (isPointIn(pt)) {
-                        wstate = DiagReach;
+                        wp.x += OCT2POINT_MOVE[woct][0];
+                        wp.y += OCT2POINT_MOVE[woct][1];
                         woct -= 1; woct &= 7; //turn by -45deg
-                        wp = pt;
                         moved = true;
                     } else {
-                        woct += 2; woct &= 7; //turn by +45deg
+                        woct += 1; woct &= 7; //turn by +45deg
                     }
                 }
                 return moved;
