@@ -1,4 +1,4 @@
-#define EXTREMAL_MAP_DIVIDER_DEBUG 1
+//#define EXTREMAL_MAP_DIVIDER_DEBUG 1
         /* +--------------------------------+
          * |                 \              |
          * |  ____            \             |
@@ -150,8 +150,13 @@ public:
         cmap.clearDist();
         cmap.clearTrack();
         
-        float p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
-        ROS_INFO("%s: probs_actual=[%f,%f,%f,%f], sum=%f", getName().c_str(), p0,p1,p2,p3, p0+p1+p2+p3);
+        double p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
+        double sum = p0+p1+p2+p3;
+        ROS_INFO("%s: probs_actual=[%f,%f,%f,%f], sum=%f", getName().c_str(), p0,p1,p2,p3, sum);
+        if (fabs(sum-1.0)>0.001) {
+            ROS_ERROR("%s: ERROR: sum of actual probabilities is %f which is too far from 1.0", getName().c_str(), sum);
+            exit(1);
+        }
     }
     
     #define LINE_WALK_MACRO(xx, yy) \

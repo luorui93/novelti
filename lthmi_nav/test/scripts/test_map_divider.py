@@ -22,7 +22,8 @@ class MapDividerTester (SyncingNode):
             'n_experiments': rospy.get_param('~n_experiments', 1),
             'n_poses':       rospy.get_param('~n_poses', 1),
             'pose_x':        rospy.get_param('~pose_x', 0), #0 means random pose
-            'pose_y':        rospy.get_param('~pose_y', 0), 
+            'pose_y':        rospy.get_param('~pose_y', 0),
+            'pdf_seed':      rospy.get_param('~pdf_seed', -1), 
             'delay':         rospy.get_param('~delay', -1.0) #negative means forever
             #'period':        rospy.get_param('~period', -1.0) #0.0 means wait forever
         })
@@ -70,7 +71,9 @@ class MapDividerTester (SyncingNode):
         #pdf.info.origin.position.z = -0.001
         pdf.data = [-1.0 for x in range(pdf.info.width*pdf.info.height)]
         
-        k = 20 #random.randint(0, pdf.info.width)
+        k = self.cfg['pdf_seed']#20 #random.randint(0, pdf.info.width)
+        if k<0:
+            k = random.randint(0, pdf.info.width)
         total = 0.0
         for x in range(1,pdf.info.width-1):
             for y in range(1,pdf.info.height-1):
@@ -81,7 +84,7 @@ class MapDividerTester (SyncingNode):
         pdf.data = [p/total if p>0.0 else p for p in pdf.data]
         self.pdf = pdf
         self.pdf_publisher.publish(pdf) 
-        rospy.loginfo("%s: published pdf resoution=(%d,%d), cell_size=%f, k=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
+        rospy.loginfo("%s: published pdf resoution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
 
 
     def publishPose(self):
