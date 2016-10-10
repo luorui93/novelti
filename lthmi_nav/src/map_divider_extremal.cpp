@@ -13,7 +13,7 @@
          * |     2           \       |  \   |
          * |                  \______|   \  |
          * |                              \ |
-         * |                               \|
+         * |                               \|44,72
          * |                                |
          * +--------------------------------+  */
         
@@ -114,7 +114,8 @@ public:
             moved = boundaryWalkerUpdate();
         } while (!boundaryWalkerLooped(start));
         probs_actual[region] = prob;
-        
+
+        removeSingleUnassigned();
         cmap.clearDist();
         cmap.clearTrack();
         
@@ -353,23 +354,51 @@ public:
                     woct += 1; woct &= 7; //turn by +45deg
                     wstate = DiagUnreach;
                 } else {
-                    pt.x = wp.x+OCT2POINT[woct][0];
-                    pt.y = wp.y+OCT2POINT[woct][1];
+                    pt.x = wp.x+OCT2POINT[woct+1][0];
+                    pt.y = wp.y+OCT2POINT[woct+1][1];
                     if (isPointIn(pt)) {
                         //wp.x += OCT2POINT_MOVE[woct][0];
                         //wp.y += OCT2POINT_MOVE[woct][1];
+                        wstate = DiagReach;
                         wp = pt;
-                        woct -= 2; woct &= 7; //turn by -45deg
+                        woct -= 1; woct &= 7; //turn by -45deg
                         moved = true;
                     } else {
-                        wstate = DiagReach;
-                        woct += 1; woct &= 7; //turn by +45deg
+                        pt.x = wp.x+OCT2POINT[woct][0];
+                        pt.y = wp.y+OCT2POINT[woct][1];
+                        if (isPointIn(pt)) {
+                            wp = pt;
+                            woct -= 2; woct &= 7; //turn by -90deg
+                            moved = true;
+                        } else {
+                            woct += 2; woct &= 7; //turn by +90deg
+                        }
                     }
                 }
                 return moved;
         }
     }
     
+    void removeSingleUnassigned() {
+        int reg, k;
+        int neighs[8][2] = {{1,0},{1,1},{0,1},{-1,-1},  {-1,0},{-1,-1},{0,-1},{1,-1}};
+        for (int x=0;x<map_divided.info.width; x++) {
+            for (int y=0;y<map_divided.info.height; y++) {
+                k = x + y*map_divided.info.width;
+                if (map_divided.data[k]==255 && cmap.getTrackStarId(x,y)>=0) {
+                    //found unassigned vertex
+                    for (int n=0; n<8; n++) {//find neighbors with assigned vertices
+                        reg = map_divided.data[x+neighs[n][0] + (y+neighs[n][1])*map_divided.info.width];
+                        if (reg != 255) {
+                            probs_actual[reg] += pdf->data[k];
+                            map_divided.data[k] = reg;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
         void publishBoundaryPose() {

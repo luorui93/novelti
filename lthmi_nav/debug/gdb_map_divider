@@ -26,7 +26,11 @@ define dline
     b lthmi_nav::ExtremalMapDivider::visitVertex if (wp.x==17 && wp.y==16)
 end
 
+#b map_divider_extremal.cpp:387 if (x==199 && y==110)
+#b lthmi_nav::ExtremalMapDivider::removeSingleUnassigned
+
+
 #dline
-d
+#d
 u
 r
