@@ -1,4 +1,4 @@
-//#define EXTREMAL_MAP_DIVIDER_DEBUG 1
+#define EXTREMAL_MAP_DIVIDER_DEBUG 1
         /* +--------------------------------+
          * |                 \              |
          * |  ____            \             |
@@ -16,7 +16,37 @@
          * |                               \|
          * |                                |
          * +--------------------------------+  */
-        
+/*
+====== Issues: =======
+#1 No simple boundary walk can guarantee that all vertices are visited. Proof:
+
+        \_ C     C     C     C     C     C     C
+          \_
+            \_    v3     v2
+              \__/      /
+           A   \B\___  C     C     C     C     C
+                \__  \_____
+                   \____   \__
+                        \_     \_
+           A     A     A  \  B   \ C     C     C
+                      /    \__    \______
+                     v1       \_         \_______
+                                \                \_______
+           A     A     A     A   \ B     B     B         \______
+                                  \_                            \______       Star B
+                                    \                                  \____ /
+                              *      \                                     *|
+                             / XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX          Star C
+                          Star A                                                         \
+                                                                                          *
+    Explanation: the continuous merge boundary forms a noose that is narrow enough to fit between 
+    adjacent vertices v1 and v2 reachable from stars A and C, respectively, but still encloses
+    vertex v3 reachable from star B. Thus, if the discreet boundary walker looks only at its immediate 
+    neighbours, vertex v3 will missed.
+
+#2 There are configurations when boundary walker can get stuck in an infinite loop:
+    $ roslaunch lthmi_nav test_map_divider.launch map:=office4 debug:=1 px:=44 py:=72
+*/
 #include <lthmi_nav/map_divider.h>
 #include <CompoundMap.h>
 #include <CWave2.h>
