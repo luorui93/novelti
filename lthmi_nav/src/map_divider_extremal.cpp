@@ -47,6 +47,14 @@
 #2 There are configurations when boundary walker can get stuck in an infinite loop:
     git commit 75717690a235022d8d86b86d4f4feb4b8098671d
     $ roslaunch lthmi_nav test_map_divider.launch map:=office4 debug:=1 px:=44 py:=72
+    
+    roslaunch lthmi_nav test_map_divider.launch map:=ak500inflated debug:=0 pdf_seed:=37 px:=46 py:=201
+    roslaunch lthmi_nav test_map_divider.launch map:=ak500inflated debug:=0 pdf_seed:=454 px:=44 py:=200
+    roslaunch lthmi_nav test_map_divider.launch map:=ak500inflated debug:=0 pdf_seed:=135 px:=52 py:=202
+    roslaunch lthmi_nav test_map_divider.launch map:=ak500inflated debug:=0 pdf_seed:=30 px:=40 py:=200
+    pdf_seed=41
+41
+[INFO] [WallTime: 1476133942.199209] /test_map_divider: published /pose_optimal vertex=(41,200)
 */
 #include <lthmi_nav/map_divider.h>
 #include <CompoundMap.h>
