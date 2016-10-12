@@ -178,7 +178,7 @@ import StringIO
 doc="""
 USAGE:
     Calculate map stsistics (number of free cells, number of unblocked vertices, etc):
-        /MapTools.py stats <input.bmp
+        ./MapTools.py stats <input.bmp
 
     Convert image file into map file:
         ./MapTools.py img2map [{free_pixel_min_intensity}] <input.bmp >output.map
