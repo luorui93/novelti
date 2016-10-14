@@ -52,7 +52,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
             if (req.map.data[x + y*req.map.info.width]==0)
                 cmap.setPixel(x,y, FREED); //free
     
-    pub_pose_best = node.advertise<PoseStamped]e>("/pose_best", 1, false); //not latched
+    pub_pose_best = node.advertise<geometry_msgs::PoseStamped>("/pose_best", 1, false); //not latched
     sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
     #ifdef DEBUG_POSE_FINDER
@@ -63,7 +63,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
 void BestPoseFinder::poseCurCallback(const geometry_msgs::PoseStamped& pose) {
     ROS_INFO("%s: received pose", getName().c_str());
     //vx(pose, 0.1);//(double)(pdf->info.resolution));
-    new (&cur_vertex) Vertex(pose, (double)(map_divided.info.resolution));
+    new (&cur_vertex) Vertex(pose.pose, (double)(map_divided.info.resolution));
     r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
 }
 
@@ -72,8 +72,8 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     calcReachArea();
     ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     Point pt = findBestPose(pdf);
-    PoseStampled pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
-    pub_pose_best(pose);
+    geometry_msgs::PoseStamped pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
+    pub_pose_best.publish(pose);
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose.pose.position.x, pose.pose.position.y);
 }
 
@@ -81,11 +81,11 @@ void BestPoseFinder::calcReachArea() {
     Point center(cur_vertex.x, cur_vertex.y);
     CWave2 cw(cmap);
     cw.calc(center, max_dist);
-    Point ra_min(max(1, -r2a.x), max(1, -r2a.y));
+    ra_min = Point(max(1, -r2a.x), max(1, -r2a.y) );
     int ra_size = 2*(max_dist+1);
-    Point ra_max( min(ra_size, width-r2a.x),  min(ra_size, height-r2a.y));
+    ra_max = Point( min(ra_size, cmap.width()-r2a.x),  min(ra_size, cmap.height()-r2a.y) );
     
-    for (int x=ra_min.x,; x<ra_max.x; x++)
+    for (int x=ra_min.x; x<ra_max.x; x++)
         for (int y=ra_min.y; y<ra_max.y; y++)
             if (cmap.getPoint(x+r2a.x, y+r2a.y) != MAP_POINT_UNEXPLORED)
                 reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNASSIGNED;
@@ -96,7 +96,7 @@ void BestPoseFinder::calcReachArea() {
     for (int x=ra_max.x; x<ra_size; x++)
         for (int y=1; y<ra_size; y++)
             reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
-    for (int y=1; x<ra_min.y; y++)
+    for (int y=1; y<ra_min.y; y++)
         for (int x=1; x<ra_size; x++)
             reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
     for (int y=ra_max.y; y<ra_size; y++)

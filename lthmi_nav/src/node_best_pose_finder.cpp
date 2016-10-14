@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
     ros::NodeHandle n("~");
     std::string p = "maxprob";
     n.getParam("method", p);
-    MapDivider* mdiv = nullptr;
-    if      (p=="maxprob")    mdiv = new MaxprobPoseFinder();
-//    else if (p=="htile")    mdiv = new HorizTileMapDivider();
+    BestPoseFinder* bpf = nullptr;
+    if      (p=="maxprob")    bpf = new MaxprobPoseFinder(false);
+    else if (p=="tomaxprob")  bpf = new MaxprobPoseFinder(true);
 // "opt")     
 // "localopt")
 // "maxprob") 
@@ -45,6 +45,6 @@ int main(int argc, char **argv) {
          ROS_ERROR("%s: wrong value for 'method' parameter ('%s'), will die now", getName().c_str(), p.c_str());
          return 1;
     }
-    mdiv->run();
-    delete(mdiv);
+    bpf->run();
+    delete(bpf);
 }
