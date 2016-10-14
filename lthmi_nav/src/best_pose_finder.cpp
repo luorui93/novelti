@@ -1,4 +1,114 @@
-#include "ros/ros.h" //for debug only
+/*
+            subs                                       pubs
+                    +-------------------------+
+                    |                         |
+          /pdf ---> |                         | ---> /pose_best
+                    |  node_best_pose_finder  |
+ /pose_current ---> |                         | ---> /reach_area   | debug
+                    |                         |
+                    +-------------------------+
+                                ^
+                                |
+                            srv: start
+                                req:  scene
+                                resp: -
+*/
+
+#include <lthmi_nav/best_pose_finder.h>
+
+
+using namespace lthmi_nav;
+
+BestPoseFinder::BestPoseFinder() :
+        SynchronizableNode()
+{
+    double max_vel, period, safety_coef;
+    node.param<double>("max_vel", max_vel, 0.0);
+    node.param<double>("safety_coef", safety_coef, 0.0);
+    node.param<double>("period", period, 0.0);
+    max_dist_float = max_vel*safety_coef*period;
+    if (max_dist_float==0.0)
+        throw ros::Exception("ERROR: At least one of the following node parameters (max_vel, period, safety_coef) is not specified or 0.0. All must be greater than zero.");
+}
+    
+void BestPoseFinder::stop() {
+    pub_pose_best.shutdown();
+    sub_pose_cur.shutdown();
+    sub_pdf.shutdown();
+    #ifdef DEBUG_POSE_FINDER
+        pub_reach_area.shutdown();
+    #endif
+}
+
+void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
+    resolution = req.map.info.resolution;
+    max_dist = (int)floor(max_dist_float);
+
+    new (&cur_vertex) Vertex(req.init_pose, resolution);
+    r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
+    new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
+    for (int x=0; x<req.map.info.width; x++)
+        for (int y=0; y<req.map.info.height; y++)
+            if (req.map.data[x + y*req.map.info.width]==0)
+                cmap.setPixel(x,y, FREED); //free
+    
+    pub_pose_best = node.advertise<PoseStamped]e>("/pose_best", 1, false); //not latched
+    sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
+    sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
+    #ifdef DEBUG_POSE_FINDER
+        pub_reach_area   = node.advertise<lthmi_nav::IntMap>("/debug_reach_area", 1, false); //not latched
+    #endif
+}
+
+void BestPoseFinder::poseCurCallback(const geometry_msgs::PoseStamped& pose) {
+    ROS_INFO("%s: received pose", getName().c_str());
+    //vx(pose, 0.1);//(double)(pdf->info.resolution));
+    new (&cur_vertex) Vertex(pose, (double)(map_divided.info.resolution));
+    r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
+}
+
+void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
+    ROS_INFO("%s: received pdf", getName().c_str());
+    calcReachArea();
+    ROS_INFO("%s: starting to look for the best pose", getName().c_str());
+    Point pt = findBestPose(pdf);
+    PoseStampled pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
+    pub_pose_best(pose);
+    ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose.pose.position.x, pose.pose.position.y);
+}
+
+void BestPoseFinder::calcReachArea() {
+    Point center(cur_vertex.x, cur_vertex.y);
+    CWave2 cw(cmap);
+    cw.calc(center, max_dist);
+    Point ra_min(max(1, -r2a.x), max(1, -r2a.y));
+    int ra_size = 2*(max_dist+1);
+    Point ra_max( min(ra_size, width-r2a.x),  min(ra_size, height-r2a.y));
+    
+    for (int x=ra_min.x,; x<ra_max.x; x++)
+        for (int y=ra_min.y; y<ra_max.y; y++)
+            if (cmap.getPoint(x+r2a.x, y+r2a.y) != MAP_POINT_UNEXPLORED)
+                reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNASSIGNED;
+            
+    for (int x=1; x<ra_min.x; x++)
+        for (int y=1; y<ra_size; y++)
+            reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
+    for (int x=ra_max.x; x<ra_size; x++)
+        for (int y=1; y<ra_size; y++)
+            reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
+    for (int y=1; x<ra_min.y; y++)
+        for (int x=1; x<ra_size; x++)
+            reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
+    for (int y=ra_max.y; y<ra_size; y++)
+        for (int x=1; x<ra_size; x++)
+            reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
+        
+    #ifdef DEBUG_POSE_FINDER
+        pub_reach_area.publish(reach_area);
+    #endif
+}
+
+/*#include "ros/ros.h" //for debug only
 #define MEAN_DIST 1
 #define PDF_STAT 1
 #include "fast_dist.cpp"
@@ -70,7 +180,7 @@ namespace lthmi_nav {
         /*mvaddch(map.height()-1-cur_pose.y, cur_pose.x, 'S');
         mvaddch(map.height()-1-(rp.y+rai.reach_to_main.y), rp.x+rai.reach_to_main.x, 'E');
         mvprintw(map.height()+9, 0, "Avg cost at end point (%d,%d) is %f", rp.x+rai.reach_to_main.x, rp.y+rai.reach_to_main.y, cur_mean_dist);
-        refresh();*/
+        refresh();* /
         return {rp.x+rai.reach_to_main.x, rp.y+rai.reach_to_main.y};
     }
     
@@ -100,7 +210,7 @@ namespace lthmi_nav {
                     /*attron(COLOR_PAIR(color));
                     mvaddch(rai.reach_visual.y-(y-rai.reach_to_main.y), rai.reach_visual.x+(x-rai.reach_to_main.x), '.'); //reach area
                     mvaddch(map.height()-1-y, x, '.'); //main area
-                    attroff(COLOR_PAIR(color));*/
+                    attroff(COLOR_PAIR(color));* /
                 }
             }
             //refresh();
@@ -115,7 +225,7 @@ namespace lthmi_nav {
             //mvaddch(rai.reach_visual.y-(pose_candidate.y-rai.reach_to_main.y), rai.reach_visual.x+(pose_candidate.x-rai.reach_to_main.x), '.');
             mvaddch(map.height()-1-pose_candidate.y, pose_candidate.x, '.');
             attroff(COLOR_PAIR(PIXEL_COLOR_REACH_VISITED));
-        mvprintw(map.height()+6, 0, "mean dist at reach area (%d,%d) (=map (%d,%d)) is %f", pose_candidate.x-rai.reach_to_main.x, pose_candidate.y-rai.reach_to_main.y, pose_candidate.x, pose_candidate.y, glx.mean_dist); refresh();*/
+        mvprintw(map.height()+6, 0, "mean dist at reach area (%d,%d) (=map (%d,%d)) is %f", pose_candidate.x-rai.reach_to_main.x, pose_candidate.y-rai.reach_to_main.y, pose_candidate.x, pose_candidate.y, glx.mean_dist); refresh();* /
         map.clean_dist();
         return glx.pdf_stat;
     }
@@ -143,3 +253,4 @@ namespace lthmi_nav {
     }
     
 }
+*/

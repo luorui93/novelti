@@ -218,6 +218,15 @@ target_link_libraries(map_divider
 )
 add_dependencies(map_divider ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
+add_executable(best_pose_finder src/node_best_pose_finder.cpp src/best_pose_finder.cpp)
+target_compile_definitions(best_pose_finder PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_link_libraries(best_pose_finder
+    ${catkin_LIBRARIES}
+    ${CWAVE_LIB_DIR}/libcwaveproc.a
+)
+add_dependencies(best_pose_finder ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
+
+
 add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
 target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="debug" default="1" />
+    <arg name="map" default="office4" />
+    <arg name="delay" default="0.0" />
+    <arg name="px" default="0" />  <!-- both 0 means random -->
+    <arg name="py" default="0" />  <!-- both 0 means random -->
+    <arg name="pdf_seed" default="-1" /> <!-- negative means random -->
+    
+    <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_best_pose_finder - -args" />
+    <arg unless="$(arg debug)" name="prefix" default="" />
+    
+    <node pkg="lthmi_nav" type="test_best_pose_finder.py" name="test_best_pose_finder" 
+            output="screen" required="true">
+        <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
+        <param name="resolution" value="0.1" />
+        <param name="n_experiments" value="10" />
+        <param name="n_poses" value="10" />
+        <param name="delay" value="$(arg delay)" />
+        <param name="pose_x" value="$(arg px)" />
+        <param name="pose_y" value="$(arg py)" />
+        <param name="pdf_seed" value="$(arg pdf_seed)" />
+        <rosparam>
+            synced_nodes: ['/best_pose_finder']
+            waited_srvs:  ['/rviz/reload_shaders']
+        </rosparam>
+    </node>
+
+    <node pkg="lthmi_nav" name="best_pose_finder" type="best_pose_finder"  output="screen"
+            launch-prefix="$(arg prefix)">
+        <param name="method" value="extremal" /> <!-- vtile htile equidist extremal    -->
+        <rosparam>
+            probs_optimal: [0.25, 0.25, 0.25, 0.25]
+        </rosparam>
+    </node>
+    
+    <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
+            args="-d $(find lthmi_nav)/test/rviz/test_map_divider.rviz" >
+    </node>
+    
+</launch>
