@@ -156,7 +156,7 @@ public:
 
         removeSingleUnassigned();
         cmap.clearDist();
-        cmap.clearTrack();
+        //cmap.clearTrack();
         
         double p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
         double sum = p0+p1+p2+p3;

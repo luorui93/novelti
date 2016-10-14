@@ -54,7 +54,7 @@ void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
 void MapDivider::poseOptCallback(const geometry_msgs::PoseStamped& pose) {
     ROS_INFO("%s: received pose", getName().c_str());
     //vx(pose, 0.1);//(double)(pdf->info.resolution));
-    new (&vx) Vertex(pose, (double)(map_divided.info.resolution));
+    new (&vx) Vertex(pose.pose, (double)(map_divided.info.resolution));
     if (state==ONLY_PDF) {
         divideAndPublish();
         state = WAITING;

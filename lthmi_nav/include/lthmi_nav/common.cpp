@@ -1,6 +1,7 @@
 #include <math.h> 
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 
 using namespace ros::this_node;
 
@@ -16,9 +17,9 @@ public:
         y=0;
     }
     
-    Vertex(const geometry_msgs::PoseStamped& pose, double resolution) {
-        x = (int) round( pose.pose.position.x / resolution);
-        y = (int) round( pose.pose.position.y / resolution);
+    Vertex(const geometry_msgs::Pose& pose, double resolution) {
+        x = (int) round( pose.position.x / resolution);
+        y = (int) round( pose.position.y / resolution);
     }
 
     geometry_msgs::PoseStamped toPose(double resolution) {
