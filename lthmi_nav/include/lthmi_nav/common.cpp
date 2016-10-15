@@ -60,7 +60,7 @@ public:
         }
         neverStarted = false;
         start(req);
-        ROS_INFO("%s: started a new Experiment", getName().c_str());
+        ROS_INFO("%s: started a new Experiment. Init pose=(%f,%f)", getName().c_str(), req.init_pose.position.x, req.init_pose.position.y);
         return true;
     }
     

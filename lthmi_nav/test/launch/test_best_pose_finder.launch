@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="debug" default="1" />
-    <arg name="map" default="office4" />
+    <arg name="map" default="ak500inflated" />
     <arg name="delay" default="0.0" />
     <arg name="px" default="0" />  <!-- both 0 means random -->
     <arg name="py" default="0" />  <!-- both 0 means random -->

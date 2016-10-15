@@ -24,7 +24,7 @@ class BestPoseFinderTester (SyncingNode):
             'pose_x':        rospy.get_param('~pose_x', 0), #0 means random pose
             'pose_y':        rospy.get_param('~pose_y', 0),
             'pdf_seed':      rospy.get_param('~pdf_seed', -1), 
-            'delay':         rospy.get_param('~delay', -1.0) #negative means forever
+            #'delay':         rospy.get_param('~delay', -1.0) #negative means forever
             #'period':        rospy.get_param('~period', -1.0) #0.0 means wait forever
         })
         rospy.get_param('~px', None)
@@ -33,30 +33,21 @@ class BestPoseFinderTester (SyncingNode):
         self.pub_pdf       = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
         self.pub_pose_cur  = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)#, latch=False)
         self.sub_pose_best = rospy.Subscriber('/pose_best', PoseStamped, self.poseBestCallback)
-        self.exps_left       = self.cfg['n_experiments']
-        self.poses_left      = 0
+        self.sub_pose_cur  = rospy.Subscriber('/pose_current', PoseStamped, self.poseCurCallback)
+        self.exps_left     = self.cfg['n_experiments']
+        self.poses_left    = 0
         random.seed(datetime.now())
+        self.setCurPose()
     
     def publishNext(self):
         if self.poses_left==0:
             if self.exps_left==0:
                 exit(0)
-            self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], Pose())
+            self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], self.pose_cur)
             self.exps_left -= 1
         rospy.loginfo("%s: ============ testing next pose ===========" % (rospy.get_name()))
         self.poses_left -= 1
         self.publishPdf()
-    
-    def runTester(self):
-        for k in range(self.cfg['n_experiments']): #map_file in maps:
-            self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], Pose())
-            for k in range(self.cfg['n_poses']):
-                self.publishPdf()
-                self.publishPose()
-                if self.cfg['period']==0.0:
-                    rospy.spin()
-                else:
-                    rospy.sleep(self.cfg['period'])
                     
     def publishPdf(self):
         pdf = FloatMap()
@@ -82,26 +73,39 @@ class BestPoseFinderTester (SyncingNode):
         pdf.data = [p/total if p>0.0 else p for p in pdf.data]
         self.pdf = pdf
         self.pub_pdf.publish(pdf) 
-        rospy.loginfo("%s: published pdf resoution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
+        rospy.loginfo("%s: published pdf resolution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
 
-
-    def publishPose(self):
-        pose = PoseStamped()
-        pose.header.stamp = rospy.Time.now()
+    def setCurPose(self):
+        self.pose_cur = PoseStamped()
+        self.pose_cur.header.stamp = rospy.Time.now()
         if self.cfg['pose_x'] != 0:
-            optimalVertex = [self.cfg['pose_x'], self.cfg['pose_y']]
+            curVx = [self.cfg['pose_x'], self.cfg['pose_y']]
+            self.pose_cur.pose.position.x = curVx[0]*self.cfg['resolution']
+            self.pose_cur.pose.position.y = curVx[1]*self.cfg['resolution']
+            self.pose_cur.header.frame_id="/map"            
         else:
-            optimalVertex = self.grid.genRandUnblockedVertex() #[114,22]
-        print  optimalVertex[0]
-        pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
-        pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
-        pose.header.frame_id="/map"
-        self.pub_pose_cur.publish(pose)
-        rospy.loginfo("%s: published /pose_optimal vertex=(%d,%d), pose=(%f,%f)" % (rospy.get_name(), optimalVertex[0], optimalVertex[1], pose.pose.position.x, pose.pose.position.y))
+            self.pose_cur = None #will be random
+
+    #def publishPose(self):
+        #pose = PoseStamped()
+        #pose.header.stamp = rospy.Time.now()
+        #if self.cfg['pose_x'] != 0:
+            #optimalVertex = [self.cfg['pose_x'], self.cfg['pose_y']]
+        #else:
+            #optimalVertex = self.grid.genRandUnblockedVertex() #[114,22]
+        #print  optimalVertex[0]
+        #pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
+        #pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
+        #pose.header.frame_id="/map"
+        #self.pub_pose_cur.publish(pose)
+        #rospy.loginfo("%s: published /pose_optimal vertex=(%d,%d), pose=(%f,%f)" % (rospy.get_name(), optimalVertex[0], optimalVertex[1], pose.pose.position.x, pose.pose.position.y))
 
     def poseBestCallback(self, msg):
-        if self.cfg['delay']>0:
-            rospy.sleep(self.cfg['delay'])
+        #check if best pose correct
+        pass
+        
+    def poseCurCallback(self, msg):
+        self.pose_cur = msg.pose;
         self.publishNext()
         
 if __name__=="__main__":

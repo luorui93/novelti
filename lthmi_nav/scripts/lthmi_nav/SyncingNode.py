@@ -38,10 +38,15 @@ class SyncingNode:
         m.data = [255 if self.grid.isFree(k) else 254 for k in range(len(self.grid.data))] #255 - transparent, 254 - black
         self.map_publisher.publish(m)
     
-    def runExperiment(self, map_file, resolution, init_pose):
+    def runExperiment(self, map_file, resolution, init_pose=None):
         self.grid = GridMap.fromText(open(map_file, 'r'))
         if self.map_publisher is not None:
             self.publishMap(resolution)
+        if init_pose is None:
+            init_vx = self.grid.genRandUnblockedVertex()
+            init_pose = Pose()
+            init_pose.position.x = init_vx[0]*self.cfg['resolution']
+            init_pose.position.y = init_vx[1]*self.cfg['resolution']
         stamp = rospy.Time.now()
         name = "Experiment %d" % self.seq
         mapa = IntMap()

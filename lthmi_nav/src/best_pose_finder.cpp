@@ -62,7 +62,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
     #ifdef DEBUG_POSE_FINDER
-        pub_reach_area   = node.advertise<lthmi_nav::IntMap>("/debug_reach_area", 1, false); //not latched
+        pub_reach_area   = node.advertise<lthmi_nav::FloatMap>("/debug_reach_area", 1, false); //not latched
     #endif
 }
 
@@ -86,7 +86,10 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
 void BestPoseFinder::calcReachArea() {
     Point center(cur_vertex.x, cur_vertex.y);
     CWave2 cw(cmap);
+    CWave2Processor* dummy = new CWave2Processor();
+    cw.setProcessor(dummy);
     cw.calc(center, max_dist);
+    delete(dummy);
     ra_min = Point(max(1, -r2a.x), max(1, -r2a.y) );
     int ra_size = 2*(max_dist+1);
     ra_max = Point( min(ra_size, cmap.width()-r2a.x),  min(ra_size, cmap.height()-r2a.y) );

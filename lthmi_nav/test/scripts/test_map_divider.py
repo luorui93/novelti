@@ -83,7 +83,7 @@ class MapDividerTester (SyncingNode):
         pdf.data = [p/total if p>0.0 else p for p in pdf.data]
         self.pdf = pdf
         self.pdf_publisher.publish(pdf) 
-        rospy.loginfo("%s: published pdf resoution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
+        rospy.loginfo("%s: published pdf resolution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
 
 
     def publishPose(self):
@@ -93,7 +93,6 @@ class MapDividerTester (SyncingNode):
             optimalVertex = [self.cfg['pose_x'], self.cfg['pose_y']]
         else:
             optimalVertex = self.grid.genRandUnblockedVertex() #[114,22]
-        print  optimalVertex[0]
         pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
         pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
         pose.header.frame_id="/map"
