@@ -26,11 +26,13 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "best_pose_finder");
     
     ros::NodeHandle n("~");
-    std::string p = "maxprob";
-    n.getParam("method", p);
+    std::string method = "maxprob";
+    n.getParam("method", method);
+    ROS_INFO("%s: started. method=%s", getName().c_str(), method.c_str());
+    
     BestPoseFinder* bpf = nullptr;
-    if      (p=="maxprob")    bpf = new MaxprobPoseFinder(false);
-    else if (p=="tomaxprob")  bpf = new MaxprobPoseFinder(true);
+    if      (method=="maxprob")    bpf = new MaxprobPoseFinder(false);
+    else if (method=="tomaxprob")  bpf = new MaxprobPoseFinder(true);
 // "opt")     
 // "localopt")
 // "maxprob") 
@@ -42,7 +44,7 @@ int main(int argc, char **argv) {
 // "all3lopt")
 // "all3gopt")
      else { 
-         ROS_ERROR("%s: wrong value for 'method' parameter ('%s'), will die now", getName().c_str(), p.c_str());
+         ROS_ERROR("%s: wrong value for 'method' parameter ('%s'), will die now", getName().c_str(), method.c_str());
          return 1;
     }
     bpf->run();

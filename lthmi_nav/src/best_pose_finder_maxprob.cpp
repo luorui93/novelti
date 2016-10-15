@@ -40,13 +40,18 @@ public:
         Point pt;
         for (int x=ra_min.x; x<ra_max.x; x++) {
             for (int y=ra_min.y; y<ra_max.y; y++) {
-                prob = pdf->data[x+r2a.x, (y+r2a.y)*pdf->info.width];
-                if (prob > maxprob) {
-                    pt.x=x; pt.y=y;
-                    maxprob = prob;
+                if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {
+                    prob = pdf->data[x+r2a.x + (y+r2a.y)*pdf->info.width];
+                    ROS_INFO("pdf[%d,%d]=%f", x+r2a.x, y+r2a.y, prob);
+                    if (prob > maxprob) {
+                        pt.x=x; pt.y=y;
+                        maxprob = prob;
+                        ROS_INFO("=============pt=[%d,%d], prob=%f", pt.x, pt.y, prob);
+                    }
                 }
             }
         }
+        ROS_INFO("===========================pdf[%d,%d]=%f", pt.x, pt.y, prob);
         return pt;
     }
 
@@ -56,7 +61,7 @@ public:
         Point maxprob_pt;
         for (int x=0; x<pdf->info.width; x++) {
             for (int y=0; y<pdf->info.height; y++) {
-                prob = pdf->data[x, y*pdf->info.width];
+                prob = pdf->data[x + y*pdf->info.width];
                 if (prob > maxprob) {
                     maxprob_pt.x=x; maxprob_pt.y=y;
                     maxprob = prob;
@@ -68,12 +73,14 @@ public:
         int x2, y2;
         for (int x=ra_min.x; x<ra_max.x; x++) {
             for (int y=ra_min.y; y<ra_max.y; y++) {
-                x2 = x+r2a.x-maxprob_pt.x;
-                y2 = y+r2a.y-maxprob_pt.y;
-                d = sqrt(x2*x2+y2*y2);
-                if (d < dmin) {
-                    pt.x=x; pt.y=y;
-                    dmin = d;
+                if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {
+                    x2 = x+r2a.x-maxprob_pt.x;
+                    y2 = y+r2a.y-maxprob_pt.y;
+                    d = sqrt(x2*x2+y2*y2);
+                    if (d < dmin) {
+                        pt.x=x; pt.y=y;
+                        dmin = d;
+                    }
                 }
             }
         }

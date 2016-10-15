@@ -24,7 +24,6 @@
             synced_nodes: ['/best_pose_finder']
             waited_srvs:  ['/rviz/reload_shaders']
         </rosparam>
-        <remap from="/move_base_simple/goal" to="/pose_current" />
     </node>
 
     <node pkg="lthmi_nav" name="best_pose_finder" type="best_pose_finder"  output="screen"
@@ -40,6 +39,7 @@
     
     <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
             args="-d $(find lthmi_nav)/test/rviz/test_best_pose_finder.rviz" >
+        <remap from="/move_base_simple/goal" to="/pose_current" />
     </node>
     
 </launch>

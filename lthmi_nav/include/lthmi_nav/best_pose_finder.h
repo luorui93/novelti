@@ -33,8 +33,6 @@ public:
     
     CompoundMap cmap;
     
-    
-    
     ros::Publisher pub_pose_best;
     ros::Subscriber sub_pose_cur;
     ros::Subscriber sub_pdf;
@@ -44,11 +42,7 @@ public:
     
     Point cur_vertex;
     lthmi_nav::FloatMap reach_area;
-    //boost::shared_ptr<lthmi_nav::FloatMap const> pdf;
-    lthmi_nav::FloatMapConstPtr pdf;
-    lthmi_nav::IntMap map_divided;
-    
-    
+     
     BestPoseFinder();
     void start(lthmi_nav::StartExperiment::Request& req);
     void stop();

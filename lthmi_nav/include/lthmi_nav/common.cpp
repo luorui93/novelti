@@ -1,7 +1,9 @@
 #include <math.h> 
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Pose.h>
+
 
 using namespace ros::this_node;
 
@@ -30,6 +32,7 @@ public:
         geometry_msgs::PoseStamped pose;
         pose.pose.position.x = x*resolution;
         pose.pose.position.y = y*resolution;
+        pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
         return pose;
     }
 };

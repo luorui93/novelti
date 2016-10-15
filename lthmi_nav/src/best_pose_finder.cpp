@@ -68,8 +68,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
 
 void BestPoseFinder::poseCurCallback(const geometry_msgs::PoseStamped& pose) {
     ROS_INFO("%s: received pose", getName().c_str());
-    //vx(pose, 0.1);//(double)(pdf->info.resolution));
-    new (&cur_vertex) Vertex(pose.pose, (double)(map_divided.info.resolution));
+    new (&cur_vertex) Vertex(pose.pose, resolution);
     r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
 }
 
@@ -78,7 +77,9 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     calcReachArea();
     ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     Point pt = findBestPose(pdf);
+    ROS_INFO("=-------------------found best vertex=(%d,%d), published", pt.x, pt.y);
     geometry_msgs::PoseStamped pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
+    pose.header.frame_id = "/map";
     pub_pose_best.publish(pose);
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose.pose.position.x, pose.pose.position.y);
 }
@@ -86,10 +87,9 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
 void BestPoseFinder::calcReachArea() {
     Point center(cur_vertex.x, cur_vertex.y);
     CWave2 cw(cmap);
-    CWave2Processor* dummy = new CWave2Processor();
-    cw.setProcessor(dummy);
-    cw.calc(center, max_dist);
-    delete(dummy);
+    CWave2Processor dummy;
+    cw.setProcessor(&dummy);
+    cw.calc(center, 2*max_dist);
     ra_min = Point(max(1, -r2a.x), max(1, -r2a.y) );
     int ra_size = 2*(max_dist+1);
     ra_max = Point( min(ra_size, cmap.width()-r2a.x),  min(ra_size, cmap.height()-r2a.y) );
@@ -111,7 +111,9 @@ void BestPoseFinder::calcReachArea() {
     for (int y=ra_max.y; y<ra_size; y++)
         for (int x=1; x<ra_size; x++)
             reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
-        
+    
+    reach_area.info.origin.position.x = resolution*(r2a.x-0.5);
+    reach_area.info.origin.position.y = resolution*(r2a.y-0.5);
     #ifdef DEBUG_POSE_FINDER
         pub_reach_area.publish(reach_area);
     #endif

@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - //debug_reach_area1
+        - //pose_best1
       Splitter Ratio: 0.625
     Tree Height: 376
   - Class: rviz/Selection
@@ -93,41 +93,18 @@ Visualization Manager:
       Topic: /pdf
       Value: true
     - Alpha: 1
-      Class: lthmi_nav/IntMap
-      Color Scheme: regions
-      Draw Behind: false
-      Enabled: true
-      Name: /map_divided
-      Topic: /map_divided
-      Value: true
-    - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
       Class: rviz/Pose
-      Color: 255; 25; 0
+      Color: 255; 255; 0
       Enabled: true
       Head Length: 0.3
       Head Radius: 0.15
-      Name: /pose_optimal
+      Name: /pose_best
       Shaft Length: 0.2
-      Shaft Radius: 0.05
+      Shaft Radius: 0.4
       Shape: Arrow
-      Topic: /pose_optimal
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
-      Color: 85; 0; 255
-      Enabled: true
-      Head Length: 0.1
-      Head Radius: 0.07
-      Name: /debug_pose_border
-      Shaft Length: 0
-      Shaft Radius: 0.1
-      Shape: Arrow
-      Topic: /debug_pose_border
+      Topic: /pose_best
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -139,20 +116,12 @@ Visualization Manager:
       Topic: /map
       Value: true
     - Alpha: 0.7
-      Class: lthmi_nav/IntMap
-      Color Scheme: regions
-      Draw Behind: false
-      Enabled: false
-      Name: /debug_track_map
-      Topic: /debug_track_map
-      Value: false
-    - Alpha: 0.7
       Class: lthmi_nav/FloatMap
       Color Scheme: float
       Draw Behind: false
       Enabled: true
       Name: /debug_reach_area
-      Topic: ""
+      Topic: /debug_reach_area
       Value: true
   Enabled: true
   Global Options:
@@ -186,11 +155,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 12.9464
+      Scale: 12.5543
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 26.8316
-      Y: 18.1951
+      X: 25.8139
+      Y: 17.7425
     Saved: ~
 Window Geometry:
   Displays:
@@ -208,5 +177,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 707
+  X: 647
   Y: 14
