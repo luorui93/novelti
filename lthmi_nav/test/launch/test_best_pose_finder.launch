@@ -24,18 +24,22 @@
             synced_nodes: ['/best_pose_finder']
             waited_srvs:  ['/rviz/reload_shaders']
         </rosparam>
+        <remap from="/move_base_simple/goal" to="/pose_current" />
     </node>
 
     <node pkg="lthmi_nav" name="best_pose_finder" type="best_pose_finder"  output="screen"
             launch-prefix="$(arg prefix)">
-        <param name="method" value="extremal" /> <!-- vtile htile equidist extremal    -->
+        <param name="method" value="maxprob" /> <!-- maxprob tomaxprob    -->
+        <param name="max_vel" value="1.5" />
+        <param name="period" value="1.0" />
+        <param name="safety_coef" value="0.95" />
         <rosparam>
             probs_optimal: [0.25, 0.25, 0.25, 0.25]
         </rosparam>
     </node>
     
     <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
-            args="-d $(find lthmi_nav)/test/rviz/test_map_divider.rviz" >
+            args="-d $(find lthmi_nav)/test/rviz/test_best_pose_finder.rviz" >
     </node>
     
 </launch>

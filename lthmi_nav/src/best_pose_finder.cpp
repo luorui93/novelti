@@ -42,8 +42,14 @@ void BestPoseFinder::stop() {
 
 void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     resolution = req.map.info.resolution;
-    max_dist = (int)floor(max_dist_float);
+    max_dist = (int)floor(max_dist_float/resolution);
 
+    reach_area.header.frame_id = "/map";
+    reach_area.info.width  = 2*(max_dist+1)+1;
+    reach_area.info.height = reach_area.info.width;
+    reach_area.info.resolution = resolution;
+    reach_area.data = vector<float>(reach_area.info.width*reach_area.info.height, REACH_AREA_UNREACHABLE);
+    
     new (&cur_vertex) Vertex(req.init_pose, resolution);
     r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
     new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);

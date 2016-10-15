@@ -30,14 +30,14 @@ class BestPoseFinderTester (SyncingNode):
         rospy.get_param('~px', None)
         rospy.get_param('~py', None)
         
-        self.pdf_publisher   = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
-        self.pose_publisher  = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)#, latch=False)
-        self.pose_best       = rospy.Subscriber('/pose_best', PoseStamped, self.poseBestCallback)
+        self.pub_pdf       = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
+        self.pub_pose_cur  = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)#, latch=False)
+        self.sub_pose_best = rospy.Subscriber('/pose_best', PoseStamped, self.poseBestCallback)
         self.exps_left       = self.cfg['n_experiments']
         self.poses_left      = 0
         random.seed(datetime.now())
     
-    def publishNextPose(self):
+    def publishNext(self):
         if self.poses_left==0:
             if self.exps_left==0:
                 exit(0)
@@ -46,7 +46,6 @@ class BestPoseFinderTester (SyncingNode):
         rospy.loginfo("%s: ============ testing next pose ===========" % (rospy.get_name()))
         self.poses_left -= 1
         self.publishPdf()
-        self.publishPose()
     
     def runTester(self):
         for k in range(self.cfg['n_experiments']): #map_file in maps:
@@ -82,7 +81,7 @@ class BestPoseFinderTester (SyncingNode):
                     pdf.data[x+ y*pdf.info.width] = p
         pdf.data = [p/total if p>0.0 else p for p in pdf.data]
         self.pdf = pdf
-        self.pdf_publisher.publish(pdf) 
+        self.pub_pdf.publish(pdf) 
         rospy.loginfo("%s: published pdf resoution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
 
 
@@ -97,24 +96,16 @@ class BestPoseFinderTester (SyncingNode):
         pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
         pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
         pose.header.frame_id="/map"
-        self.pose_publisher.publish(pose)
+        self.pub_pose_cur.publish(pose)
         rospy.loginfo("%s: published /pose_optimal vertex=(%d,%d), pose=(%f,%f)" % (rospy.get_name(), optimalVertex[0], optimalVertex[1], pose.pose.position.x, pose.pose.position.y))
 
-    def mapDividedCallback(self, msg):
-        for x in range(msg.info.width):
-            for y in range(msg.info.height):
-                reg = msg.data[x + y*msg.info.width]
-                if reg==255 and self.pdf.data[x + y*msg.info.width]>=0:
-                    rospy.logerr("%s: ERROR: divided map contains a vertex at [%d,%d] without a region assigned" % (rospy.get_name(),x,y))
-                    exit(1)
-        rospy.loginfo("%s: /divided_map recieived and checked for unussigned vertices (all fine)." % (rospy.get_name()))
-        
+    def poseBestCallback(self, msg):
         if self.cfg['delay']>0:
             rospy.sleep(self.cfg['delay'])
-        self.publishNextPose()
+        self.publishNext()
         
 if __name__=="__main__":
     rospy.init_node('test_best_pose_finder')
     mdt = BestPoseFinderTester()
-    mdt.publishNextPose()
+    mdt.publishNext()
     rospy.spin()

@@ -1,8 +1,7 @@
 #ifndef LTHMI_NAV_BEST_POSE_FINDER_H
 #define LTHMI_NAV_BEST_POSE_FINDER_H
 
-
-//#define DEBUG_DIVIDER 1
+//#define DEBUG_POSE_FINDER 1 
 
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
