@@ -42,16 +42,16 @@ public:
             for (int y=ra_min.y; y<ra_max.y; y++) {
                 if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {
                     prob = pdf->data[x+r2a.x + (y+r2a.y)*pdf->info.width];
-                    ROS_INFO("pdf[%d,%d]=%f", x+r2a.x, y+r2a.y, prob);
+                    //ROS_INFO("pdf[%d,%d]=%f", x+r2a.x, y+r2a.y, prob);
                     if (prob > maxprob) {
                         pt.x=x; pt.y=y;
                         maxprob = prob;
-                        ROS_INFO("=============pt=[%d,%d], prob=%f", pt.x, pt.y, prob);
+                        //ROS_INFO("=============pt=[%d,%d], prob=%f", pt.x, pt.y, prob);
                     }
                 }
             }
         }
-        ROS_INFO("===========================pdf[%d,%d]=%f", pt.x, pt.y, prob);
+        //ROS_INFO("===========================pdf[%d,%d]=%f", pt.x, pt.y, prob);
         return pt;
     }
 
