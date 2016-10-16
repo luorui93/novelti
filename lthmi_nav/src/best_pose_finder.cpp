@@ -163,3 +163,20 @@ Point BestPoseFinder::findClosestInReachAreaObst(Point& pt) {
     cmap.clearDist();
     return out;
 }
+
+Point BestPoseFinder::findClosestOnMap(lthmi_nav::FloatMapConstPtr pdf, Point& pt) {
+    Point out;
+    double d, dmin = std::numeric_limits<double>::max();
+    for (int x=0; x<pdf->info.width; x++) {
+        for (int y=0; y<pdf->info.height; y++) {
+            if (pdf->data[x+y*pdf->info.width] != REACH_AREA_UNREACHABLE) {
+                d = sqrt((x-pt.x)*(x-pt.x)+(y-pt.y)*(y-pt.y));
+                if (d < dmin) {
+                    out.x=x; out.y=y;
+                    dmin = d;
+                }
+            }
+        }
+    }
+    return out;
+}
