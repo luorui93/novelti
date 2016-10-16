@@ -122,13 +122,13 @@ void BestPoseFinder::calcReachArea() {
 
 Point BestPoseFinder::findClosestInReachAreaEuq(Point& pt) {
     Point out;
-    double dmin = std::numeric_limits<double>::max();
+    double d, dmin = std::numeric_limits<double>::max();
     int x2, y2;
     for (int x=ra_min.x; x<ra_max.x; x++) {
         for (int y=ra_min.y; y<ra_max.y; y++) {
             if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {
-                x2 = x+r2a.x-maxprob_pt.x;
-                y2 = y+r2a.y-maxprob_pt.y;
+                x2 = x+r2a.x-pt.x;
+                y2 = y+r2a.y-pt.y;
                 d = sqrt(x2*x2+y2*y2);
                 if (d < dmin) {
                     out.x=x; out.y=y;
