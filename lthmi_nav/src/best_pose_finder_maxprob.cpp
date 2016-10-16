@@ -1,19 +1,3 @@
-/*
-            subs                                       pubs
-                    +-------------------------+
-                    |                         |
-          /pdf ---> |                         | ---> /pose_best
-                    |  node_best_pose_finder  |
- /pose_current ---> |                         | ---> /reach_area   | debug
-                    |                         |
-                    +-------------------------+
-                                ^
-                                |
-                            srv: start
-                                req:  scene
-                                resp: -
-*/
-
 #include <lthmi_nav/best_pose_finder.h>
 
 
@@ -23,19 +7,20 @@ using namespace lthmi_nav;
 
 class MaxprobPoseFinder :  public BestPoseFinder {
 public:
-    bool toMaxprob;
+    bool useEuqlidDist;
+    bool raMaxProb;
     
-    MaxprobPoseFinder(bool toMaxprob1) {
-        toMaxprob = toMaxprob1;
+    
+    MaxprobPoseFinder() {
+        raMaxProb = true;
     }
 
-    Point findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
-        return toMaxprob
-            ? findTomaxprobPose(pdf) 
-            : findMaxprobPose(pdf);
+    MaxprobPoseFinder(bool useEuqlidDist) {
+        raMaxProb = false;
+        useEuqlidDist = useEuqlidDist;
     }
     
-    Point findMaxprobPose(lthmi_nav::FloatMapConstPtr pdf) {
+    Point findMaxprobInReachArea(lthmi_nav::FloatMapConstPtr pdf) {
         double prob, maxprob = 0.0;
         Point pt;
         for (int x=ra_min.x; x<ra_max.x; x++) {
@@ -55,36 +40,30 @@ public:
         return pt;
     }
 
-    Point findTomaxprobPose(lthmi_nav::FloatMapConstPtr pdf) {
+    Point findMaxprobInPdf(lthmi_nav::FloatMapConstPtr pdf) {
         double d, prob, maxprob = 0.0;
-        
-        Point maxprob_pt;
+        Point pt;
         for (int x=0; x<pdf->info.width; x++) {
             for (int y=0; y<pdf->info.height; y++) {
                 prob = pdf->data[x + y*pdf->info.width];
                 if (prob > maxprob) {
-                    maxprob_pt.x=x; maxprob_pt.y=y;
+                    pt.x=x; pt.y=y;
                     maxprob = prob;
-                }
-            }
-        }
-        Point pt;
-        double dmin=1.0;
-        int x2, y2;
-        for (int x=ra_min.x; x<ra_max.x; x++) {
-            for (int y=ra_min.y; y<ra_max.y; y++) {
-                if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {
-                    x2 = x+r2a.x-maxprob_pt.x;
-                    y2 = y+r2a.y-maxprob_pt.y;
-                    d = sqrt(x2*x2+y2*y2);
-                    if (d < dmin) {
-                        pt.x=x; pt.y=y;
-                        dmin = d;
-                    }
                 }
             }
         }
         return pt;
     }
 
+    Point findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
+        if (raMaxProb) {
+            return findMaxprobInReachArea(pdf);
+        } else { 
+            Point pt = findMaxprobInPdf(pdf);
+            if (useEuqlidDist)
+                return findClosestInReachAreaEuq(pt);
+            else 
+                return findClosestInReachAreaObst(pt);
+        } 
+    }
 };

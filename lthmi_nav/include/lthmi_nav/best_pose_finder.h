@@ -49,6 +49,8 @@ public:
     void poseCurCallback(const geometry_msgs::PoseStamped& pose);
     void pdfCallback(lthmi_nav::FloatMapConstPtr pdf);
     void calcReachArea();
+    Point findClosestInReachAreaEuq(Point& pt);
+    Point findClosestInReachAreaObst(Point& pt);
     virtual Point findBestPose(lthmi_nav::FloatMapConstPtr pdf) {return Point(0,0);};
     
 };
