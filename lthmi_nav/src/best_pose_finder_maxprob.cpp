@@ -11,11 +11,15 @@ public:
     bool raMaxProb;
     
     
-    MaxprobPoseFinder() {
+    MaxprobPoseFinder() :
+        BestPoseFinder()
+    {
         raMaxProb = true;
     }
 
-    MaxprobPoseFinder(bool useEuqlidDist) {
+    MaxprobPoseFinder(bool useEuqlidDist) :
+        BestPoseFinder()
+    {
         raMaxProb = false;
         useEuqlidDist = useEuqlidDist;
     }

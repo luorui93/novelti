@@ -2,13 +2,17 @@
 
 namespace lthmi_nav {
 
-    CogPoseFinder::CogPoseFinder() {
+    CogPoseFinder::CogPoseFinder() :
+        BestPoseFinder()
+    {
         nearcog = false;
     }
 
-    CogPoseFinder::CogPoseFinder(bool useEuqlidDist) {
+    CogPoseFinder::CogPoseFinder(bool useEuqlidDist1) :
+        BestPoseFinder()
+    {
         nearcog = true;
-        useEuqlidDist = useEuqlidDist;
+        useEuqlidDist = useEuqlidDist1;
     }
     
     void CogPoseFinder::findCogOnPdf(lthmi_nav::FloatMapConstPtr pdf) { //returns wrt to map
@@ -27,13 +31,14 @@ namespace lthmi_nav {
     }
 
     void CogPoseFinder::findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
-        findCogOnPdf(pdf);
+        findCogOnPdf(pdf);                      PUB_DEBUG_POSE(pt.x,pt.y, true);
         if (nearcog) {
-            moveToClosestOnMap(pdf);
-            if (useEuqlidDist)
+            moveToClosestOnMap(pdf);            PUB_DEBUG_POSE(pt.x,pt.y, true);
+            if (useEuqlidDist) {
                 moveToClosestInReachAreaEuq();
-            else 
+            } else {
                 moveToClosestInReachAreaObst();
+            }
         } else {
             moveToClosestInReachAreaEuq();
         } 

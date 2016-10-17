@@ -27,9 +27,8 @@ class BestPoseFinderTester (SyncingNode):
             #'delay':         rospy.get_param('~delay', -1.0) #negative means forever
             #'period':        rospy.get_param('~period', -1.0) #0.0 means wait forever
         })
-        rospy.get_param('~px', None)
-        rospy.get_param('~py', None)
         
+        self.setCurPose()
         self.pub_pdf       = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
         self.pub_pose_cur  = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)#, latch=False)
         self.sub_pose_best = rospy.Subscriber('/pose_best', PoseStamped, self.poseBestCallback)
@@ -37,7 +36,7 @@ class BestPoseFinderTester (SyncingNode):
         self.exps_left     = self.cfg['n_experiments']
         self.poses_left    = 0
         random.seed(datetime.now())
-        self.setCurPose()
+        
     
     def publishNext(self):
         if self.poses_left==0:
@@ -76,13 +75,11 @@ class BestPoseFinderTester (SyncingNode):
         rospy.loginfo("%s: published pdf resolution=(%d,%d), cell_size=%f, pdf_seed=%d" % (rospy.get_name(), pdf.info.width, pdf.info.height, pdf.info.resolution, k))
 
     def setCurPose(self):
-        self.pose_cur = PoseStamped()
-        self.pose_cur.header.stamp = rospy.Time.now()
+        self.pose_cur = Pose()
         if self.cfg['pose_x'] != 0:
             curVx = [self.cfg['pose_x'], self.cfg['pose_y']]
-            self.pose_cur.pose.position.x = curVx[0]*self.cfg['resolution']
-            self.pose_cur.pose.position.y = curVx[1]*self.cfg['resolution']
-            self.pose_cur.header.frame_id="/map"            
+            self.pose_cur.position.x = curVx[0]*self.cfg['resolution']
+            self.pose_cur.position.y = curVx[1]*self.cfg['resolution']
         else:
             self.pose_cur = None #will be random
 

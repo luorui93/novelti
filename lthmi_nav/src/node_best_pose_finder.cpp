@@ -33,14 +33,22 @@ int main(int argc, char **argv) {
     ROS_INFO("%s: started. method=%s", getName().c_str(), method.c_str());
     
     BestPoseFinder* bpf = nullptr;
-    if      (method=="ra_maxprob")   bpf = new MaxprobPoseFinder();
-    else if (method=="maxprob_euq")  bpf = new MaxprobPoseFinder(true);
-    else if (method=="maxprob_obst") bpf = new MaxprobPoseFinder(false);
-    else if (method=="cog_euq")      bpf = new CogPoseFinder();
-    else if (method=="nearcog_euq")  bpf = new CogPoseFinder(true);
-    else if (method=="nearcog_obst") bpf = new CogPoseFinder(false);
-    else if (method=="cog2lopt")     bpf = new OptPoseFinder(true);
-    else if (method=="cog2gopt")     bpf = new OptPoseFinder(false);
+    if      (method=="ra_maxprob")   
+        bpf = new MaxprobPoseFinder();
+    else if (method=="maxprob_euq")  
+        bpf = new MaxprobPoseFinder(true);
+    else if (method=="maxprob_obst") 
+        bpf = new MaxprobPoseFinder(false);
+    else if (method=="cog_euq")      
+        bpf = new CogPoseFinder();
+    else if (method=="nearcog_euq")  
+        bpf = new CogPoseFinder(true);
+    else if (method=="nearcog_obst") 
+        bpf = new CogPoseFinder(false);
+    else if (method=="cog2lopt")     
+        bpf = new OptPoseFinder(true);
+    else if (method=="cog2gopt")     
+        bpf = new OptPoseFinder(false);
     else {
          ROS_ERROR("%s: wrong value for 'method' parameter ('%s'), will die now", getName().c_str(), method.c_str());
          return 1;

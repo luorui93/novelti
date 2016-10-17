@@ -14,6 +14,12 @@
 #include <lthmi_nav/StartExperiment.h>
 #include <lthmi_nav/common.cpp>
 
+#ifdef DEBUG_POSE_FINDER
+    #define PUB_DEBUG_POSE(x,y, wrtMap) pubDebugPose((x),(y), (wrtMap))
+#else
+    #define PUB_DEBUG_POSE(x,y, wrtMap)
+#endif
+
 
 using namespace cwave;
 
@@ -40,6 +46,8 @@ public:
     ros::Subscriber sub_pdf;
     #ifdef DEBUG_POSE_FINDER
         ros::Publisher pub_reach_area;
+        ros::Publisher pub_pose_debug;
+        void pubDebugPose(int x, int y, bool wrtMap);
     #endif
     
     Point cur_vertex;

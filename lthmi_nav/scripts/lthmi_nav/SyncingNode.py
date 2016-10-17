@@ -55,7 +55,7 @@ class SyncingNode:
         mapa.info.width = self.grid.width
         mapa.info.height = self.grid.height
         mapa.info.resolution = resolution
-        rospy.loginfo("============================== Starting experiment '%s' ========================================="%name)
+        rospy.loginfo("============================== Starting experiment '%s' ===   init_pose=(%f,%f) =========================="%(name, init_pose.position.x,init_pose.position.y))
         for srv in self.srvs:
             try:
                 srv(self.seq, stamp, name, mapa, init_pose)

@@ -63,7 +63,8 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
     #ifdef DEBUG_POSE_FINDER
-        pub_reach_area   = node.advertise<lthmi_nav::FloatMap>("/debug_reach_area", 1, false); //not latched
+        pub_reach_area = node.advertise<lthmi_nav::FloatMap>("/debug_reach_area", 1, false); //not latched
+        pub_pose_debug = node.advertise<geometry_msgs::PoseStamped>("/debug_pose", 1, false); //not latched
     #endif
 }
 
@@ -78,7 +79,6 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     calcReachArea();
     ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
-    ROS_INFO("=-------------------found best vertex=(%d,%d), published", pt.x, pt.y);
     geometry_msgs::PoseStamped pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
     pose.header.frame_id = "/map";
     pub_pose_best.publish(pose);
@@ -160,9 +160,11 @@ void BestPoseFinder::moveToClosestInReachAreaObst() {
         for (int y=ra_min.y; y<ra_max.y; y++) {
             if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {
                 d = cmap.getPoint(x+r2a.x, y+r2a.y);
+                //ROS_INFO("d(%d,%d)=%d, dmin=%d",x,y,d,dmin);
                 if (d < dmin) {
                     out.x=x; out.y=y;
                     dmin = d;
+                    //ROS_INFO("              UPDATED dmin = %d",dmin);
                 }
             }
         }
@@ -178,7 +180,7 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
     double d, dmin = std::numeric_limits<double>::max();
     for (int x=0; x<pdf->info.width; x++) {
         for (int y=0; y<pdf->info.height; y++) {
-            if (pdf->data[x+y*pdf->info.width] != REACH_AREA_UNREACHABLE) {
+            if (pdf->data[x+y*pdf->info.width] >= 0.0) {
                 d = sqrt((x-pt.x)*(x-pt.x)+(y-pt.y)*(y-pt.y));
                 if (d < dmin) {
                     out.x=x; out.y=y;
@@ -189,3 +191,14 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
     }
     pt = out;
 }
+#ifdef DEBUG_POSE_FINDER
+    void BestPoseFinder::pubDebugPose(int x, int y, bool wrtMap) {
+        if (!wrtMap) {
+            x += r2a.x; y += r2a.y;
+        }
+        geometry_msgs::PoseStamped pose = Vertex::toPose(x, y, resolution);
+        pose.header.frame_id = "/map";
+        pub_pose_debug.publish(pose);
+        ROS_INFO("%s: published /debug_pose best vertex wrt to map: (%d,%d), published pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);
+    }
+#endif

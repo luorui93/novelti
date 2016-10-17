@@ -6,6 +6,7 @@
     <arg name="px" default="0" />  <!-- both 0 means random -->
     <arg name="py" default="0" />  <!-- both 0 means random -->
     <arg name="pdf_seed" default="-1" /> <!-- negative means random -->
+    <arg name="method" default="cog2lopt" />
     
     <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_best_pose_finder - -args" />
     <arg unless="$(arg debug)" name="prefix" default="" />
@@ -28,7 +29,7 @@
 
     <node pkg="lthmi_nav" name="best_pose_finder" type="best_pose_finder"  output="screen"
             launch-prefix="$(arg prefix)">
-        <param name="method" value="maxprob" /> <!-- maxprob tomaxprob    -->
+        <param name="method" value="$(arg method)" /> <!-- maxprob tomaxprob    -->
         <param name="max_vel" value="1.5" />
         <param name="period" value="1.0" />
         <param name="safety_coef" value="0.95" />

@@ -2,7 +2,7 @@
 #include <random>
 
 
-using namespace lthmi_nav;
+namespace lthmi_nav {
 
 
 class OptPoseFinder :  public CogPoseFinder, public CWave2Processor {
@@ -15,18 +15,23 @@ public:
     lthmi_nav::FloatMapConstPtr pdf;
     
     
-    OptPoseFinder(bool isLocal) {
+    OptPoseFinder(bool isLocal) :
+        CogPoseFinder()
+    {
         local = isLocal;
         if (!local)
             node.param<int>("glob_max_attempts", glob_max_attempts, 25);
     }
     
-    double calcMeanDist(Point point) {
+    double calcAvgDist(Point point) {
         //input (point) wrt to reach area
         meanDist = 0.0;
         CWave2 cw(cmap);
         cw.setProcessor(this);
         cw.calc(Point(point.x+r2a.x, point.y+r2a.y));
+        #ifdef DEBUG_POSE_FINDER
+            ROS_INFO("%s: calculated avgDist(%d,%d)=%f", getName().c_str(), point.x, point.y, meanDist);
+        #endif
         cmap.clearDist();
         return meanDist;
     }
@@ -38,7 +43,7 @@ public:
         bool was_unassigned = (reach_area.data[k]==REACH_AREA_UNASSIGNED);
         if (was_unassigned) { //means not visited
             n_unassigned--;
-            reach_area.data[k] = calcMeanDist(point);
+            reach_area.data[k] = calcAvgDist(point);
         }
         *dist = reach_area.data[k];
         return was_unassigned;
@@ -54,13 +59,14 @@ public:
             best_nb = -1; //best neighbour
             for (int nb=0; nb<8; nb++) { //iterate over neighbours
                 pt.x += NEIGHBOURS[nb][0];  pt.y += NEIGHBOURS[nb][1];
-                if (getMeanDist(pt, &dist) && dist < min_dist) {
+                if (getMeanDist(pt, &dist) && dist>0 && dist < min_dist) {
                     min_dist = dist;
                     best_nb = nb;
                 }
             }
             if (best_nb>=0) {
                 pt.x+=NEIGHBOURS[best_nb][0]; pt.y+=NEIGHBOURS[best_nb][1];
+                PUB_DEBUG_POSE(pt.x,pt.y, false);
             } else {
                 break;
             }
@@ -69,14 +75,14 @@ public:
     }
     
     void findLocalOptPose() {
-        findCogOnPdf(pdf);
-        moveToClosestOnMap(pdf);
-        moveToClosestInReachAreaObst();
-        slideToLocalMin();
+        findCogOnPdf(pdf);              PUB_DEBUG_POSE(pt.x,pt.y, true);
+        moveToClosestOnMap(pdf);        PUB_DEBUG_POSE(pt.x,pt.y, true);
+        moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
+        slideToLocalMin();              
     }
     
     void genStartVertex() {
-        std::uniform_int_distribution<int> rand_distribution(0,n_unassigned);
+        std::uniform_int_distribution<int> rand_distribution(0,n_unassigned-1);
         int n = rand_distribution(generator);
         for (int x=ra_min.x; x<ra_max.x; x++)
             for (int y=ra_min.y; y<ra_max.y; y++)
@@ -122,3 +128,5 @@ public:
         meanDist += pdf->data[p.x + p.y*pdf->info.width] * new_dist;
     };
 };
+
+}
