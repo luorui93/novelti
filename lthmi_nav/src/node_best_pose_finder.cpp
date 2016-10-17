@@ -18,7 +18,8 @@
 
 #include <lthmi_nav/best_pose_finder.h>
 #include "best_pose_finder_maxprob.cpp"
-#include "best_pose_finder_cog.cpp"
+#include <lthmi_nav/best_pose_finder_cog.h>
+#include "best_pose_finder_opt.cpp"
 
 
 using namespace lthmi_nav;
@@ -38,9 +39,9 @@ int main(int argc, char **argv) {
     else if (method=="cog_euq")      bpf = new CogPoseFinder();
     else if (method=="nearcog_euq")  bpf = new CogPoseFinder(true);
     else if (method=="nearcog_obst") bpf = new CogPoseFinder(false);
-//     else if (method=="cog2lopt")     bpf = new OptPoseFinder(true);
-//     else if (method=="cog2gopt")     bpf = new OptPoseFinder(false);
-    else { 
+    else if (method=="cog2lopt")     bpf = new OptPoseFinder(true);
+    else if (method=="cog2gopt")     bpf = new OptPoseFinder(false);
+    else {
          ROS_ERROR("%s: wrong value for 'method' parameter ('%s'), will die now", getName().c_str(), method.c_str());
          return 1;
     }

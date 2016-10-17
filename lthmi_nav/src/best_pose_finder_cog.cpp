@@ -1,26 +1,17 @@
-#include <lthmi_nav/best_pose_finder.h>
+#include <lthmi_nav/best_pose_finder_cog.h>
 
+namespace lthmi_nav {
 
-using namespace lthmi_nav;
-
-
-
-class CogPoseFinder :  public BestPoseFinder {
-public:
-    bool useEuqlidDist;
-    bool nearcog;
-    
-    
-    CogPoseFinder() {
+    CogPoseFinder::CogPoseFinder() {
         nearcog = false;
     }
 
-    CogPoseFinder(bool useEuqlidDist) {
+    CogPoseFinder::CogPoseFinder(bool useEuqlidDist) {
         nearcog = true;
         useEuqlidDist = useEuqlidDist;
     }
     
-    Point findCogOnPdf(lthmi_nav::FloatMapConstPtr pdf) { //returns wrt to map
+    void CogPoseFinder::findCogOnPdf(lthmi_nav::FloatMapConstPtr pdf) { //returns wrt to map
         float p, xsum=0.0, ysum=0.0, psum=0.0;
         for (int x=0; x<pdf->info.width; x++) {
             for (int y=0; y<pdf->info.height; y++) {
@@ -32,19 +23,19 @@ public:
                 }
             }
         }
-        return Point(int(round(xsum/psum)), int(round(ysum/psum))); //wrt to map
+        pt = Point(int(round(xsum/psum)), int(round(ysum/psum))); //wrt to map
     }
 
-    Point findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
-        Point cog = findCogOnPdf(pdf);
+    void CogPoseFinder::findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
+        findCogOnPdf(pdf);
         if (nearcog) {
-            Point pt = findClosestOnMap(pdf, cog);
+            moveToClosestOnMap(pdf);
             if (useEuqlidDist)
-                return findClosestInReachAreaEuq(pt);
+                moveToClosestInReachAreaEuq();
             else 
-                return findClosestInReachAreaObst(pt);
+                moveToClosestInReachAreaObst();
         } else {
-            return findClosestInReachAreaEuq(cog);
+            moveToClosestInReachAreaEuq();
         } 
     }
 };

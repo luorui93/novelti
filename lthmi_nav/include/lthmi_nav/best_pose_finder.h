@@ -30,6 +30,8 @@ public:
     Point r2a;
     Point ra_min;
     Point ra_max;
+    long int n_unassigned;
+    Point pt; 
     
     CompoundMap cmap;
     
@@ -49,10 +51,10 @@ public:
     void poseCurCallback(const geometry_msgs::PoseStamped& pose);
     void pdfCallback(lthmi_nav::FloatMapConstPtr pdf);
     void calcReachArea();
-    Point findClosestInReachAreaEuq(Point& pt);
-    Point findClosestInReachAreaObst(Point& pt);
-    Point findClosestOnMap(lthmi_nav::FloatMapConstPtr pdf, Point& pt);
-    virtual Point findBestPose(lthmi_nav::FloatMapConstPtr pdf) {return Point(0,0);};
+    void moveToClosestInReachAreaEuq();
+    void moveToClosestInReachAreaObst();
+    void moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf);
+    virtual void findBestPose(lthmi_nav::FloatMapConstPtr pdf) {};
     
 };
 }

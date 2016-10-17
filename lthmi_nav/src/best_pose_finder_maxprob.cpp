@@ -20,7 +20,8 @@ public:
         useEuqlidDist = useEuqlidDist;
     }
     
-    Point findMaxprobInReachArea(lthmi_nav::FloatMapConstPtr pdf) {
+    void findMaxprobInReachArea(lthmi_nav::FloatMapConstPtr pdf) {
+        //output (pt) wrt to reach_area
         double prob, maxprob = 0.0;
         Point pt;
         for (int x=ra_min.x; x<ra_max.x; x++) {
@@ -37,12 +38,11 @@ public:
             }
         }
         //ROS_INFO("===========================pdf[%d,%d]=%f", pt.x, pt.y, prob);
-        return pt;
     }
 
-    Point findMaxprobInPdf(lthmi_nav::FloatMapConstPtr pdf) {
+    void findMaxprobInPdf(lthmi_nav::FloatMapConstPtr pdf) {
+        //output (pt) wrt to pdf
         double d, prob, maxprob = 0.0;
-        Point pt;
         for (int x=0; x<pdf->info.width; x++) {
             for (int y=0; y<pdf->info.height; y++) {
                 prob = pdf->data[x + y*pdf->info.width];
@@ -52,18 +52,18 @@ public:
                 }
             }
         }
-        return pt;
     }
 
-    Point findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
+    void findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
+        //output (pt) wrt to reach_area
         if (raMaxProb) {
-            return findMaxprobInReachArea(pdf);
+            findMaxprobInReachArea(pdf);
         } else { 
-            Point pt = findMaxprobInPdf(pdf);
+            findMaxprobInPdf(pdf);
             if (useEuqlidDist)
-                return findClosestInReachAreaEuq(pt);
+                moveToClosestInReachAreaEuq();
             else 
-                return findClosestInReachAreaObst(pt);
+                moveToClosestInReachAreaObst();
         } 
     }
 };

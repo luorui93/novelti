@@ -218,7 +218,7 @@ target_link_libraries(map_divider
 )
 add_dependencies(map_divider ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
-add_executable(best_pose_finder src/node_best_pose_finder.cpp src/best_pose_finder.cpp)
+add_executable(best_pose_finder src/node_best_pose_finder.cpp src/best_pose_finder.cpp src/best_pose_finder_cog.cpp)
 target_compile_definitions(best_pose_finder PRIVATE DEBUG_POSE_FINDER=1 CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
 target_link_libraries(best_pose_finder
     ${catkin_LIBRARIES}

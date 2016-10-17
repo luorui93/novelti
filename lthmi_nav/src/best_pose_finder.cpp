@@ -77,7 +77,7 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     ROS_INFO("%s: received pdf", getName().c_str());
     calcReachArea();
     ROS_INFO("%s: starting to look for the best pose", getName().c_str());
-    Point pt = findBestPose(pdf);
+    findBestPose(pdf); //outputs to pt wrt reach_area
     ROS_INFO("=-------------------found best vertex=(%d,%d), published", pt.x, pt.y);
     geometry_msgs::PoseStamped pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
     pose.header.frame_id = "/map";
@@ -94,12 +94,15 @@ void BestPoseFinder::calcReachArea() {
     ra_min = Point(max(1, -r2a.x), max(1, -r2a.y) );
     int ra_size = 2*(max_dist+1);
     ra_max = Point( min(ra_size, cmap.width()-r2a.x),  min(ra_size, cmap.height()-r2a.y) );
+    n_unassigned = 0;
     
     for (int x=ra_min.x; x<ra_max.x; x++)
         for (int y=ra_min.y; y<ra_max.y; y++)
-            if (cmap.getPoint(x+r2a.x, y+r2a.y) != MAP_POINT_UNEXPLORED)
+            if (cmap.getPoint(x+r2a.x, y+r2a.y) != MAP_POINT_UNEXPLORED) {
                 reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNASSIGNED;
-            
+                n_unassigned++;
+            }
+    cmap.clearDist();
     for (int x=1; x<ra_min.x; x++)
         for (int y=1; y<ra_size; y++)
             reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
@@ -120,7 +123,9 @@ void BestPoseFinder::calcReachArea() {
     #endif
 }
 
-Point BestPoseFinder::findClosestInReachAreaEuq(Point& pt) {
+void BestPoseFinder::moveToClosestInReachAreaEuq() {
+    //input (pt)  wrt to map
+    //output (pt) wrt to reach_area
     Point out;
     double d, dmin = std::numeric_limits<double>::max();
     int x2, y2;
@@ -137,10 +142,12 @@ Point BestPoseFinder::findClosestInReachAreaEuq(Point& pt) {
             }
         }
     }
-    return out;
+    pt = out;
 }
 
-Point BestPoseFinder::findClosestInReachAreaObst(Point& pt) {
+void BestPoseFinder::moveToClosestInReachAreaObst() {
+    //input (pt)  wrt to map
+    //output (pt) wrt to reach_area    
     CWave2 cw(cmap);
     CWave2Processor dummy;
     cw.setProcessor(&dummy);
@@ -161,10 +168,12 @@ Point BestPoseFinder::findClosestInReachAreaObst(Point& pt) {
         }
     }
     cmap.clearDist();
-    return out;
+    pt = out;
 }
 
-Point BestPoseFinder::findClosestOnMap(lthmi_nav::FloatMapConstPtr pdf, Point& pt) {
+void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
+    //input (pt)  wrt to map
+    //output (pt) wrt to reach_area    
     Point out;
     double d, dmin = std::numeric_limits<double>::max();
     for (int x=0; x<pdf->info.width; x++) {
@@ -178,5 +187,5 @@ Point BestPoseFinder::findClosestOnMap(lthmi_nav::FloatMapConstPtr pdf, Point& p
             }
         }
     }
-    return out;
+    pt = out;
 }
