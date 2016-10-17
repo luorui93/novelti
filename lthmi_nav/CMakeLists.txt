@@ -227,6 +227,15 @@ target_link_libraries(best_pose_finder
 add_dependencies(best_pose_finder ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
 
+add_executable(robot_model src/node_robot_model.cpp)
+target_compile_definitions(robot_model PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_link_libraries(robot_model
+   ${catkin_LIBRARIES}
+   ${CWAVE_LIB_DIR}/libcwaveproc.a
+)
+add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
+
+
 add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
 target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 
@@ -238,11 +247,7 @@ target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} 
 # )
 # add_dependencies(map_publisher ${PROJECT_NAME}_generate_messages_cpp)
 # 
-# add_executable(robot_model src/robot_model.cpp)
-# target_link_libraries(robot_model
-#    ${catkin_LIBRARIES}
-# )
-# add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
+
 
 #install(TARGETS default_plugin
 #  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

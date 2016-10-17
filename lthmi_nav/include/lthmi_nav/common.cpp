@@ -51,10 +51,7 @@ public:
         node("~"),
         neverStarted(true),
         start_service(node.advertiseService("start", &SynchronizableNode::srvStart, this))
-    {
-        //neverStarted = true;
-        //start_service  = node.advertiseService("start", srvStart, this);
-    }
+    {}
     
     bool srvStart(lthmi_nav::StartExperiment::Request& req, lthmi_nav::StartExperiment::Response& resp) {
         if (!neverStarted) {
