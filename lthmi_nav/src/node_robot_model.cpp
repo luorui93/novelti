@@ -49,8 +49,8 @@ public:
     NoKinRobotModel() :
         SynchronizableNode()
     {
-        node.param("max_vel", max_vel_, 3.0);
-        node.param("max_vel_ang", max_vel_ang_, 3.0); //currently ignored
+        node.param("max_vel", max_vel_,  0.5);
+        node.param("max_vel_ang", max_vel_ang_, 0.5); //currently ignored
         node.param("pub_period", pub_period_, 0.025);
         state_ = WAITING;
         pose_current_.header.frame_id = "/map";
@@ -74,7 +74,7 @@ public:
     void desiredPoseCallback(geometry_msgs::PoseStamped pose_des) {
         ROS_INFO("robot_model: recieved desired pose: (%f,%f)", pose_des.pose.position.x,pose_des.pose.position.y);
         time_started_ = ros::Time::now();
-        Vertex src(pose_des.pose, resolution_);
+        Vertex src(pose_current_.pose, resolution_);
         CWave2 cw(cmap_);
         CWave2Processor dummy;
         cw.setProcessor(&dummy);
@@ -114,8 +114,8 @@ public:
         }
         if (state_ == STOPPED)
             gamma = 1.0;
-        pose_current_.pose.position.x = resolution_ * (0.5 + cur.x + (nxt.x-cur.x)*gamma);
-        pose_current_.pose.position.y = resolution_ * (0.5 + cur.y + (nxt.y-cur.y)*gamma);
+        pose_current_.pose.position.x = resolution_ * (cur.x + (nxt.x-cur.x)*gamma);
+        pose_current_.pose.position.y = resolution_ * (cur.y + (nxt.y-cur.y)*gamma);
     }
 
     void stop() {
@@ -129,7 +129,7 @@ public:
         while (ros::ok()) {
             if (state_ != WAITING) {
                 if (state_ == MOVING) 
-                updateCurrentPose(ros::Time::now());
+                    updateCurrentPose(ros::Time::now());
                 pose_current_.header.stamp = ros::Time::now();
                 pub_pose_current_.publish(pose_current_);
                 //ROS_INFO("robot_model: published currrent_pose");

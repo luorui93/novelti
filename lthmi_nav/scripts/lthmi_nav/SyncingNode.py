@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-import rospy
+from math import pi
 
-from geometry_msgs.msg import Pose
+import rospy
+import tf_conversions
+
+from geometry_msgs.msg import Pose, Quaternion
 from lthmi_nav.srv import StartExperiment
 from lthmi_nav.MapTools import GridMap
 from lthmi_nav.msg import IntMap
@@ -18,6 +21,7 @@ class SyncingNode:
             self.map_publisher  = rospy.Publisher('/map', IntMap, queue_size=1, latch=True) if publishMap else Node
 
     def waitForAll(self):
+        rospy.loginfo("Waiting for all synced nodes and services to start.........")
         for srv_path in self.cfg['waited_srvs']:
             rospy.wait_for_service(srv_path)
         self.srvs = []
@@ -44,9 +48,7 @@ class SyncingNode:
             self.publishMap(resolution)
         if init_pose is None:
             init_vx = self.grid.genRandUnblockedVertex()
-            init_pose = Pose()
-            init_pose.position.x = init_vx[0]*self.cfg['resolution']
-            init_pose.position.y = init_vx[1]*self.cfg['resolution']
+            init_pose = self.vertex2pose(init_vx)
         stamp = rospy.Time.now()
         name = "Experiment %d" % self.seq
         mapa = IntMap()
@@ -62,4 +64,10 @@ class SyncingNode:
             except rospy.ServiceException, e:
                 print "Service call to node %s failed: %s"%e
         self.seq += 1
-                
+    
+    def vertex2pose(self,vx):
+        p = Pose()
+        p.position.x = vx[0]*self.cfg['resolution']
+        p.position.y = vx[1]*self.cfg['resolution']
+        p.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -pi/2, 0.0))
+        return p

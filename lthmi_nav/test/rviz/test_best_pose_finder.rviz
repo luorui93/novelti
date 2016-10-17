@@ -84,12 +84,27 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
-      Class: lthmi_nav/FloatMap
-      Color Scheme: float
-      Draw Behind: true
+      Class: lthmi_nav/IntMap
+      Color Scheme: regions
+      Draw Behind: false
       Enabled: true
-      Name: /pdf
-      Topic: /pdf
+      Name: /map
+      Topic: /map
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 0; 0; 255
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: /pose_current
+      Shaft Length: 1
+      Shaft Radius: 0.8
+      Shape: Arrow
+      Topic: /pose_current
+      Unreliable: false
       Value: true
     - Alpha: 1
       Axes Length: 1
@@ -99,42 +114,11 @@ Visualization Manager:
       Enabled: true
       Head Length: 0.3
       Head Radius: 0.15
-      Name: /pose_best
+      Name: /pose_desired
       Shaft Length: 0.2
-      Shaft Radius: 0.4
+      Shaft Radius: 1
       Shape: Arrow
-      Topic: /pose_best
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Class: lthmi_nav/IntMap
-      Color Scheme: regions
-      Draw Behind: false
-      Enabled: true
-      Name: /map
-      Topic: /map
-      Value: true
-    - Alpha: 0.9
-      Class: lthmi_nav/FloatMap
-      Color Scheme: float
-      Draw Behind: false
-      Enabled: true
-      Name: /debug_reach_area
-      Topic: /debug_reach_area
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
-      Color: 255; 255; 255
-      Enabled: true
-      Head Length: 0.3
-      Head Radius: 0.1
-      Name: /debug_pose
-      Shaft Length: 1
-      Shaft Radius: 0.25
-      Shape: Arrow
-      Topic: /debug_pose
+      Topic: /pose_desired
       Unreliable: false
       Value: true
   Enabled: true
@@ -160,7 +144,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
+      Angle: 0.01
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -169,7 +153,7 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 60.1441
+      Scale: 12.6005
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
       X: 21.7801
@@ -191,5 +175,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 597
+  X: 557
   Y: 14

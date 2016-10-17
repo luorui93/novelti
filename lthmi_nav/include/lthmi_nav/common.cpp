@@ -73,17 +73,4 @@ public:
     virtual void stop()  = 0;
 };
 
-// Point pose2point(geometry_msgs::PoseStamped& pose, float resolution) {
-//     return {
-//         (int) floor( pose->pose.position.x / resolution), 
-//         (int) floor( pose->pose.position.y / resolution)
-//     };
-// }
-// 
-// geometry_msgs::PoseStamped point2pose(Point2D& point, float resolution) {
-//     geometry_msgs::PoseStamped pose;
-//     pose.pose.position.x = point.x*resolution;
-//     pose.pose.position.y = point.y*resolution;
-//     return pose;
-// }
 }
