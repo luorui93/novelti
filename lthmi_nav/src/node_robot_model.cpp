@@ -2,9 +2,7 @@
      subs                                       pubs
                     +--------------------+
                     |                    |
- /pose_desired ---> |                    | ---> /pose_current
-                    |  node_robot_model  |
-                    |                    | ---> /reach_area   | debug
+ /pose_desired ---> |  node_robot_model  | ---> /pose_current
                     |                    |
                     +--------------------+
                                ^
@@ -141,6 +139,8 @@ public:
     
 };
 }
+
+
 
 using namespace lthmi_nav;
 
