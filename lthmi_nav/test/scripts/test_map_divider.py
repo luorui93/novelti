@@ -27,8 +27,6 @@ class MapDividerTester (SyncingNode):
             'delay':         rospy.get_param('~delay', -1.0) #negative means forever
             #'period':        rospy.get_param('~period', -1.0) #0.0 means wait forever
         })
-        rospy.get_param('~px', None)
-        rospy.get_param('~py', None)
         
         self.pdf_publisher   = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
         self.pose_publisher  = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1, latch=True)#, latch=False)
