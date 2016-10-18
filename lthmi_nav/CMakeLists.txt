@@ -110,6 +110,7 @@ generate_messages(
    DEPENDENCIES
    std_msgs  # Or other packages containing msgs
    nav_msgs
+   geometry_msgs
    lthmi_nav
 )
 
@@ -225,6 +226,12 @@ target_link_libraries(best_pose_finder
     ${CWAVE_LIB_DIR}/libcwaveproc.a
 )
 add_dependencies(best_pose_finder ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
+
+add_executable(inference_unit src/node_inference_unit.cpp src/inference_unit.cpp)
+target_link_libraries(inference_unit
+    ${catkin_LIBRARIES}
+)
+add_dependencies(inference_unit ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
 
 add_executable(robot_model src/node_robot_model.cpp)
