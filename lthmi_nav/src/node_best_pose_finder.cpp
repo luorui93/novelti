@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "best_pose_finder");
     
     ros::NodeHandle n("~");
-    std::string method = "maxprob";
+    std::string method = "cog2lopt";
     n.getParam("method", method);
     ROS_INFO("%s: started. method=%s", getName().c_str(), method.c_str());
     

@@ -43,9 +43,9 @@ InferenceUnit::InferenceUnit() :
     int n_cmds = (int)floor(sqrt(interface_matrix.size()));
     if (interface_matrix.size()==0 && n_cmds*n_cmds==interface_matrix.size())
         throw ros::Exception("ERROR: interface_matrix parameter should be specified, have length>0, and its length has to be a square of an integer number (number of commands)");
-    priors = std::vector<double>(n_cmds, 0.0);
+    priors     = std::vector<double>(n_cmds, 0.0);
     posteriors = std::vector<double>(n_cmds, 0.0);
-    coefs = std::vector<double>(n_cmds, 0.0);
+    coefs      = std::vector<double>(n_cmds, 0.0);
     srv_new_goal = node.advertiseService("new_goal", &InferenceUnit::srvNewGoal, this);
 }
 
