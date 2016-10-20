@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
+    <arg name="pos"   default="cog2lopt" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="vel"   default="2.0" />       <!-- robot velocity -->
+    <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
+    
+    <arg name="prob_thresh_high" default="99.0" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
+    <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
+    <arg name="prob_eps"         default="1.0e-12" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
+    <arg name="ksafe" default="0.9" />
+    
+    <arg name="T"     default="1.0" />        <!-- interface period -->
+
+    <arg name="map"   default="ak500inflated" />
+    <arg name="path"  default="7" />
+    <arg name="resol" default="0.1" />
+    <arg name="tries" default="30" />
+
+    
+    
+    <arg name="record" default="1" />
+    <!--arg name="monitor" default="1" />-->
+    <arg name="output_dir" default="$(find lthmi_nav)/exp/$(arg expset)" />
+    <arg name="by_key" default="0" />
+    
+    <arg name="rvizcfg" default="static" /> <!-- autocam or static -->
+    
+    <arg name="output_file_prefix" default="$(arg expset)_$(arg div)_$(arg pos)_$(arg mx)_T=$(arg T)_V=$(arg vel)" />
+    <arg name="record_to" default="$(arg output_dir)/$(arg output_file_prefix).bag" />
+    <arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" />
+    
+    <rosparam>
+        mx100:  [[1.0, 0.0, 0.0, 0.0],    [0.0, 1.0, 0.0, 0.0],    [0.0, 0.0, 1.0, 0.0],    [0.0, 0.0, 0.0, 1.0],]
+        mx91:   [[0.91, 0.03, 0.03, 0.03], [0.03, 0.91, 0.03, 0.03], [0.03, 0.03, 0.91, 0.03], [0.03, 0.03, 0.03, 0.91],]
+        mx85:   [[0.85, 0.05, 0.05, 0.05], [0.05, 0.85, 0.05, 0.05], [0.05, 0.05, 0.85, 0.05], [0.05, 0.05, 0.05, 0.85],]
+        mx55:   [[0.55, 0.15, 0.15, 0.15], [0.15, 0.55, 0.15, 0.15], [0.15, 0.15, 0.55, 0.15], [0.15, 0.15, 0.15, 0.55],]
+    </rosparam>
+    
+    <node pkg="lthmi_nav" type="experimentator.py" name="experimentator" output="screen" required="true" >
+        <rosparam command="load" file="$(find lthmi_nav)/exp/$(arg expset)/experiments.yaml"/>
+        <rosparam>
+            dependent_nodes: ['inference_unit', 'robot_model', 'best_pose_finder', 'map_divider', 'human_model', 'monitor', ]
+            wait_for_srvs: ['/rviz/reload_shaders', '/rosbag_record/get_loggers']
+            map_prefix: "/home/sd/ws/src/lthmi_nav/lthmi_nav/map/"
+        </rosparam>
+    </node>
+    
+    
+    <!-- Environment model -->
+    <node pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" >
+        <param name="max_vel"     value="$(arg vel)" />
+        <param name="pub_period"  value="0.025" />
+    </node>
+    <node pkg="lthmi_nav" type="node_human_model.py" name="human_model" output="screen"> </node>
+    <node pkg="lthmi_nav" type="stochastic_hmi_model.py" name="stochastic_hmi_model" output="screen" >
+        <param name="number_of_commands" value="4" />
+        <remap from="~interface_matrix" to="/$(arg mx)"/>
+        <param if="$(arg by_key)"     name="delay" value="0.0"/>
+        <param unless="$(arg by_key)" name="delay" value="$(arg T)"/>
+    </node>
+    
+    
+    <!-- Shared Control -->
+    <node pkg="lthmi_nav" type="inference_unit" name="inference_unit" output="screen" >
+        <remap from="~interface_matrix" to="/$(arg mx)"/>
+        <param name="thresh_high" value="$(arg prob_thresh_high)" />
+        <param name="thresh_low"  value="$(arg prob_thresh_high)" />
+        <param name="eps"         value="$(arg prob_min)" />
+    </node>
+    <node pkg="lthmi_nav" type="best_pose_finder" name="best_pose_finder" output="screen" >
+        <param name="method"      value="$(arg pos)" />
+        <param name="max_vel"     value="$(arg vel)" />
+        <param name="safety_coef" value="$(arg ksafe)" />
+        <param name="period"      value="$(arg T)" />
+    </node>
+    <node pkg="lthmi_nav" type="map_divider" name="map_divider" output="screen" > <!--launch-prefix="xterm -geometry 200x30+10+20 -e gdb - -args"-->
+        <param name="method"      value="$(arg div)" />
+    </node>
+    
+    
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find lthmi_nav)/rviz/experimentator_$(arg rvizcfg).rviz" />
+    
+    
+    <!-- Recording -->
+    <node if="$(arg record)"  pkg="rosbag" type="record" name="rosbag_record"
+       args="-O $(arg record_to) /rosout /map /pose_intended /pose_current /pose_optimal /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided" />
+
+   <!-- Monitoring - ->
+    <node if="$(arg monitor)" pkg="lthmi_nav" type="monitor.py" name="monitor" output="screen">
+        <param name="output_prefix" value="$(arg monitor_output_prefix)"/>
+    </node>-->
+
+</launch>
