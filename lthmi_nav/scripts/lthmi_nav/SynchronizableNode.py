@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 import rospy
 
-from lthmi_nav.srv import StartExperiment
+from lthmi_nav.srv import *
 
 
 class SynchronizableNode:
     def __init__(self):
+        rospy.loginfo("%s: started a new Experim"% rospy.get_name())
         self.ranBefore = False
-        self.start_srv = rospy.Service('start', StartExperiment, self.startSrv)
+        self.start_srv = rospy.Service('~start', StartExperiment, self.startSrv)
     
-    def startSrv(self.req):
-        if ranBefore:
+    def startSrv(self, req):
+        if self.ranBefore:
             self.stop()
             rospy.loginfo("%s: stopped Experiment" % rospy.get_name())
-            ranBefore = True
+            self.ranBefore = True
         self.resolution = req.map.info.resolution
         self.start(req)
         
