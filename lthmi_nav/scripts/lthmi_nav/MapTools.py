@@ -193,7 +193,7 @@ USAGE:
         ./MapTools.py gen_path {number_of_point} <input.map
         
     Print {number_of_paths} paths each containing a random number n (such that {min_num_points} <= n <= {max_num_points}) of random way-points to STDOUT:
-        ./MapTools.py gen_paths {number_of_point} {min_num_points} <= n <= {max_num_points} <input.map
+        ./MapTools.py gen_paths {number_of_paths} {min_num_points} <= n <= {max_num_points} <input.map
         
     Clear map from disagonal obstacles:   NOT YET IMPLEMENTED
         ./MapTools.py clear_diags [policy] <input.map >output.map
@@ -263,14 +263,16 @@ if __name__=="__main__":
             maxpts = int(sys.argv[4])
             mapFile = StringIO.StringIO(sys.stdin.read())
             grid = GridMap.fromText(mapFile)
-            sys.stdout.write("'paths': [")
+            sys.stdout.write("'paths': {")
             for k in range(npaths-1):
                 npoints = randint(minpts,maxpts)  #randint(a, b)   a <= N <= b
                 path = grid.genRandPath(npoints)
-                sys.stdout.write("%s,\n" % (str(path)))
+                sys.stdout.write("'%d': %s,\n" % (k, str(path)))
+                #sys.stdout.write("%s,\n" % (str(path)))
             npoints = randint(minpts,maxpts)  #randint(a, b)   a <= N <= b
             path = grid.genRandPath(npoints)
-            sys.stdout.write("%s\n]\n" % (str(path)))
+            sys.stdout.write("'%d': %s\n}\n" % (k+1, str(path)))
+            #sys.stdout.write("%s\n]\n" % (str(path)))
         elif action=="gen_scene":
             if len(sys.argv)<3:
                 sys.stderr.write("ERROR: gen_scene requires minimum 1 additional parameters. Run './MapTools.py help'\n\n")
