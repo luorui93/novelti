@@ -21,12 +21,14 @@ class SyncingNode:
             self.map_publisher  = rospy.Publisher('/map', IntMap, queue_size=1, latch=True) if publishMap else Node
 
     def waitForAll(self):
-        rospy.loginfo("Waiting for all synced nodes and services to start.........")
+        #rospy.loginfo("Waiting for all synced nodes %s and services %s to start........." % (self.cfg['synced_nodes'], self.cfg['waited_srvs']))
         for srv_path in self.cfg['waited_srvs']:
+            rospy.loginfo("%s: waiting for %s" % (rospy.get_name(), srv_path))
             rospy.wait_for_service(srv_path)
         self.srvs = []
         for node_name in self.cfg['synced_nodes']:
             srv_path = node_name+'/start'
+            rospy.loginfo("%s: waiting for %s" % (rospy.get_name(), srv_path))
             rospy.wait_for_service(srv_path)
             self.srvs.append(rospy.ServiceProxy(srv_path, StartExperiment))
     
