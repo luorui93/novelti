@@ -15,11 +15,12 @@ class HumanModel (SynchronizableNode):
     
     def start(self, req):
         rospy.wait_for_service(self.srv_name)
+        self.new_goal_srv = rospy.ServiceProxy(self.srv_name, Empty)
         self.pub_cmd_intended  = rospy.Publisher('/cmd_intended', Command, queue_size=1, latch=True)#, latch=False)
         self.map_divided_sub   = rospy.Subscriber('/map_divided', IntMap, self.mapDividedCallback)
         self.sub_pose_intended = rospy.Subscriber('/pose_intended', PoseStamped, self.poseIntendedCallback)
     
-    def stop():
+    def stop(self):
         self.map_divided_sub.shutdown()
         self.sub_pose_intended.shutdown()
         self.pub_cmd_intended.shutdown()
@@ -35,8 +36,7 @@ class HumanModel (SynchronizableNode):
     def poseIntendedCallback(self, msg):
         self.vertex_intended = self.pose2vertex(msg.pose)
         try:
-            srv = rospy.ServiceProxy(self.srv_name, Empty)
-            resp = srv()
+            resp = self.new_goal_srv()
         except rospy.ServiceException, e:
             rospy.logerr("Service call failed: %s"%e)
             exit(1)
