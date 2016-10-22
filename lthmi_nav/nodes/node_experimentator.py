@@ -28,7 +28,9 @@ class Experimentator (SyncingNode):
         nextVx = next(self.vxIter, None)
         if nextVx is None:
             if self.runs_left == 0:
-                exit(0)
+                rospy.loginfo("%s: ^^^^^^^^^^^^^^^^^^^ all runs completed ^^^^^^^^^^^^^^^^^^^^^^^^" % (rospy.get_name()))
+                rospy.signal_shutdown("finished")
+                return
             self.vxIter = iter(self.cfg['poses'])
             vx = self.vxIter.next()
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], self.vertex2pose(vx))
@@ -48,6 +50,7 @@ class Experimentator (SyncingNode):
 
     def poseInferredCallback(self, msg):
         if self.state=="INFERRING":
+            rospy.loginfo("%s: INFERRING->INFERRED detected" % (rospy.get_name()))
             self.pose_inferred = msg.pose
             self.state="INFERRED"
             self.onPoseInferred()
@@ -57,6 +60,7 @@ class Experimentator (SyncingNode):
     
     def poseCurrentCallback(self, msg):
         if self.state=="INFERRED" and self.arePosesSame(msg.pose, self.pose_inferred):
+            rospy.loginfo("%s: reached destination" % (rospy.get_name()))
             self.state="INFERRING"
             self.onInferredReached()
             self.publishNextIntendedPose()
