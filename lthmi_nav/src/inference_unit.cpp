@@ -37,7 +37,7 @@ InferenceUnit::InferenceUnit() :
 {
     node.param<float>("thresh_high", thresh_high, 0.98);
     node.param<float>("thresh_low", thresh_low, 0.5);
-    node.param<float>("eps", eps, 1.0e-12);
+    node.param<double>("eps", eps, 1.0e-12);
     
     node.getParam("interface_matrix", interface_matrix);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
@@ -107,6 +107,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
 
 void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes
     double p, sc=0.0, sa=0.0;
+    //ROS_INFO("++++++++++++++++ eps=%f", eps);
     for (int k=pdf.data.size()-1; k>=0; k--) { //replace small probs (<eps) with eps 
         p = pdf.data[k];
         if (p != PDF_UNREACHABLE && p < eps) {
@@ -115,12 +116,19 @@ void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and
         }
     }
     double c=(1.0-sc)/(1.0-sa);
+    //ROS_INFO("++++++++++++++++ c=%f", c);
     for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
         p = pdf.data[k];
         if (p != PDF_UNREACHABLE) {
             pdf.data[k] = p<eps ? eps : c*p;
         }
     }
+    
+    double min_prob = 1.0;
+    for (int k=pdf.data.size()-1; k>=0; k--) //find min prob
+        if (pdf.data[k]>=0.0 && pdf.data[k]<min_prob)
+            min_prob = pdf.data[k];
+    //ROS_INFO("++++++++++++++++ min_prob=%f", min_prob*1000000);
 }
 
     
@@ -139,8 +147,6 @@ void InferenceUnit::calcUpdCoefs() {
         //ROS_INFO(">>>>>>>>>>>>>>> mx=%f, pr=%f", interface_matrix[cmd_detected->cmd + k*n_cmds], priors[k]);
         posteriors[k] += interface_matrix[cmd_detected->cmd + k*n_cmds] * priors[k]; //TODO double check
         total += posteriors[k];
-        //rospy.loginfo("inference_module: priors = %s" % str(priors))
-        //rospy.loginfo("inference_module: interface_matrix[k][detected] = %s, k=%d, detected=%d", str(interface_matrix[k][detected]), k, detected)
     }
     ROS_INFO("%s: calculated posteriors before normalization: [%f, %f, %f, %f]", getName().c_str(), posteriors[0], posteriors[1], posteriors[2], posteriors[3]);
     
