@@ -16,6 +16,7 @@ class HumanModel (SynchronizableNode):
     def start(self, req):
         rospy.wait_for_service(self.srv_name)
         self.new_goal_srv = rospy.ServiceProxy(self.srv_name, Empty)
+        self.cmd_intended = Command()
         self.pub_cmd_intended  = rospy.Publisher('/cmd_intended', Command, queue_size=1, latch=True)#, latch=False)
         self.map_divided_sub   = rospy.Subscriber('/map_divided', IntMap, self.mapDividedCallback)
         self.sub_pose_intended = rospy.Subscriber('/pose_intended', PoseStamped, self.poseIntendedCallback)
@@ -27,11 +28,10 @@ class HumanModel (SynchronizableNode):
     
     def mapDividedCallback(self, msg):
         reg = msg.data[self.vertex_intended[0] + self.vertex_intended[1]*msg.info.width]
-        cmd_intended = Command()
-        cmd_intended.header.stamp = rospy.Time.now()
-        cmd_intended.cmd = reg
-        self.pub_cmd_intended.publish(cmd_intended)
-        rospy.loginfo("%s: /map_divided recieived, published /cmd_intended=%d." % (rospy.get_name(), reg))
+        self.cmd_intended.header.stamp = rospy.Time.now()
+        self.cmd_intended.cmd = reg
+        self.pub_cmd_intended.publish(self.cmd_intended)
+        rospy.loginfo("%s: /map_divided recieived (SEQ=%d), published /cmd_intended=%d (SEQ=%d)." % (rospy.get_name(), msg.header.seq, reg,  self.cmd_intended.header.seq))
 
     def poseIntendedCallback(self, msg):
         self.vertex_intended = self.pose2vertex(msg.pose)
@@ -40,7 +40,7 @@ class HumanModel (SynchronizableNode):
         except rospy.ServiceException, e:
             rospy.logerr("Service call failed: %s"%e)
             exit(1)
-        rospy.loginfo("%s: /pose_intended received, vertex=(%d,%d), pose=(%f,%f)." % (rospy.get_name(), self.vertex_intended[0], self.vertex_intended[1], pose.pose.position.x, pose.pose.position.y))
+        rospy.loginfo("%s: /pose_intended received, vertex=(%d,%d), pose=(%f,%f)." % (rospy.get_name(), self.vertex_intended[0], self.vertex_intended[1], msg.pose.position.x, msg.pose.position.y))
 
 if __name__=="__main__":
     rospy.init_node('human_model')
