@@ -36,15 +36,19 @@ public:
     const float PDF_UNREACHABLE = -10.0;
     
     enum State { INFERRING, INFERRED, INFERRING_NEW };
+    enum FastState { RCVD_NONE, RCVD_CMD, RCVD_MAPDIV };
     State state;
-    ros::Publisher  pub_pdf;
-    ros::Publisher  pub_pose_inf;
-    ros::Subscriber sub_map_div;
-    ros::Subscriber sub_cmd;
-    ros::ServiceServer srv_new_goal;
+    FastState fast_state;
     
-    lthmi_nav::FloatMap pdf;
-    lthmi_nav::IntMapConstPtr map_divided;
+    ros::Publisher      pub_pdf;
+    ros::Publisher      pub_pose_inf;
+    ros::Subscriber     sub_map_div;
+    ros::Subscriber     sub_cmd;
+    ros::ServiceServer  srv_new_goal;
+    
+    FloatMap        pdf;
+    IntMapConstPtr  map_divided;
+    CommandConstPtr cmd_detected;
     
     std::vector<double> interface_matrix;
     std::vector<double> priors;
@@ -64,13 +68,15 @@ public:
     void start(lthmi_nav::StartExperiment::Request& req);
     void mapDivCallback(lthmi_nav::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
+    void updatePdfAndPublish();
+    void calcPriors();
     void pubPdf();
     void pubPoseInferred(int k);
     
-    void updatePdf(int cmd_detected);
+    void updatePdf();
     void denullifyPdf();
-    void calcPriors();
-    void calcUpdCoefs(int cmd_detected);
+    
+    void calcUpdCoefs();
 };
 }
 
