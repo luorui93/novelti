@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - //debug_reach_area1
+        - /Pose1
       Splitter Ratio: 0.625
     Tree Height: 376
   - Class: rviz/Selection
@@ -133,26 +134,26 @@ Visualization Manager:
       Class: lthmi_nav/FloatMap
       Color Scheme: float
       Draw Behind: true
-      Enabled: true
+      Enabled: false
       Name: /pdf
       Topic: /pdf
-      Value: true
-    - Alpha: 1
-      Class: lthmi_nav/IntMap
-      Color Scheme: regions
-      Draw Behind: false
-      Enabled: false
-      Name: /map_divided
-      Topic: /map_divided
       Value: false
     - Alpha: 1
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
       Enabled: true
+      Name: /map_divided
+      Topic: /map_divided
+      Value: true
+    - Alpha: 1
+      Class: lthmi_nav/IntMap
+      Color Scheme: regions
+      Draw Behind: false
+      Enabled: false
       Name: /map
       Topic: /map
-      Value: true
+      Value: false
     - Alpha: 0.7
       Class: lthmi_nav/IntMap
       Color Scheme: regions
@@ -183,6 +184,21 @@ Visualization Manager:
       Enabled: true
       Name: /debug_reach_area
       Topic: /debug_reach_area
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 0; 255
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 2
+      Shaft Radius: 0.2
+      Shape: Arrow
+      Topic: /debug_pose
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
@@ -216,11 +232,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 52.5129
+      Scale: 28.7961
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 22.58
-      Y: 26.1349
+      X: 15.1242
+      Y: 17.4228
     Saved: ~
 Window Geometry:
   Displays:
@@ -238,5 +254,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 72
+  X: 55
   Y: 14

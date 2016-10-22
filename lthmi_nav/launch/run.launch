@@ -2,22 +2,22 @@
 <launch>
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
-    <arg name="vel"   default="1.0" />       <!-- robot velocity in m/s -->
-    <arg name="T"     default="2.0" />        <!-- interface period -->
+    <arg name="vel"   default="2.0" />       <!-- robot velocity in m/s -->
+    <arg name="T"     default="1.0" />        <!-- interface period -->
     <arg name="mx"    default="mx100" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
     <arg name="prob_thresh_high" default="0.99" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
-    <arg name="prob_eps"         default="1.0e-12" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
+    <arg name="prob_eps"         default="1.0e-8" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
     <arg name="ksafe" default="0.9" />
     
     
 
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
-    <arg name="path"  default="31" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
+    <arg name="path"  default="10" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
-    <arg name="tries" default="30" />
+    <arg name="tries" default="1" />
     
 
     <!--arg name="outdir" /-->
@@ -59,11 +59,11 @@
         mx55:   [0.55, 0.15, 0.15, 0.15,    0.15, 0.55, 0.15, 0.15,     0.15, 0.15, 0.55, 0.15,     0.15, 0.15, 0.15, 0.55,]
     </rosparam>
     
-    <node pkg="lthmi_nav" type="node_experimentator.py" name="experimentator" output="screen" required="false" >
+    <node pkg="lthmi_nav" type="node_experimentator.py" name="experimentator" output="screen" required="true" >
         <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
         <remap from="~poses" to="/paths/$(arg path)"/>
         <param name="resol" value="$(arg resol)" />
-        <param name="tries" value="$(arg tries)" />
+        <param name="n_runs" value="$(arg tries)" />
         <rosparam>
             synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
             waited_srvs: ['/rviz/reload_shaders', ]
