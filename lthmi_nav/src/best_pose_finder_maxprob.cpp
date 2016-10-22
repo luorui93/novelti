@@ -17,11 +17,11 @@ public:
         raMaxProb = true;
     }
 
-    MaxprobPoseFinder(bool useEuqlidDist) :
+    MaxprobPoseFinder(bool useEuqlidDist1) :
         BestPoseFinder()
     {
         raMaxProb = false;
-        useEuqlidDist = useEuqlidDist;
+        useEuqlidDist = useEuqlidDist1;
     }
     
     void findMaxprobInReachArea(lthmi_nav::FloatMapConstPtr pdf) {
