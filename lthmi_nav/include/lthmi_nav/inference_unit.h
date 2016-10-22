@@ -58,7 +58,7 @@ public:
     int n_cmds;
     float thresh_high;
     float thresh_low;
-    float eps;
+    double eps;
     double max_prob;
     int max_prob_k;
     
