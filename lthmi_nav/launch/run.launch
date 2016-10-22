@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
-    <arg name="pos"   default="cog2lopt" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
-    <arg name="vel"   default="2.0" />       <!-- robot velocity in m/s -->
-    <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
+    <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="vel"   default="1.0" />       <!-- robot velocity in m/s -->
+    <arg name="T"     default="2.0" />        <!-- interface period -->
+    <arg name="mx"    default="mx100" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
-    <arg name="prob_thresh_high" default="99.0" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
+    <arg name="prob_thresh_high" default="0.99" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
     <arg name="prob_eps"         default="1.0e-12" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
     <arg name="ksafe" default="0.9" />
     
-    <arg name="T"     default="1.0" />        <!-- interface period -->
+    
 
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
-    <arg name="path"  default="7" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
+    <arg name="path"  default="31" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
     <arg name="tries" default="30" />
     
@@ -48,19 +49,18 @@
     
     
     <rosparam>
-        mx100:  [[1.0, 0.0, 0.0, 0.0],     [0.0, 1.0, 0.0, 0.0],     [0.0, 0.0, 1.0, 0.0],     [0.0, 0.0, 0.0, 1.0],]
+        <!--mx100:  [[1.0, 0.0, 0.0, 0.0],     [0.0, 1.0, 0.0, 0.0],     [0.0, 0.0, 1.0, 0.0],     [0.0, 0.0, 0.0, 1.0],]
         mx91:   [[0.91, 0.03, 0.03, 0.03], [0.03, 0.91, 0.03, 0.03], [0.03, 0.03, 0.91, 0.03], [0.03, 0.03, 0.03, 0.91],]
         mx85:   [[0.85, 0.05, 0.05, 0.05], [0.05, 0.85, 0.05, 0.05], [0.05, 0.05, 0.85, 0.05], [0.05, 0.05, 0.05, 0.85],]
-        mx55:   [[0.55, 0.15, 0.15, 0.15], [0.15, 0.55, 0.15, 0.15], [0.15, 0.15, 0.55, 0.15], [0.15, 0.15, 0.15, 0.55],]
-       <!-- mx100:  [1.0, 0.0, 0.0, 0.0,        0.0, 1.0, 0.0, 0.0,         0.0, 0.0, 1.0, 0.0,         0.0, 0.0, 0.0, 1.0,]
+        mx55:   [[0.55, 0.15, 0.15, 0.15], [0.15, 0.55, 0.15, 0.15], [0.15, 0.15, 0.55, 0.15], [0.15, 0.15, 0.15, 0.55],]-->
+        mx100:  [1.0, 0.0, 0.0, 0.0,        0.0, 1.0, 0.0, 0.0,         0.0, 0.0, 1.0, 0.0,         0.0, 0.0, 0.0, 1.0,]
         mx91:   [0.91, 0.03, 0.03, 0.03,    0.03, 0.91, 0.03, 0.03,     0.03, 0.03, 0.91, 0.03,     0.03, 0.03, 0.03, 0.91,]
         mx85:   [0.85, 0.05, 0.05, 0.05,    0.05, 0.85, 0.05, 0.05,     0.05, 0.05, 0.85, 0.05,     0.05, 0.05, 0.05, 0.85,]
-        mx55:   [0.55, 0.15, 0.15, 0.15,    0.15, 0.55, 0.15, 0.15,     0.15, 0.15, 0.55, 0.15,     0.15, 0.15, 0.15, 0.55,]-->
+        mx55:   [0.55, 0.15, 0.15, 0.15,    0.15, 0.55, 0.15, 0.15,     0.15, 0.15, 0.55, 0.15,     0.15, 0.15, 0.15, 0.55,]
     </rosparam>
     
     <node pkg="lthmi_nav" type="node_experimentator.py" name="experimentator" output="screen" required="false" >
         <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
-        <!--param name="poses" value="$(arg path)" /-->
         <remap from="~poses" to="/paths/$(arg path)"/>
         <param name="resol" value="$(arg resol)" />
         <param name="tries" value="$(arg tries)" />
@@ -73,6 +73,7 @@
     
     <!-- Environment model -->
     <node pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" >
+        <remap from="/pose_desired" to="/pose_best" />
         <param name="max_vel"     value="$(arg vel)" />
         <param name="pub_period"  value="0.025" />
     </node>
