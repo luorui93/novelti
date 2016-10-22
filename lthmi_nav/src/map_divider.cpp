@@ -40,44 +40,58 @@ void MapDivider::stop() {
 void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
     state = WAITING;
     probs_actual = std::vector<double>(probs_optimal.size(),0.0);
+    
+    map_divided = IntMap();
+    map_divided.header.frame_id = "/map";
     map_divided.info.resolution = req.map.info.resolution;
     map_divided.info.width = req.map.info.width+1;
     map_divided.info.height = req.map.info.height+1;
     map_divided.info.origin.position.x = -0.5*req.map.info.resolution;
     map_divided.info.origin.position.y = -0.5*req.map.info.resolution;
     map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
-    pub_map_div   = node.advertise<lthmi_nav::IntMap>("/map_divided", 1, false); //not latched
-    sub_pose_opt  = node.subscribe("/pose_optimal", 1, &MapDivider::poseOptCallback, this);
+    pub_map_div   = node.advertise<lthmi_nav::IntMap>("/map_divided", 1, true); //not latched
+    sub_pose_opt  = node.subscribe("/pose_best", 1, &MapDivider::poseOptCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &MapDivider::pdfCallback, this);
 }
 
-void MapDivider::poseOptCallback(const geometry_msgs::PoseStamped& pose) {
-    ROS_INFO("%s: received pose", getName().c_str());
+void MapDivider::poseOptCallback(geometry_msgs::PoseStampedConstPtr msg) {
+    ROS_INFO("%s: received pose (SEQ==%d)", getName().c_str(), msg->header.seq);
     //vx(pose, 0.1);//(double)(pdf->info.resolution));
-    new (&vx) Vertex(pose.pose, (double)(map_divided.info.resolution));
+    pose_best = msg;
     if (state==ONLY_PDF) {
-        divideAndPublish();
         state = WAITING;
+        divideAndPublish();
+        
     } else {
         state = ONLY_POSE;
     }
 }
 
 void MapDivider::pdfCallback(lthmi_nav::FloatMapConstPtr msg){
-    ROS_INFO("%s: received pdf", getName().c_str());
+    ROS_INFO("%s: received pdf (SEQ==%d)", getName().c_str(), msg->header.seq);
     pdf = msg;
     if (state==ONLY_POSE) {
-        divideAndPublish();
         state = WAITING;
+        divideAndPublish();
     } else {
         state = ONLY_PDF;
     }
 }
 
 void MapDivider::divideAndPublish() {
+    if (map_divided.header.seq != pdf->header.seq || map_divided.header.seq != pose_best->header.seq) {
+        ROS_FATAL("%s: SYNCHRONIZATION BROKEN! map_divided.seq==%d, pdf.seq==%d, pose_best.seq==%d.",
+                 getName().c_str(), map_divided.header.seq, pdf->header.seq, pose_best->header.seq);
+        ros::shutdown();
+        exit(1);
+    }
+    new (&vx) Vertex(pose_best->pose, (double)(map_divided.info.resolution));
     ROS_INFO("%s: starting to divide", getName().c_str());
     divide();
+    ROS_INFO("%s: probs_actual: [%f, %f, %f, %f]", getName().c_str(), probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
     pub_map_div.publish(map_divided);
+    ros::spinOnce();
     ROS_INFO("%s: published divided map", getName().c_str());
+    map_divided.header.seq++;
 }
 

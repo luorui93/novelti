@@ -23,11 +23,10 @@ public:
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     
-    Vertex vx;
-    //lthmi_nav::FloatMapConstPtr pdf;
-    //boost::shared_ptr<lthmi_nav::FloatMap const> pdf;
-    lthmi_nav::FloatMapConstPtr pdf;
-    lthmi_nav::IntMap map_divided;
+    Vertex                             vx;
+    lthmi_nav::FloatMapConstPtr        pdf;
+    geometry_msgs::PoseStampedConstPtr pose_best;
+    lthmi_nav::IntMap                  map_divided;
     
     std::vector<double> probs_optimal;
     std::vector<double> probs_actual;
@@ -36,7 +35,7 @@ public:
     MapDivider();
     void stop();
     void start(lthmi_nav::StartExperiment::Request& req);
-    void poseOptCallback(const geometry_msgs::PoseStamped& pose);
+    void poseOptCallback(geometry_msgs::PoseStampedConstPtr pose);
     //void pdfCallback(lthmi_nav::FloatMapConstPtr& msg);
     //void pdfCallback(boost::shared_ptr<lthmi_nav::FloatMap const> msg){//lthmi_nav::FloatMapConstPtr& msg) {
     void pdfCallback(lthmi_nav::FloatMapConstPtr msg);/*{//lthmi_nav::FloatMapConstPtr& msg) {
