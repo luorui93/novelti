@@ -87,11 +87,57 @@ void MapDivider::divideAndPublish() {
     }
     new (&vx) Vertex(pose_best->pose, (double)(map_divided.info.resolution));
     ROS_INFO("%s: starting to divide", getName().c_str());
+    startDivider();
     divide();
+    endDivider();
     ROS_INFO("%s: probs_actual: [%f, %f, %f, %f]", getName().c_str(), probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
     pub_map_div.publish(map_divided);
     ros::spinOnce();
     ROS_INFO("%s: published divided map", getName().c_str());
     map_divided.header.seq++;
+}
+
+
+
+
+void MapDivider::startDivider() {
+    prob = 0.0;
+    cur_region = 0;
+    std::fill(probs_actual.begin(), probs_actual.end(), 0.0); //probs_actual = 0-vector
+    probs_scaled = probs_optimal;
+}
+
+void MapDivider::updateProbsScaled() {
+    double sum_optimal = 0.0;
+    double sum_actual  = 0.0;
+    for (int k=0; k<=cur_region; k++) {
+        sum_optimal += probs_optimal[k];
+        sum_actual  += probs_actual[k];
+    }
+    for (int k=cur_region+1; k<probs_optimal.size(); k++)
+        probs_scaled[k] = probs_optimal[k]*(1.0-sum_actual)/(1.0-sum_optimal);
+}
+
+void MapDivider::markVertex(int x, int y) {
+    int k = x + y*(pdf->info.width);
+    double p = pdf->data[k];
+    if (p>=0.0) {
+        prob += p;
+        if (prob > probs_scaled[cur_region] && cur_region<probs_scaled.size()-1) {
+            //ROS_INFO("_________________ probs_actual = [%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+            //ROS_INFO("_________________ cur_region=%d, p=%f, prob=%f, probs_scaled[cur_region]=%f",cur_region, p, prob, probs_scaled[cur_region]);
+            probs_actual[cur_region] = prob-p;
+            updateProbsScaled();
+            prob = p;
+            cur_region++;
+
+        }
+        map_divided.data[k] = cur_region;
+    }
+    
+}
+
+void MapDivider::endDivider() {
+    probs_actual[cur_region] = prob;
 }
 

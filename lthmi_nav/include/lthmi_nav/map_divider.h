@@ -31,7 +31,6 @@ public:
     std::vector<double> probs_optimal;
     std::vector<double> probs_actual;
     
-    
     MapDivider();
     void stop();
     void start(lthmi_nav::StartExperiment::Request& req);
@@ -42,6 +41,16 @@ public:
         pdf=msg;
     }*/
     void divideAndPublish();
+    
+    
+    std::vector<double> probs_scaled;
+    int cur_region;
+    double prob;
+    void startDivider();
+    void updateProbsScaled();
+    void markVertex(int x, int y);
+    void endDivider();
+    
     virtual void divide(){};
     
 };
