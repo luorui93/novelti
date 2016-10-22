@@ -51,12 +51,13 @@ public:
     #endif
     
     Point cur_vertex;
+    geometry_msgs::PoseStamped pose_best;
     lthmi_nav::FloatMap reach_area;
      
     BestPoseFinder();
     void start(lthmi_nav::StartExperiment::Request& req);
     void stop();
-    void poseCurCallback(const geometry_msgs::PoseStamped& pose);
+    void poseCurCallback(geometry_msgs::PoseStampedConstPtr pose);
     void pdfCallback(lthmi_nav::FloatMapConstPtr pdf);
     void calcReachArea();
     void moveToClosestInReachAreaEuq();

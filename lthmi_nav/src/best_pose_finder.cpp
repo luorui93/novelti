@@ -45,6 +45,9 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     resolution = req.map.info.resolution;
     max_dist = (int)floor(max_dist_float/resolution);
 
+    pose_best = geometry_msgs::PoseStamped();
+    pose_best.header.frame_id = "/map";
+    
     reach_area.header.frame_id = "/map";
     reach_area.info.width  = 2*(max_dist+1)+1;
     reach_area.info.height = reach_area.info.width;
@@ -59,7 +62,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
             if (req.map.data[x + y*req.map.info.width]==0)
                 cmap.setPixel(x,y, FREED); //free
     
-    pub_pose_best = node.advertise<geometry_msgs::PoseStamped>("/pose_best", 1, false); //not latched
+    pub_pose_best = node.advertise<geometry_msgs::PoseStamped>("/pose_best", 1, true); //not latched
     sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
     #ifdef DEBUG_POSE_FINDER
@@ -68,9 +71,9 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     #endif
 }
 
-void BestPoseFinder::poseCurCallback(const geometry_msgs::PoseStamped& pose) {
-    ROS_INFO("%s: received pose", getName().c_str());
-    new (&cur_vertex) Vertex(pose.pose, resolution);
+void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStampedConstPtr pose) {
+    //ROS_INFO("%s: received /pose_current", getName().c_str());
+    new (&cur_vertex) Vertex(pose->pose, resolution);
     r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
 }
 
@@ -79,14 +82,16 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     calcReachArea();
     ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
-    geometry_msgs::PoseStamped pose = Vertex::toPose(pt.x+r2a.x, pt.y+r2a.y, resolution);
-    pose.header.frame_id = "/map";
-    pub_pose_best.publish(pose);
-    ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose.pose.position.x, pose.pose.position.y);
+    Vertex::updPose(pose_best, pt.x+r2a.x, pt.y+r2a.y, resolution);
+    pub_pose_best.publish(pose_best);
+    ros::spinOnce();
+    ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
+    pose_best.header.seq++;
 }
 
 void BestPoseFinder::calcReachArea() {
     Point center(cur_vertex.x, cur_vertex.y);
+    //ROS_INFO("%s: --------------------- center =(%d,%d)", getName().c_str(), center.x, center.y);
     CWave2 cw(cmap);
     CWave2Processor dummy;
     cw.setProcessor(&dummy);
@@ -101,6 +106,8 @@ void BestPoseFinder::calcReachArea() {
             if (cmap.getPoint(x+r2a.x, y+r2a.y) != MAP_POINT_UNEXPLORED) {
                 reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNASSIGNED;
                 n_unassigned++;
+            } else {
+                reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
             }
     cmap.clearDist();
     for (int x=1; x<ra_min.x; x++)
@@ -120,6 +127,7 @@ void BestPoseFinder::calcReachArea() {
     reach_area.info.origin.position.y = resolution*(r2a.y-0.5);
     #ifdef DEBUG_POSE_FINDER
         pub_reach_area.publish(reach_area);
+        ros::spinOnce();
     #endif
 }
 
@@ -196,9 +204,11 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
         if (!wrtMap) {
             x += r2a.x; y += r2a.y;
         }
-        geometry_msgs::PoseStamped pose = Vertex::toPose(x, y, resolution);
+        geometry_msgs::PoseStamped pose;
         pose.header.frame_id = "/map";
+        Vertex::updPose(pose, x, y, resolution);
         pub_pose_debug.publish(pose);
+        ros::spinOnce();
         ROS_INFO("%s: published /debug_pose best vertex wrt to map: (%d,%d), published pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);
     }
 #endif
