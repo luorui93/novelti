@@ -1,9 +1,9 @@
 /*
      subs                                       pubs
                     +--------------------+
-                    |                    |
- /pose_desired ---> |  node_robot_model  | ---> /pose_current
-                    |                    |
+ /pose_desired ---> |                    |
+                    |  node_robot_model  | ---> /pose_current
+/pose_inferred ---> |                    |
                     +--------------------+
                                ^
                                |
@@ -35,6 +35,7 @@ public:
     
     ros::Publisher  pub_pose_current_;
     ros::Subscriber sub_pose_desired_;
+    ros::Subscriber sub_pose_inferred_;
     
     geometry_msgs::PoseStamped pose_current_;
     
@@ -66,6 +67,7 @@ public:
         
         pub_pose_current_ = node.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
         sub_pose_desired_ = node.subscribe("/pose_desired", 1, &NoKinRobotModel::desiredPoseCallback, this);
+        sub_pose_inferred_ = node.subscribe("/pose_inferred", 1, &NoKinRobotModel::desiredPoseCallback, this);
         state_ = STOPPED;
     }
     
