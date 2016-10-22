@@ -20,7 +20,7 @@ class Experimentator (SyncingNode):
         self.vxIter = iter([]) #self.cfg['poses'])
         self.state = "INFERRING"
         self.runs_left = self.cfg['n_runs']
-        self.pub_pose_intended = rospy.Publisher('/pose_intended', PoseStamped, queue_size=1, latch=False)
+        self.pub_pose_intended = rospy.Publisher('/pose_intended', PoseStamped, queue_size=1, latch=True)
         self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
         self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
     
@@ -53,10 +53,10 @@ class Experimentator (SyncingNode):
             self.onPoseInferred()
     
     def arePosesSame(self, p1, p2):
-        return sqrt((p1.position.x-p2.position.x)**2 + (p1.position.y-p2.position.y)**2) < self.resolution/20.0
+        return math.sqrt((p1.position.x-p2.position.x)**2 + (p1.position.y-p2.position.y)**2) < self.cfg['resolution']/20.0
     
     def poseCurrentCallback(self, msg):
-        if self.state=="INFERRED" and arePosesSame(msg.pose, self.pose_inferred):
+        if self.state=="INFERRED" and self.arePosesSame(msg.pose, self.pose_inferred):
             self.state="INFERRING"
             self.onInferredReached()
             self.publishNextIntendedPose()
