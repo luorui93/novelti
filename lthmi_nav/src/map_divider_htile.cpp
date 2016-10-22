@@ -13,7 +13,7 @@ namespace lthmi_nav {
 
 class HorizTileMapDivider :  public MapDivider {
     public:
-        double half;
+        int half;
 
         HorizTileMapDivider() :
             MapDivider() 

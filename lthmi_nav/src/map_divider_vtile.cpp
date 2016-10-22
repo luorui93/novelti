@@ -13,7 +13,7 @@ namespace lthmi_nav {
 
 class VertTileMapDivider :  public MapDivider {
     public:
-        double half;
+        int half;
 
         VertTileMapDivider() :
             MapDivider() 
@@ -37,6 +37,7 @@ class VertTileMapDivider :  public MapDivider {
                         prob += p;
                         if (prob > halfProb) {
                             half = x;
+                            //ROS_INFO(">>>>>>>>>>>>>>>>>>>>>>>> x_half=%d, halfProb=%f", half, halfProb);
                             return;
                         }
                     }
