@@ -24,16 +24,23 @@ public:
         y = (int) round( pose.position.y / resolution);
     }
 
-    geometry_msgs::PoseStamped toPose(double resolution) {
-        return toPose(x,y,resolution);
-    }
+//     geometry_msgs::PoseStamped toPose(double resolution) {
+//         return toPose(x,y,resolution);
+//     }
+//     
+//     static geometry_msgs::Pose toPose(int x, int y, double resolution) {
+//         geometry_msgs::PoseStamped pose;
+//         pose.position.x = x*resolution;
+//         pose.position.y = y*resolution;
+//         pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
+//         return pose;
+//     }
     
-    static geometry_msgs::PoseStamped toPose(int x, int y, double resolution) {
-        geometry_msgs::PoseStamped pose;
+    static void updPose(geometry_msgs::PoseStamped& pose, int x, int y, double resolution) {
+        pose.header.stamp = ros::Time::now();
         pose.pose.position.x = x*resolution;
         pose.pose.position.y = y*resolution;
         pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
-        return pose;
     }
 };
 
