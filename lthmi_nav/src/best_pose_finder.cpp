@@ -78,9 +78,9 @@ void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStampedConstPtr pose) {
 }
 
 void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
-    ROS_INFO("%s: received pdf", getName().c_str());
+    ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
     calcReachArea();
-    ROS_INFO("%s: starting to look for the best pose", getName().c_str());
+    //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
     updatePose(pose_best, pt.x+r2a.x, pt.y+r2a.y);
     pub_pose_best.publish(pose_best);

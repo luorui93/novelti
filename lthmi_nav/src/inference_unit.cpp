@@ -62,22 +62,16 @@ bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::R
 }
 
 void InferenceUnit::stop() {
-    ROS_INFO("++++++++++++++++ 1");
     sub_map_div.shutdown();
-    ROS_INFO("++++++++++++++++ 2");
     sub_cmd.shutdown();
-    ROS_INFO("++++++++++++++++ 3");
     pub_pdf.shutdown();
-    ROS_INFO("++++++++++++++++ 4");
     pub_pose_inf.shutdown();
-    ROS_INFO("++++++++++++++++ 5");
 
 }
 
 void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     state = INFERRING;
     fast_state = RCVD_NONE;
-    ROS_INFO("**************** 1");
     pdf = FloatMap();
     pdf.header.frame_id = "/map";
     pdf.info.width = req.map.info.width+1;
@@ -87,7 +81,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     pdf.info.origin.position.y = -0.5*req.map.info.resolution;
     pdf.data = std::vector<float>(pdf.info.width*pdf.info.height, PDF_UNREACHABLE);
     int k;
-    ROS_INFO("**************** 2");
+    
     //determine reachable vertices
     long int total_vx = 0;
     for (int x=0; x<req.map.info.width-1; x++) {
@@ -99,21 +93,16 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
             }
         }
     }
-    ROS_INFO("**************** 3");
+
     //set uniform pdf over reachable vertices
     float vx_prob = 1.0/total_vx;
     for (int k=pdf.data.size()-1;k>=0; k--)
         if (pdf.data[k] != PDF_UNREACHABLE)
             pdf.data[k] = vx_prob;
-    ROS_INFO("**************** 4");
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
-    ROS_INFO("**************** 4-1");
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
-    ROS_INFO("**************** 4-2");
     sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
-    ROS_INFO("**************** 4-3");
     sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
-    ROS_INFO("**************** 5");
 }
 
 void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes
@@ -144,15 +133,10 @@ void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and
 
     
 void InferenceUnit::calcPriors() {
-    ROS_INFO("################# 1");
     std::fill(priors.begin(), priors.end(), 0.0); //priors = 0-vector
-    ROS_INFO("################# 2");
     for (int k=0; k<map_divided->data.size(); k++)
-        if (pdf.data[k]>=0) {
-            //ROS_INFO("################# reg=%d", map_divided->data[k]);
-           // ROS_INFO("################# p=%f", pdf.data[k]);
+        if (pdf.data[k]>=0)
             priors[map_divided->data[k]] += pdf.data[k];
-        }
     ROS_INFO("%s: priors from map_divided: [%f, %f, %f, %f]", getName().c_str(), priors[0], priors[1], priors[2], priors[3]);
 }
 
@@ -164,7 +148,7 @@ void InferenceUnit::calcUpdCoefs() {
         posteriors[k] += interface_matrix[cmd_detected->cmd + k*n_cmds] * priors[k]; //TODO double check
         total += posteriors[k];
     }
-    ROS_INFO("%s: calculated posteriors before normalization: [%f, %f, %f, %f]", getName().c_str(), posteriors[0], posteriors[1], posteriors[2], posteriors[3]);
+    //ROS_INFO("%s: calculated posteriors before normalization: [%f, %f, %f, %f]", getName().c_str(), posteriors[0], posteriors[1], posteriors[2], posteriors[3]);
     
     //normalize posteriors (not sure if needed)
     for (int k=0; k<n_cmds; k++)
@@ -174,7 +158,7 @@ void InferenceUnit::calcUpdCoefs() {
     //caluclate update coefficients
     for (int k=0; k<n_cmds; k++) 
          coefs[k] = priors[k] != 0.0 ? posteriors[k]/priors[k] : 0.0;
-    ROS_INFO("%s: coefs: [%f, %f, %f, %f]", getName().c_str(), coefs[0], coefs[1], coefs[2], coefs[3]);
+    //ROS_INFO("%s: coefs: [%f, %f, %f, %f]", getName().c_str(), coefs[0], coefs[1], coefs[2], coefs[3]);
 }
 
 
@@ -187,7 +171,7 @@ void InferenceUnit::mapDivCallback(lthmi_nav::IntMapConstPtr msg){
         updatePdfAndPublish();
     } else {
         fast_state = RCVD_MAPDIV;
-        ROS_INFO("%s: fast_state := RCVD_MAPDIV", getName().c_str());
+        //ROS_INFO("%s: fast_state := RCVD_MAPDIV", getName().c_str());
     }
 }
 void InferenceUnit::cmdCallback(CommandConstPtr msg){
@@ -198,7 +182,7 @@ void InferenceUnit::cmdCallback(CommandConstPtr msg){
         updatePdfAndPublish();
     } else {
         fast_state = RCVD_CMD;
-        ROS_INFO("%s: fast_state := RCVD_CMD", getName().c_str());
+        //ROS_INFO("%s: fast_state := RCVD_CMD", getName().c_str());
     }
 }
 
@@ -219,7 +203,7 @@ void InferenceUnit::updatePdf() {
             }
         }
     }
-    ROS_INFO("%s: total prob=%f", getName().c_str(), total_prob);
+    //ROS_INFO("%s: total prob=%f", getName().c_str(), total_prob);
 }
 
 void InferenceUnit::updatePdfAndPublish() {
@@ -232,7 +216,7 @@ void InferenceUnit::updatePdfAndPublish() {
     updatePdf();
     denullifyPdf();
     if (state==INFERRING) {
-        ROS_INFO("%s: state INFERRING, thresh_high=%f", getName().c_str(), thresh_high);
+        //ROS_INFO("%s: state INFERRING, thresh_high=%f", getName().c_str(), thresh_high);
         if (max_prob >= thresh_high) {
             state = INFERRED;
             pubPoseInferred(max_prob_k);
@@ -240,7 +224,7 @@ void InferenceUnit::updatePdfAndPublish() {
             return;
         }
     } else { //state == INFERRING_NEW:
-        ROS_INFO("%s: state INFERRING_NEW", getName().c_str());
+        //ROS_INFO("%s: state INFERRING_NEW", getName().c_str());
         if (max_prob <= thresh_low) {
             state = INFERRING;
             ROS_INFO("%s: state INFERRING_NEW -> INFERRING, max_prob=%f", getName().c_str(), max_prob);
