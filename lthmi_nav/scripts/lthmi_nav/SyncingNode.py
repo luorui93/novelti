@@ -8,6 +8,7 @@ from geometry_msgs.msg import Pose, Quaternion
 from lthmi_nav.srv import StartExperiment
 from lthmi_nav.MapTools import GridMap
 from lthmi_nav.msg import IntMap
+from std_srvs.srv import Empty
 
 class SyncingNode:
     def __init__(self, publishMap=False):
@@ -16,6 +17,7 @@ class SyncingNode:
             'waited_srvs':   rospy.get_param('~waited_srvs', [])
         }
         self.seq = 0;
+        self.ranBefore = False
         self.waitForAll()
         if publishMap:
             self.map_publisher  = rospy.Publisher('/map', IntMap, queue_size=1, latch=True) if publishMap else Node
@@ -25,12 +27,18 @@ class SyncingNode:
         for srv_path in self.cfg['waited_srvs']:
             rospy.loginfo("%s: waiting for %s" % (rospy.get_name(), srv_path))
             rospy.wait_for_service(srv_path)
-        self.srvs = []
+        self.startSrvs = []
+        self.stopSrvs = []
         for node_name in self.cfg['synced_nodes']:
             srv_path = node_name+'/start'
             rospy.loginfo("%s: waiting for %s" % (rospy.get_name(), srv_path))
             rospy.wait_for_service(srv_path)
-            self.srvs.append(rospy.ServiceProxy(srv_path, StartExperiment))
+            self.startSrvs.append(rospy.ServiceProxy(srv_path, StartExperiment))
+            srv_path = node_name+'/stop'
+            rospy.loginfo("%s: waiting for %s" % (rospy.get_name(), srv_path))
+            rospy.wait_for_service(srv_path)
+            self.stopSrvs.append(rospy.ServiceProxy(srv_path, Empty))
+            
     
     def publishMap(self, resolution):
         m = IntMap()
@@ -44,7 +52,17 @@ class SyncingNode:
         m.data = [255 if self.grid.isFree(k) else 254 for k in range(len(self.grid.data))] #255 - transparent, 254 - black
         self.map_publisher.publish(m)
     
+    def finishExperiment(self):
+        for srv in self.stopSrvs:
+            try:
+                srv()
+            except rospy.ServiceException, e:
+                print "Service call to /stop failed: %s"%e
+    
     def runExperiment(self, map_file, resolution, init_pose=None):
+        if self.ranBefore:
+            self.finishExperiment()
+        self.ranBefore = True
         self.grid = GridMap.fromText(open(map_file, 'r'))
         if self.map_publisher is not None:
             self.publishMap(resolution)
@@ -60,11 +78,11 @@ class SyncingNode:
         mapa.info.height = self.grid.height
         mapa.info.resolution = resolution
         rospy.loginfo("============================== Starting experiment '%s' ===   init_pose=(%f,%f) =========================="%(name, init_pose.position.x,init_pose.position.y))
-        for srv in self.srvs:
+        for srv in self.startSrvs:
             try:
                 srv(self.seq, stamp, name, mapa, init_pose)
             except rospy.ServiceException, e:
-                print "Service call to node %s failed: %s"%e
+                print "Service call to /node/start failed: %s"%e
         self.seq += 1
     
     def vertex2pose(self,vx):

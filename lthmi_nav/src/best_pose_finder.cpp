@@ -33,9 +33,9 @@ BestPoseFinder::BestPoseFinder() :
 }
     
 void BestPoseFinder::stop() {
-    pub_pose_best.shutdown();
     sub_pose_cur.shutdown();
     sub_pdf.shutdown();
+    pub_pose_best.shutdown();
     #ifdef DEBUG_POSE_FINDER
         pub_reach_area.shutdown();
     #endif
@@ -54,7 +54,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     reach_area.info.resolution = resolution;
     reach_area.data = vector<float>(reach_area.info.width*reach_area.info.height, REACH_AREA_UNREACHABLE);
     
-    new (&cur_vertex) Vertex(req.init_pose, resolution);
+    updateVertex(req.init_pose, cur_vertex.x, cur_vertex.y);
     r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
     new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
     for (int x=0; x<req.map.info.width; x++)
@@ -73,7 +73,7 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
 
 void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStampedConstPtr pose) {
     //ROS_INFO("%s: received /pose_current", getName().c_str());
-    new (&cur_vertex) Vertex(pose->pose, resolution);
+    updateVertex(pose->pose, cur_vertex.x, cur_vertex.y);
     r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
 }
 
@@ -82,7 +82,7 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     calcReachArea();
     ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
-    Vertex::updPose(pose_best, pt.x+r2a.x, pt.y+r2a.y, resolution);
+    updatePose(pose_best, pt.x+r2a.x, pt.y+r2a.y);
     pub_pose_best.publish(pose_best);
     ros::spinOnce();
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
@@ -206,7 +206,7 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
         }
         geometry_msgs::PoseStamped pose;
         pose.header.frame_id = "/map";
-        Vertex::updPose(pose, x, y, resolution);
+        updatePose(pose, x, y);
         pub_pose_debug.publish(pose);
         ros::spinOnce();
         ROS_INFO("%s: published /debug_pose best vertex wrt to map: (%d,%d), published pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);

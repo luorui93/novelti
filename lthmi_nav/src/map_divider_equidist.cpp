@@ -102,7 +102,7 @@ class EquidistMapDivider :  public MapDivider {
             CWaveProc cwave_processor(map_divided, pdf, probs_optimal, probs_actual);
             CWave2 cw(cmap);
             cw.setProcessor(&cwave_processor);
-            cw.calc(Point(vx.x,vx.y));
+            cw.calc(pt_best);
             cwave_processor.finish();
             cmap.clearDist();
             //ROS_INFO("probs_actual=[%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);

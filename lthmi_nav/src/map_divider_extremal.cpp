@@ -132,8 +132,7 @@ public:
         map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
         CWave2 cw(cmap);
         cw.setProcessor(this);
-        Point center(vx.x,vx.y);
-        cw.calc(center);
+        cw.calc(pt_best);
         //afterCwave();
         #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
             track_map_msg.data = cmap.track_map;
@@ -142,7 +141,7 @@ public:
         prob = 0.0;
         region = 0;
         bool moved=true;
-        Point start = boundaryWalkerInit(center);
+        Point start = boundaryWalkerInit(pt_best);
         do {
             if (moved)
                 processBoundaryVertex();

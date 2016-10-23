@@ -22,9 +22,9 @@ class HumanModel (SynchronizableNode):
         self.sub_pose_intended = rospy.Subscriber('/pose_intended', PoseStamped, self.poseIntendedCallback)
     
     def stop(self):
-        self.map_divided_sub.shutdown()
-        self.sub_pose_intended.shutdown()
-        self.pub_cmd_intended.shutdown()
+        self.map_divided_sub.unregister()
+        self.sub_pose_intended.unregister()
+        self.pub_cmd_intended.unregister()
     
     def mapDividedCallback(self, msg):
         reg = msg.data[self.vertex_intended[0] + self.vertex_intended[1]*msg.info.width]

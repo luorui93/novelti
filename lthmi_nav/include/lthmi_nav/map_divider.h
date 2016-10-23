@@ -11,10 +11,13 @@
 #include <lthmi_nav/FloatMap.h>
 #include <lthmi_nav/StartExperiment.h>
 #include <lthmi_nav/common.cpp>
+#include <CWave2.h>
 
 
 namespace lthmi_nav {
 
+using namespace cwave;
+    
 class MapDivider : public SynchronizableNode {
 public:
     enum State { WAITING, ONLY_POSE, ONLY_PDF };
@@ -23,9 +26,9 @@ public:
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     
-    Vertex                             vx;
     lthmi_nav::FloatMapConstPtr        pdf;
     geometry_msgs::PoseStampedConstPtr pose_best;
+    Point                              pt_best;
     lthmi_nav::IntMap                  map_divided;
     
     std::vector<double> probs_optimal;

@@ -2,8 +2,8 @@
 <launch>
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
-    <arg name="vel"   default="2.0" />       <!-- robot velocity in m/s -->
-    <arg name="T"     default="1.0" />        <!-- interface period -->
+    <arg name="vel"   default="8.0" />       <!-- robot velocity in m/s -->
+    <arg name="T"     default="0.25" />        <!-- interface period -->
     <arg name="mx"    default="mx100" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
@@ -17,7 +17,7 @@
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
     <arg name="path"  default="10" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
-    <arg name="tries" default="1" />
+    <arg name="tries" default="30" />
     
 
     <!--arg name="outdir" /-->
@@ -59,6 +59,9 @@
         mx55:   [0.55, 0.15, 0.15, 0.15,    0.15, 0.55, 0.15, 0.15,     0.15, 0.15, 0.55, 0.15,     0.15, 0.15, 0.15, 0.55,]
     </rosparam>
     
+    
+
+    
     <node pkg="lthmi_nav" type="node_experimentator.py" name="experimentator" output="screen" required="true" >
         <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
         <remap from="~poses" to="/paths/$(arg path)"/>
@@ -87,7 +90,10 @@
     
     
     <!-- Shared Control -->
-    <node pkg="lthmi_nav" type="inference_unit" name="inference_unit" output="screen" >
+    <arg name="debug_inference" default="0" />
+    <arg     if="$(arg debug_inference)" name="prefix_inference" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_inference_unit - -args" />
+    <arg unless="$(arg debug_inference)" name="prefix_inference" default="" />    
+    <node pkg="lthmi_nav" type="inference_unit" name="inference_unit" output="screen"  launch-prefix="$(arg prefix_inference)">
         <remap from="~interface_matrix" to="/$(arg mx)"/>
         <param name="thresh_high" value="$(arg prob_thresh_high)" />
         <param name="thresh_low"  value="$(arg prob_thresh_low)" />

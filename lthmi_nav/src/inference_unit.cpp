@@ -62,16 +62,22 @@ bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::R
 }
 
 void InferenceUnit::stop() {
-    pub_pdf.shutdown();
-    pub_pose_inf.shutdown();
+    ROS_INFO("++++++++++++++++ 1");
     sub_map_div.shutdown();
+    ROS_INFO("++++++++++++++++ 2");
     sub_cmd.shutdown();
+    ROS_INFO("++++++++++++++++ 3");
+    pub_pdf.shutdown();
+    ROS_INFO("++++++++++++++++ 4");
+    pub_pose_inf.shutdown();
+    ROS_INFO("++++++++++++++++ 5");
+
 }
 
 void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     state = INFERRING;
     fast_state = RCVD_NONE;
-    
+    ROS_INFO("**************** 1");
     pdf = FloatMap();
     pdf.header.frame_id = "/map";
     pdf.info.width = req.map.info.width+1;
@@ -81,6 +87,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     pdf.info.origin.position.y = -0.5*req.map.info.resolution;
     pdf.data = std::vector<float>(pdf.info.width*pdf.info.height, PDF_UNREACHABLE);
     int k;
+    ROS_INFO("**************** 2");
     //determine reachable vertices
     long int total_vx = 0;
     for (int x=0; x<req.map.info.width-1; x++) {
@@ -92,17 +99,21 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
             }
         }
     }
-    
+    ROS_INFO("**************** 3");
     //set uniform pdf over reachable vertices
     float vx_prob = 1.0/total_vx;
     for (int k=pdf.data.size()-1;k>=0; k--)
         if (pdf.data[k] != PDF_UNREACHABLE)
             pdf.data[k] = vx_prob;
-    
+    ROS_INFO("**************** 4");
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
+    ROS_INFO("**************** 4-1");
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
+    ROS_INFO("**************** 4-2");
     sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
+    ROS_INFO("**************** 4-3");
     sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
+    ROS_INFO("**************** 5");
 }
 
 void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes
@@ -133,10 +144,15 @@ void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and
 
     
 void InferenceUnit::calcPriors() {
+    ROS_INFO("################# 1");
     std::fill(priors.begin(), priors.end(), 0.0); //priors = 0-vector
+    ROS_INFO("################# 2");
     for (int k=0; k<map_divided->data.size(); k++)
-        if (map_divided->data[k]>=0)
+        if (pdf.data[k]>=0) {
+            //ROS_INFO("################# reg=%d", map_divided->data[k]);
+           // ROS_INFO("################# p=%f", pdf.data[k]);
             priors[map_divided->data[k]] += pdf.data[k];
+        }
     ROS_INFO("%s: priors from map_divided: [%f, %f, %f, %f]", getName().c_str(), priors[0], priors[1], priors[2], priors[3]);
 }
 
@@ -251,7 +267,7 @@ void InferenceUnit::pubPoseInferred(int k) {
     int x = k % map_divided->info.width;
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = "/map";
-    Vertex::updPose(pose, x, y, pdf.info.resolution);
+    updatePose(pose, x, y);
     pub_pose_inf.publish(pose);
     ROS_INFO("%s: published /pose_inferred, vertex=(%d,%d), pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);
 }

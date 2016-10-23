@@ -1,0 +1,3 @@
+#b lthmi_nav::InferenceUnit::stop
+b lthmi_nav::SynchronizableNode::srvStop
+r

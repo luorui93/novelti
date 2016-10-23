@@ -85,7 +85,7 @@ void MapDivider::divideAndPublish() {
         ros::shutdown();
         exit(1);
     }
-    new (&vx) Vertex(pose_best->pose, (double)(map_divided.info.resolution));
+    updateVertex(pose_best->pose, pt_best.x, pt_best.y);
     ROS_INFO("%s: starting to divide", getName().c_str());
     startDivider();
     divide();

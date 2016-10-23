@@ -74,14 +74,15 @@ public:
     void desiredPoseCallback(geometry_msgs::PoseStamped pose_des) {
         ROS_INFO("robot_model: recieved desired pose: (%f,%f)", pose_des.pose.position.x,pose_des.pose.position.y);
         time_started_ = ros::Time::now();
-        Vertex src(pose_current_.pose, resolution_);
+        Point src;
+        updateVertex(pose_current_.pose, src.x, src.y);
         CWave2 cw(cmap_);
         CWave2Processor dummy;
         cw.setProcessor(&dummy);
-        cw.calc(Point(src.x,src.y));
+        cw.calc(src);
         
-        Vertex dst(pose_des.pose, resolution_);
-        Point p(dst.x, dst.y);
+        Point p;
+        updateVertex(pose_des.pose, p.x, p.y);
         path_.clear();
         path_.push_back(p);
         TrackStar tstar;

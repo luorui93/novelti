@@ -52,8 +52,8 @@ class StochHmiModel (SynchronizableNode):
         self.pub = rospy.Publisher('/cmd_detected', Command, queue_size=10)
     
     def stop(self):
-        self.sub.shutdown()
-        self.pub.shutdown()
+        self.sub.unregister()
+        self.pub.unregister()
     
     def randomize(self, intended):
         """ randomize output according to interfce matrix """
