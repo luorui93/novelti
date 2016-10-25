@@ -1,10 +1,13 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="dir"/>
+    <arg name="id"/>
+    
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
     <arg name="vel"   default="8.0" />       <!-- robot velocity in m/s -->
     <arg name="T"     default="0.25" />        <!-- interface period -->
-    <arg name="mx"    default="mx100" />      <!-- name of interface matrix (see below)-->   
+    <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
     <arg name="prob_thresh_high" default="0.99" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
@@ -15,14 +18,14 @@
     
 
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
-    <arg name="path"  default="10" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
+    <arg name="path"  default="17" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
     <arg name="tries" default="30" />
     
 
     <!--arg name="outdir" /-->
     
-    <arg name="rosbag" default="1" />
+    <arg name="bag" default="1" />
     <!--arg name="monitor" default="1" />
     <arg name="output_dir" default="$(find lthmi_nav)/exp/$(arg expset)" />-->
     <arg name="by_key" default="0" />
@@ -32,9 +35,16 @@
 
     
     
-    <!--arg name="output_file_prefix" default="$(arg expset)_$(arg div)_$(arg pos)_$(arg mx)_T=$(arg T)_V=$(arg vel)" />
-    <arg name="record_to" default="$(arg output_dir)/$(arg output_file_prefix).bag" />
-    <arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
+    <!--arg name="output_file_prefix" default="$(arg expset)_$(arg div)_$(arg pos)_$(arg mx)_T=$(arg T)_V=$(arg vel)" /-->
+    <arg name="record_to" default="/home/sd/Desktop/lthmi_nav_data/123/data.bag" />
+    <!--arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
+    
+    
+    <!-- Recording -->
+    <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
+            args="-O $(arg dir)/run-$(arg id)/data.bag /rosout /map /pose_intended /pose_current /pose_optimal /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided">
+        <param name="dummy" command="$(find lthmi_nav)/scripts/run_helper.sh $(arg dir) $(arg id) $(find lthmi_nav) 'map path resol tries div pos vel T mx popt prob_thresh_high prob_thresh_low prob_eps ksafe bag by_key rviz' '$(arg map) $(arg path) $(arg resol) $(arg tries) $(arg div) $(arg pos) $(arg vel) $(arg T) $(arg mx) $(arg popt) $(arg prob_thresh_high) $(arg prob_thresh_low) $(arg prob_eps) $(arg ksafe) $(arg bag) $(arg by_key) $(arg rviz)'" />
+    </node>
     
     <rosparam command="load" file="$(find lthmi_nav)/map/$(arg map).paths"/>
     
@@ -69,7 +79,7 @@
         <param name="n_runs" value="$(arg tries)" />
         <rosparam>
             synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
-            waited_srvs: ['/rviz/reload_shaders', ]
+            waited_srvs: ['/rviz/reload_shaders', '/rosbag_record/get_loggers']
         </rosparam> <!--  '/rosbag_record/get_loggers' -->
     </node>
     
@@ -114,9 +124,7 @@
     <!-- Visualization -->
     <include file="$(find lthmi_nav)/launch/rviz_$(arg rviz).launch"/>
     
-    <!-- Recording -->
-    <!--node if="$(arg record)"  pkg="rosbag" type="record" name="rosbag_record"
-       args="-O $(arg record_to) /rosout /map /pose_intended /pose_current /pose_optimal /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided" /-->
+
 
    <!-- Monitoring - ->
     <node if="$(arg monitor)" pkg="lthmi_nav" type="monitor.py" name="monitor" output="screen">
@@ -124,3 +132,7 @@
     </node>-->
 
 </launch>
+
+
+
+
