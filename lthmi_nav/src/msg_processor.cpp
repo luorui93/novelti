@@ -5,6 +5,8 @@
 #include <fstream>
 #include <string>
 
+#include <yaml-cpp/yaml.h>
+
 #include <CompoundMap.h>
 #include <CWave2.h>
 
@@ -28,6 +30,27 @@ typedef ros::Duration duration;
 typedef ros::Time timestamp;
     
 struct CourseRecord {
+    string  commit;
+    string  pos;
+    string  div;
+    bool    bag;
+    string  mx;
+    int     path;
+    string  popt;
+    string  map;
+    string  rviz;
+    double  resol;
+    int     tries;
+    double  vel;
+    double  trobot;
+    double  delay;
+    double  phigh;
+    double  plow;
+    double  peps;
+    double  ksafe;
+    double  period;
+    
+    
     double length_ideal;
     double length_real;
     int n_decisions;
@@ -88,6 +111,30 @@ public:
     void desyncedMessage(const char* msg) {
         cerr << "Message from /" <<msg << " received when it shouldn't have been received\n";
         exit(1);
+    }
+    
+    void paramCb(std_msgs::StringConstPtr msg) { 
+        YAML::Node prms = YAML::Load(msg->data.c_str());
+        record_.commit  = prms["node_param_publisher"]["commit"].as<string>();
+        record_.bag     = boost::lexical_cast<bool>(prms["node_param_publisher"]["bag"].as<string>());
+        record_.mx      = prms["node_param_publisher"]["mx"].as<string>();
+        record_.map     = prms["node_param_publisher"]["map"].as<string>();
+        record_.path    = prms["node_param_publisher"]["path"].as<int>();
+        record_.popt    = prms["node_param_publisher"]["popt"].as<string>();
+        record_.rviz    = prms["node_param_publisher"]["rviz"].as<string>();
+        record_.resol   = prms["experimentator"]["resol"].as<double>();
+        record_.tries   = prms["experimentator"]["n_runs"].as<int>();
+        record_.vel     = prms["robot_model"]["max_vel"].as<double>();
+        record_.trobot  = prms["robot_model"]["pub_period"].as<double>();
+        record_.delay   = prms["lthmi_model"]["delay"].as<double>();
+        record_.phigh   = prms["inference_unit"]["thresh_high"].as<double>();
+        record_.plow    = prms["inference_unit"]["thresh_low"].as<double>();
+        record_.peps    = prms["inference_unit"]["eps"].as<double>();
+        record_.pos     = prms["best_pose_finder"]["method"].as<string>();
+        record_.ksafe   = prms["best_pose_finder"]["safety_coef"].as<double>();
+        record_.period  = prms["best_pose_finder"]["period"].as<double>();
+        record_.div     = prms["map_divider"]["method"].as<string>();
+        ROS_INFO(">>>>>>>>>>>>>>>>>>>> pos=%s, div=%s, commit=%s", record_.pos.c_str(), record_.div.c_str(), record_.commit.c_str());
     }
     
     void mapCb(IntMap& msg) { 

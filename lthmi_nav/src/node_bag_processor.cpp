@@ -1,6 +1,5 @@
 #include <ros/ros.h>
 #include "msg_processor.cpp"
-#include <yaml-cpp/yaml.h>
 
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -24,9 +23,16 @@ public:
         rosbag::View view(bag_, rosbag::TopicQuery(topics_));
         foreach(rosbag::MessageInstance const m, view) {
             if (m.getTopic() == "/parameters" || m.getTopic() == "parameters") {
-                std_msgs::String::ConstPtr prm_str = m.instantiate<std_msgs::String>();
-                YAML::Node node = YAML::Load(prm_str->data.c_str());
-                //ROS_INFO("%s",prm_str->data.c_str());
+                std_msgs::StringConstPtr prm_str = m.instantiate<std_msgs::String>();
+                paramCb(prm_str);
+ /*               YAML::Node prms = YAML::Load(prm_str->data.c_str());
+                //ROS_INFO(">>>>>>>>>>>>>>>>>>>> %s", method.c_str());
+                if (prms["map_divider"]["method"]) {
+                    string method = prms["map_divider"]["method"].as<string>().c_str();
+                    ROS_INFO(">>>>>>>>>>>>>>>>>>>> %s", method.c_str());
+                }
+                
+                //ROS_INFO("%s",prm_str->data.c_str());*/
             }
         }
     }
