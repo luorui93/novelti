@@ -150,11 +150,12 @@ catkin_package(
     include
     /usr/include/OGRE  #temporary dirty workaround
     ${OGRE_OV_INCLUDE_DIRS}
-#  LIBRARIES lthmi_nav
+  #LIBRARIES yaml-cpp
   CATKIN_DEPENDS 
     roscpp 
     message_runtime
     rosbag
+    
 #  DEPENDS system_lib
 )
 
@@ -262,6 +263,7 @@ target_compile_definitions(bag_processor PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PRO
 target_link_libraries(bag_processor
    ${catkin_LIBRARIES}
    ${CWAVE_LIB_DIR}/libcwaveproc.a
+   -lyaml-cpp
 )
 add_dependencies(bag_processor ${PROJECT_NAME}_generate_messages_cpp)
 

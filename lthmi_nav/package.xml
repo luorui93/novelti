@@ -46,7 +46,9 @@
   <build_depend>message_generation</build_depend>
   <build_depend>libogre-dev</build_depend>
   <build_depend>rviz</build_depend>
-  <build_depend>rosbag</build_depend>
+  
+  <build_depend>rosbag</build_depend>  <!-- to read rosbags -->
+  <build_depend>yaml-cpp</build_depend> <!-- to parse parameters save as a YAML-fromatted String message in rosbags -->
   
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
@@ -54,7 +56,8 @@
   <run_depend>nav_msgs</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>rviz</run_depend>
-  <run_depend>rosbag</run_depend>
+  <run_depend>rosbag</run_depend>  <!-- to read rosbags -->
+  <run_depend>yaml-cpp</run_depend> <!-- to parse parameters save as a YAML-fromatted String message in rosbags -->
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
