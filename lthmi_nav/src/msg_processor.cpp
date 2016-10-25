@@ -136,7 +136,6 @@ public:
     void mapCb(IntMapConstPtr msg) { 
         ROS_INFO("got map=========================================");
         if (state==WAIT4POI) {
-            state = INFERENCE;
             resolution_ = msg->info.resolution;
             if (!first_run_)
                 writeTableRow();
@@ -158,6 +157,9 @@ public:
     void poseIntendedCb(geometry_msgs::PoseStampedConstPtr msg) {
         ROS_INFO("got pose_intended");
         stamp_cmd_intended_ = msg->header.stamp;
+        if (state==WAIT4POI) {
+            state = INFERENCE;
+        }
     }
     
     void pdfCb(FloatMapConstPtr msg) {
@@ -206,10 +208,10 @@ public:
                 waypoints_.resize(0);
                 waypoints_.push_back(wp);
                 record_.dur_driving += stamp_pose_arrived_-stamp_pose_inferred_;
-                ROS_INFO("=====arived to POI ====");
+                ROS_INFO("=====arrived to POI ====");
             } else {
                 record_.dur_drinference += stamp_pose_arrived_-stamp_map_divided_;
-                ROS_INFO("== arived to waypoint ==");
+                ROS_INFO("== arrived to waypoint ==");
             }
         } else {
             desyncedMessage("pose_arrived");

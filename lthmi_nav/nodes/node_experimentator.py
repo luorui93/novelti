@@ -22,7 +22,8 @@ class Experimentator (SyncingNode):
         self.runs_left = self.cfg['n_runs']
         self.pub_pose_intended = rospy.Publisher('/pose_intended', PoseStamped, queue_size=1, latch=True)
         self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
-        self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
+        #self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
+        self.sub_pose_arrived  = rospy.Subscriber('/pose_arrived',  PoseStamped, self.poseArrivedCallback)
     
     def publishNextIntendedPose(self):
         nextVx = next(self.vxIter, None)
@@ -65,6 +66,12 @@ class Experimentator (SyncingNode):
             self.onInferredReached()
             self.publishNextIntendedPose()
 
+    def poseArrivedCallback(self, msg):
+        if self.state=="INFERRED":
+            rospy.loginfo("%s: reached destination" % (rospy.get_name()))
+            self.state="INFERRING"
+            self.onInferredReached()
+            self.publishNextIntendedPose()
 
     def onExperimentStarted(self):
         pass
