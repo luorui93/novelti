@@ -16,24 +16,36 @@ public:
     
     BagProcessor(string& bag_path) {
         bag_.open(bag_path.c_str(), rosbag::bagmode::Read);
-        topics_.push_back(std::string("/parameters"));
+        topics_.push_back("/parameters");
+        topics_.push_back("/map");
+        topics_.push_back("/pose_current");
+        topics_.push_back("/pose_intended");
+        topics_.push_back("/pdf");
+        topics_.push_back("/pose_best");
+        topics_.push_back("/map_divided");
+        topics_.push_back("/pose_arrived");
+        topics_.push_back("/pose_current");
+        topics_.push_back("/cmd_intended");
+        topics_.push_back("/cmd_detected");
+        topics_.push_back("/pose_inferred");
     }
     
     void run() {
         rosbag::View view(bag_, rosbag::TopicQuery(topics_));
         foreach(rosbag::MessageInstance const m, view) {
-            if (m.getTopic() == "/parameters" || m.getTopic() == "parameters") {
-                std_msgs::StringConstPtr prm_str = m.instantiate<std_msgs::String>();
-                paramCb(prm_str);
- /*               YAML::Node prms = YAML::Load(prm_str->data.c_str());
-                //ROS_INFO(">>>>>>>>>>>>>>>>>>>> %s", method.c_str());
-                if (prms["map_divider"]["method"]) {
-                    string method = prms["map_divider"]["method"].as<string>().c_str();
-                    ROS_INFO(">>>>>>>>>>>>>>>>>>>> %s", method.c_str());
-                }
-                
-                //ROS_INFO("%s",prm_str->data.c_str());*/
-            }
+            const string topic = m.getTopic();
+            if (topic == "/parameters")         {   paramCb(m.instantiate<std_msgs::String>()); }
+            else if (topic == "/map")           {   mapCb(m.instantiate<IntMap>()); } 
+            else if (topic == "/pose_current")  {   poseCurrentCb(m.instantiate<geometry_msgs::PoseStamped>()); }
+            else if (topic == "/pose_intended") {   poseIntendedCb(m.instantiate<geometry_msgs::PoseStamped>()); }
+            else if (topic == "/pdf")           {   pdfCb(m.instantiate<FloatMap>()); }
+            else if (topic == "/pose_best")     {   poseBestCb(m.instantiate<geometry_msgs::PoseStamped>()); }
+            else if (topic == "/map_divided")   {   mapDividedCb(m.instantiate<IntMap>()); }
+            else if (topic == "/pose_arrived")  {   poseArrivedCb(m.instantiate<geometry_msgs::PoseStamped>()); }
+            else if (topic == "/pose_current")  {   poseCurrentCb(m.instantiate<geometry_msgs::PoseStamped>()); }
+            else if (topic == "/cmd_intended")  {   cmdIntendedCb(m.instantiate<Command>()); }
+            else if (topic == "/cmd_detected")  {   cmdDetectedCb(m.instantiate<Command>()); }
+            else if (topic == "/pose_inferred") {   poseInferredCb(m.instantiate<geometry_msgs::PoseStamped>()); }
         }
     }
 };

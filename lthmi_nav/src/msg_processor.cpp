@@ -97,10 +97,6 @@ public:
         first_run_ = true;
     }
     
-    void paramsCb(std_msgs::String& msg) { 
-        
-    }
-    
     double calculateLengthToPOI() {
         return 1.0;
     }
@@ -113,7 +109,7 @@ public:
         exit(1);
     }
     
-    void paramCb(std_msgs::StringConstPtr msg) { 
+    void paramCb(std_msgs::StringConstPtr msg) {
         YAML::Node prms = YAML::Load(msg->data.c_str());
         record_.commit  = prms["node_param_publisher"]["commit"].as<string>();
         record_.bag     = boost::lexical_cast<bool>(prms["node_param_publisher"]["bag"].as<string>());
@@ -137,53 +133,53 @@ public:
         ROS_INFO(">>>>>>>>>>>>>>>>>>>> pos=%s, div=%s, commit=%s", record_.pos.c_str(), record_.div.c_str(), record_.commit.c_str());
     }
     
-    void mapCb(IntMap& msg) { 
+    void mapCb(IntMapConstPtr msg) { 
         if (state==WAIT4POI) {
             state = INFERENCE;
-            resolution_ = msg.info.resolution;
+            resolution_ = msg->info.resolution;
             if (!first_run_)
                 writeTableRow();
             first_run_ = false;
         }
     }
     
-    void poseCurrentCb(geometry_msgs::PoseStamped& msg) { 
+    void poseCurrentCb(geometry_msgs::PoseStampedConstPtr msg) {
         if (!init_pose_defined_) {
             init_pose_defined_ = true;
             int x,y;
-            updateVertex(msg.pose, x, y);
+            updateVertex(msg->pose, x, y);
             pois_.push_back(Point(x,y));
             waypoints_.push_back(Point(x,y));
         }
     }
     
-    void poseIntendedCb(geometry_msgs::PoseStamped& msg) { 
-        stamp_cmd_intended_ = msg.header.stamp;
+    void poseIntendedCb(geometry_msgs::PoseStampedConstPtr msg) {
+        stamp_cmd_intended_ = msg->header.stamp;
     }
     
-    void pdfCb(FloatMap& msg) {
+    void pdfCb(FloatMapConstPtr msg) {
         if (state==INFERENCE) {
-            stamp_pdf_ = msg.header.stamp;
+            stamp_pdf_ = msg->header.stamp;
             record_.dur_calc_pdf += stamp_pdf_-stamp_cmd_intended_;
         } else {
             desyncedMessage("pdf");
         }
     }
     
-    void poseBestCb(geometry_msgs::PoseStamped& msg) { 
+    void poseBestCb(geometry_msgs::PoseStampedConstPtr msg) {
         if (state==INFERENCE) {
-            stamp_pose_best_ = msg.header.stamp;
+            stamp_pose_best_ = msg->header.stamp;
             record_.dur_calc_best_pose += stamp_pose_best_-stamp_pdf_;
             //Point wp;
-            //updateVertex(msg.pose, wp.x, wp.y);
+            //updateVertex(msg->pose, wp.x, wp.y);
         } else {
             desyncedMessage("pose_best");
         }
     }
     
-    void mapDividedCb(IntMap& msg) { 
+    void mapDividedCb(IntMapConstPtr msg) {
         if (state==INFERENCE) {
-            stamp_map_divided_ = msg.header.stamp;
+            stamp_map_divided_ = msg->header.stamp;
             record_.dur_calc_map_div += stamp_map_divided_-stamp_pose_best_;
             record_.dur_driving += stamp_map_divided_-stamp_pose_best_;
         } else {
@@ -191,11 +187,11 @@ public:
         }
     }
 
-    void poseArrivedCb(geometry_msgs::PoseStamped& msg) { 
+    void poseArrivedCb(geometry_msgs::PoseStampedConstPtr msg) {
         if (state==INFERENCE || state==DRIVING) {
-            stamp_pose_arrived_ = msg.header.stamp;
+            stamp_pose_arrived_ = msg->header.stamp;
             Point wp;
-            updateVertex(msg.pose, wp.x, wp.y);
+            updateVertex(msg->pose, wp.x, wp.y);
             waypoints_.push_back(wp);
             if (state==DRIVING) {
                 state = WAIT4POI;
@@ -211,30 +207,30 @@ public:
         }
     }
     
-    void cmdIntendedCb(Command& msg) { 
+    void cmdIntendedCb(CommandConstPtr msg) {
         if (state==INFERENCE) {
-            cmd_intended_ = msg.cmd;
+            cmd_intended_ = msg->cmd;
             record_.n_decisions++;
         } else {
             desyncedMessage("cmd_intended");
         }
     }
     
-    void cmdDetectedCb(Command& msg) { 
+    void cmdDetectedCb(CommandConstPtr msg) {
         if (state==INFERENCE) {
-            if (msg.cmd != cmd_intended_)
+            if (msg->cmd != cmd_intended_)
                 record_.n_misdetected_decisions++;
         } else {
             desyncedMessage("cmd_detected");
         }
     }
     
-    void poseInferredCb(geometry_msgs::PoseStamped& msg) { 
+    void poseInferredCb(geometry_msgs::PoseStampedConstPtr msg) {
         if (state==INFERENCE) {
             state = DRIVING;
-            stamp_pose_inferred_ = msg.header.stamp;
+            stamp_pose_inferred_ = msg->header.stamp;
             Point wp;
-            updateVertex(msg.pose, wp.x, wp.y);
+            updateVertex(msg->pose, wp.x, wp.y);
             if (wp.x==pois_.back().x && wp.y==pois_.back().y )
                 record_.n_pois_inferred_correctly++;
         } else {
