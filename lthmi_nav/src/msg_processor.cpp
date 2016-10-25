@@ -130,10 +130,11 @@ public:
         record_.ksafe   = prms["best_pose_finder"]["safety_coef"].as<double>();
         record_.period  = prms["best_pose_finder"]["period"].as<double>();
         record_.div     = prms["map_divider"]["method"].as<string>();
-        ROS_INFO(">>>>>>>>>>>>>>>>>>>> pos=%s, div=%s, commit=%s", record_.pos.c_str(), record_.div.c_str(), record_.commit.c_str());
+        //ROS_INFO(">>>>>>>>>>>>>>>>>>>> pos=%s, div=%s, commit=%s", record_.pos.c_str(), record_.div.c_str(), record_.commit.c_str());
     }
     
     void mapCb(IntMapConstPtr msg) { 
+        ROS_INFO("got map=========================================");
         if (state==WAIT4POI) {
             state = INFERENCE;
             resolution_ = msg->info.resolution;
@@ -144,6 +145,7 @@ public:
     }
     
     void poseCurrentCb(geometry_msgs::PoseStampedConstPtr msg) {
+        //ROS_INFO("got pose_current");
         if (!init_pose_defined_) {
             init_pose_defined_ = true;
             int x,y;
@@ -154,10 +156,12 @@ public:
     }
     
     void poseIntendedCb(geometry_msgs::PoseStampedConstPtr msg) {
+        ROS_INFO("got pose_intended");
         stamp_cmd_intended_ = msg->header.stamp;
     }
     
     void pdfCb(FloatMapConstPtr msg) {
+        ROS_INFO("got pdf");
         if (state==INFERENCE) {
             stamp_pdf_ = msg->header.stamp;
             record_.dur_calc_pdf += stamp_pdf_-stamp_cmd_intended_;
@@ -167,6 +171,7 @@ public:
     }
     
     void poseBestCb(geometry_msgs::PoseStampedConstPtr msg) {
+        ROS_INFO("got pose_best");
         if (state==INFERENCE) {
             stamp_pose_best_ = msg->header.stamp;
             record_.dur_calc_best_pose += stamp_pose_best_-stamp_pdf_;
@@ -178,6 +183,7 @@ public:
     }
     
     void mapDividedCb(IntMapConstPtr msg) {
+        ROS_INFO("got map_divided");
         if (state==INFERENCE) {
             stamp_map_divided_ = msg->header.stamp;
             record_.dur_calc_map_div += stamp_map_divided_-stamp_pose_best_;
@@ -188,6 +194,7 @@ public:
     }
 
     void poseArrivedCb(geometry_msgs::PoseStampedConstPtr msg) {
+        ROS_INFO("got pose_arrived");
         if (state==INFERENCE || state==DRIVING) {
             stamp_pose_arrived_ = msg->header.stamp;
             Point wp;
@@ -199,8 +206,10 @@ public:
                 waypoints_.resize(0);
                 waypoints_.push_back(wp);
                 record_.dur_driving += stamp_pose_arrived_-stamp_pose_inferred_;
+                ROS_INFO("=====arived to POI ====");
             } else {
                 record_.dur_drinference += stamp_pose_arrived_-stamp_map_divided_;
+                ROS_INFO("== arived to waypoint ==");
             }
         } else {
             desyncedMessage("pose_arrived");
@@ -208,6 +217,7 @@ public:
     }
     
     void cmdIntendedCb(CommandConstPtr msg) {
+        ROS_INFO("got cmd_intended");
         if (state==INFERENCE) {
             cmd_intended_ = msg->cmd;
             record_.n_decisions++;
@@ -217,6 +227,7 @@ public:
     }
     
     void cmdDetectedCb(CommandConstPtr msg) {
+        ROS_INFO("got cmd_detected");
         if (state==INFERENCE) {
             if (msg->cmd != cmd_intended_)
                 record_.n_misdetected_decisions++;
@@ -226,6 +237,7 @@ public:
     }
     
     void poseInferredCb(geometry_msgs::PoseStampedConstPtr msg) {
+        ROS_INFO("= got pose_inferred =");
         if (state==INFERENCE) {
             state = DRIVING;
             stamp_pose_inferred_ = msg->header.stamp;

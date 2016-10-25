@@ -1,9 +1,9 @@
 /*
      subs                                       pubs
                     +--------------------+
- /pose_desired ---> |                    |
-                    |  node_robot_model  | ---> /pose_current
-/pose_inferred ---> |                    |
+ /pose_desired ---> |                    | ---> /pose_current
+                    |  node_robot_model  | 
+/pose_inferred ---> |                    | ---> /pose_arrived
                     +--------------------+
                                ^
                                |
@@ -34,12 +34,13 @@ public:
     RobotState state_;
     
     ros::Publisher  pub_pose_current_;
+    ros::Publisher  pub_pose_arrived_;
     ros::Subscriber sub_pose_desired_;
     ros::Subscriber sub_pose_inferred_;
     
     geometry_msgs::PoseStamped pose_current_;
     
-    vector<Point> path_;
+    vector<Point> path_; //[destination, ... ... ,source]
     double resolution_;
     ros::Time time_started_;
     CompoundMap cmap_;
@@ -66,9 +67,18 @@ public:
                     cmap_.setPixel(x,y, FREED); //free
         
         pub_pose_current_ = node.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
+        pub_pose_arrived_ = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, false); //not latched
         sub_pose_desired_ = node.subscribe("/pose_desired", 1, &NoKinRobotModel::desiredPoseCallback, this);
         sub_pose_inferred_ = node.subscribe("/pose_inferred", 1, &NoKinRobotModel::desiredPoseCallback, this);
         state_ = STOPPED;
+    }
+    
+    void stop() {
+        sub_pose_desired_.shutdown();
+        sub_pose_inferred_.shutdown();
+        pub_pose_current_.shutdown();
+        pub_pose_arrived_.shutdown();
+        state_ = WAITING;
     }
     
     void desiredPoseCallback(geometry_msgs::PoseStamped pose_des) {
@@ -101,6 +111,7 @@ public:
         double T = (t-time_started_).toSec();
         double dt_seg, gamma;
         Point cur,nxt;
+        RobotState state_was = state_;
         state_ = STOPPED;
         for (int k=path_.size()-1; k>=1; k-- ) {
             cur = path_[k];
@@ -117,12 +128,11 @@ public:
             gamma = 1.0;
         pose_current_.pose.position.x = resolution_ * (cur.x + (nxt.x-cur.x)*gamma);
         pose_current_.pose.position.y = resolution_ * (cur.y + (nxt.y-cur.y)*gamma);
+        if (state_ == STOPPED && state_was==MOVING) 
+            onArrival();
     }
-
-    void stop() {
-        sub_pose_desired_.shutdown();
-        pub_pose_current_.shutdown();
-        state_ = WAITING;
+    void onArrival() {
+        pub_pose_arrived_.publish(pose_current_);
     }
     
     void run() {
