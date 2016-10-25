@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="bag" /> <!-- path to bag-file-->
+
+    <node pkg="lthmi_nav" type="bag_processor" name="bag_processor" output="screen" required="true">
+        <param name="bag_path" value="$(arg bag)" />
+    </node>
+
+</launch>

@@ -19,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   nav_msgs
+  rosbag
+  geometry_msgs
   message_generation
 )
 
@@ -149,7 +151,10 @@ catkin_package(
     /usr/include/OGRE  #temporary dirty workaround
     ${OGRE_OV_INCLUDE_DIRS}
 #  LIBRARIES lthmi_nav
-  CATKIN_DEPENDS roscpp message_runtime
+  CATKIN_DEPENDS 
+    roscpp 
+    message_runtime
+    rosbag
 #  DEPENDS system_lib
 )
 
@@ -251,13 +256,14 @@ add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
 target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 
 
-# add_executable(map_publisher src/map_publisher.cpp)
-# target_link_libraries(map_publisher
-#    ${catkin_LIBRARIES}
-#    ncurses
-# )
-# add_dependencies(map_publisher ${PROJECT_NAME}_generate_messages_cpp)
-# 
+######################### TOOLS ##################################
+add_executable(bag_processor src/node_bag_processor.cpp)
+target_compile_definitions(bag_processor PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_link_libraries(bag_processor
+   ${catkin_LIBRARIES}
+   ${CWAVE_LIB_DIR}/libcwaveproc.a
+)
+add_dependencies(bag_processor ${PROJECT_NAME}_generate_messages_cpp)
 
 
 #install(TARGETS default_plugin
