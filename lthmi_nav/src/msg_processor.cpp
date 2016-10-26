@@ -40,13 +40,14 @@ public:
 class CourseParams : public Record {
 public:
     timestamp   run;    //static doc doc_run      = "Time ...";
+    int         tries;  //static doc doc_tries    = "Number of tries this experiment was run";
+    int         tryidx; //static doc doc_tryidx   = "Try's index";
     timestamp   start;  //static doc doc_start    = "Timestamp from the /pose_intended message in each run";
     string      commit; //static doc doc_commit   = "git commit id of the code that was used to create the rosbag";
 
     string      map;    //static doc doc_map      = "Name of the map (without .map extension)";
     int         path;   //static doc doc_path     = "Integer ID of the path from YOUR_MAP.paths file";
     double      resol;  //static doc doc_resol    = "Cell width on the map (in meters)";
-    int         tries;  //static doc doc_tries    = "Number of tries this experiment was run";
 
     string      mx;     //static doc doc_mx       = "Name of the HMI matrix";
     double      period; //static doc doc_period   = "LT HMI update period (in seconds)";
@@ -68,27 +69,18 @@ public:
     double      delay;  //static doc doc_delay    = "HMI delay (should be equal to period)";
     
     void headerOut(ostream& out) {
-        out << 
-            setw(14)<<"run" << setw(14)<<"start" << setw(10)<<"commit" << 
-            setw(16)<<"map" << setw(7)<<"path"   << setw(7)<<"resol"   << setw(7)<<"tries"<<
-            setw( 8)<<"mx"  << setw(8)<<"period" << setw(8)<<"vel"     << setw(10)<<"trobot"<< 
-            setw( 8)<<"phigh"<< setw(8)<<"plow"   << setw(10)<<"peps"   <<
-            setw(15)<<"pos" << setw(8)<<"ksafe"  <<
-            setw(15)<<"div" << setw(15)<<"popt"  <<
-            setw( 6)<<"bag" << setw(10)<<"rviz"  << setw(8)<<"delay";
+        out << boost::format(
+        "%22s  %5s  %3s  %22s  %10s  %16s  %5s  %6s  %8s  %6s  %7s  %7s  %5s  %5s  %8s  %16s  %5s  %12s  %10s  %3s  %10s  %6s") %
+        "run" % "tries" % "try" % "start" % "commit" % "map" % "path"  % "resol" % "mx" % "period" % "vel" % "trobot" % "phigh" % "plow" % "peps" % "pos" % "ksafe" % "div" % "popt" % "bag" % "rviz" % "delay";
     }
 };
 
 ostream& operator<<(ostream& out, const CourseParams& r) {
     char s = CourseParams::s;
-    return cout << 
-        setw(14)<<r.run  << setw(14)<<r.start  << setw(10)<<r.commit << 
-        setw(16)<<r.map  << setw(7)<<r.path    << setw(7)<<r.resol   << setw(7)<<r.tries <<
-        setw(8)<<r.mx    << setw(8)<<r.period  << setw(8)<<r.vel     << setw(10)<<r.trobot << 
-        setw(8)<<r.phigh << setw(8)<<r.plow    << setw(10)<<r.peps   <<
-        setw(15)<<r.pos  << setw(8)<<r.ksafe   <<
-        setw(15)<<r.div  << setw(15)<<r.popt   <<
-        setw(6)<<r.bag   << setw(10)<<r.rviz   << setw(8)<<r.delay;
+    return out << boost::format(
+      // run   trs  try  strt  cmmt  map   pth  resol  mx   perd   vel    trobo  phigh  plow   eps  pos   ksafe  div   popt  bag  rviz  delay;
+        "%22f  %5d  %3d  %22f  %10s  %16s  %5d  %6.3f  %8s  %6.4f  %7.4f  %7.5f  %5.3f  %5.3f  %8f  %16s  %5.3f  %12s  %10s  %3d  %10s  %6.4f") %
+        r.run % r.tries % r.tryidx % r.start % r.commit % r.map  % r.path % r.resol % r.mx % r.period % r.vel % r.trobot % r.phigh % r.plow % r.peps % r.pos % r.ksafe % r.div % r.popt % r.bag % r.rviz % r.delay;
 }
 
 
@@ -115,21 +107,26 @@ public:
     //        inference duty (pure inference time/nav time) # in my case should be close to 0
     
     void headerOut(ostream& out) {
-        out << 
-        setw(12)<<"l_ideal"     <<setw(12)<<"l_real"    <<setw( 9)<<"dcs_total" <<setw(9)<<"dcs_wrong"   <<
+        out << boost::format(
+            "%12s  %12s  %9s  %9s  %9s  %9s  %18s  %18s  %18s  %18s  %18s  %18s") %
+            "l_ideal" % "l_real" % "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
+        /*setw(12)<<"l_ideal"     <<setw(12)<<"l_real"    <<setw( 9)<<"dcs_total" <<setw(9)<<"dcs_wrong"   <<
         setw( 9)<<"poi_total"   <<setw( 9)<<"poi_wrong" <<
         setw(16)<<"t_inf"       <<setw(16)<<"t_drive"   <<setw(16)<<"t_drinf"    <<
-        setw(16)<<"t_pdf"       <<setw(16)<<"t_pos"     <<setw(16)<<"t_div";
+        setw(16)<<"t_pdf"       <<setw(16)<<"t_pos"     <<setw(16)<<"t_div";*/
     }
 };
     
 
 ostream& operator<<(ostream& out, const CourseStats& v) {
-    return out << 
-            setw(12)<<v.l_ideal     <<setw(12)<<v.l_real    <<setw( 9)<<v.dcs_total <<setw(9)<<v.dcs_wrong   <<
-            setw( 9)<<v.poi_total   <<setw( 9)<<v.poi_wrong <<
-            setw(16)<<v.t_inf       <<setw(16)<<v.t_drive   <<setw(16)<<v.t_drinf    <<
-            setw(16)<<v.t_pdf       <<setw(16)<<v.t_pos     <<setw(16)<<v.t_div;    
+    return out << boost::format(
+      // l_idea  l_real  d_t  d_w  p_t  p_w  t_inf   t_driv  t_drnf  t_pdf   t_pos   t_div
+        "%12.3f  %12.3f  %9d  %9d  %9d  %9d  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f") %
+        v.l_ideal % v.l_real % v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
+        //setw(12)<<v.l_ideal     <<setw(12)<<v.l_real    <<setw( 9)<<v.dcs_total <<setw(9)<<v.dcs_wrong   <<
+            //setw( 9)<<v.poi_total   <<setw( 9)<<v.poi_wrong <<
+            //setw(16)<<v.t_inf       <<setw(16)<<v.t_drive   <<setw(16)<<v.t_drinf    <<
+            //setw(16)<<v.t_pdf       <<setw(16)<<v.t_pos     <<setw(16)<<v.t_div;    
 }
 
 class MsgProcessor {
@@ -160,6 +157,7 @@ public:
     MsgProcessor() {
         state = WAIT4POI;
         first_run_ = true;
+        resetStats();
         writeTableHeader();
     }
     
@@ -169,11 +167,15 @@ public:
     
     void writeTableHeader () {
         prms_.headerOut(cout);
-        cout << "    ";
+        cout << "  ";
         stats_.headerOut(cout);
         cout << endl;
     }
-
+    void writeTableRow () {
+        cout << prms_ << "  " <<  stats_ << endl;
+        resetStats();
+    }
+    
     void resetStats() {
         stats_.l_ideal   = 0.0;
         stats_.l_real    = 0.0;
@@ -189,11 +191,7 @@ public:
         stats_.t_div     = ros::Duration(0);
     }
     
-    void writeTableRow () {
-        cout << prms_ << Record::s << 
-            stats_ << endl;
-        resetStats();
-    }
+
     
     void desyncedMessage(const char* msg) {
         cerr << "Message from /" <<msg << " received when it shouldn't have been received\n";
@@ -225,7 +223,7 @@ public:
     }
     
     void mapCb(IntMapConstPtr msg) { 
-        ROS_INFO("got map=========================================");
+        ROS_DEBUG("got map=========================================");
         if (state==WAIT4POI) {
             resolution_ = msg->info.resolution;
             if (!first_run_)
@@ -235,7 +233,7 @@ public:
     }
     
     void poseCurrentCb(geometry_msgs::PoseStampedConstPtr msg) {
-        //ROS_INFO("got pose_current");
+        //ROS_DEBUG("got pose_current");
         if (!init_pose_defined_) {
             init_pose_defined_ = true;
             int x,y;
@@ -246,7 +244,7 @@ public:
     }
     
     void poseIntendedCb(geometry_msgs::PoseStampedConstPtr msg) {
-        ROS_INFO("got pose_intended");
+        ROS_DEBUG("got pose_intended");
         stamp_cmd_intended_ = msg->header.stamp;
         if (state==WAIT4POI) {
             state = INFERENCE;
@@ -254,7 +252,7 @@ public:
     }
     
     void pdfCb(FloatMapConstPtr msg) {
-        ROS_INFO("got pdf");
+        ROS_DEBUG("got pdf");
         if (state==INFERENCE) {
             stamp_pdf_ = msg->header.stamp;
             stats_.t_pdf += stamp_pdf_-stamp_cmd_intended_;
@@ -264,7 +262,7 @@ public:
     }
     
     void poseBestCb(geometry_msgs::PoseStampedConstPtr msg) {
-        ROS_INFO("got pose_best");
+        ROS_DEBUG("got pose_best");
         if (state==INFERENCE) {
             stamp_pose_best_ = msg->header.stamp;
             stats_.t_pos += stamp_pose_best_-stamp_pdf_;
@@ -276,7 +274,7 @@ public:
     }
     
     void mapDividedCb(IntMapConstPtr msg) {
-        ROS_INFO("got map_divided");
+        ROS_DEBUG("got map_divided");
         if (state==INFERENCE) {
             stamp_map_divided_ = msg->header.stamp;
             stats_.t_div += stamp_map_divided_-stamp_pose_best_;
@@ -287,7 +285,7 @@ public:
     }
 
     void poseArrivedCb(geometry_msgs::PoseStampedConstPtr msg) {
-        ROS_INFO("got pose_arrived");
+        ROS_DEBUG("got pose_arrived");
         if (state==INFERENCE || state==DRIVING) {
             stamp_pose_arrived_ = msg->header.stamp;
             Point wp;
@@ -299,10 +297,10 @@ public:
                 waypoints_.resize(0);
                 waypoints_.push_back(wp);
                 stats_.t_drive += stamp_pose_arrived_-stamp_pose_inferred_;
-                ROS_INFO("=====arrived to POI ====");
+                ROS_DEBUG("=====arrived to POI ====");
             } else {
                 stats_.t_drive += stamp_pose_arrived_-stamp_map_divided_;
-                ROS_INFO("== arrived to waypoint ==");
+                ROS_DEBUG("== arrived to waypoint ==");
             }
         } else {
             desyncedMessage("pose_arrived");
@@ -310,7 +308,7 @@ public:
     }
     
     void cmdIntendedCb(CommandConstPtr msg) {
-        ROS_INFO("got cmd_intended");
+        ROS_DEBUG("got cmd_intended");
         if (state==INFERENCE) {
             cmd_intended_ = msg->cmd;
             stats_.dcs_total++;
@@ -320,7 +318,7 @@ public:
     }
     
     void cmdDetectedCb(CommandConstPtr msg) {
-        ROS_INFO("got cmd_detected");
+        ROS_DEBUG("got cmd_detected");
         if (state==INFERENCE) {
             if (msg->cmd != cmd_intended_)
                 stats_.dcs_wrong++;
@@ -330,7 +328,7 @@ public:
     }
     
     void poseInferredCb(geometry_msgs::PoseStampedConstPtr msg) {
-        ROS_INFO("= got pose_inferred =");
+        ROS_DEBUG("= got pose_inferred =");
         if (state==INFERENCE) {
             state = DRIVING;
             stamp_pose_inferred_ = msg->header.stamp;
