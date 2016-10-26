@@ -47,6 +47,7 @@ public:
             else if (topic == "/cmd_detected")  {   cmdDetectedCb(m.instantiate<Command>()); }
             else if (topic == "/pose_inferred") {   poseInferredCb(m.instantiate<geometry_msgs::PoseStamped>()); }
         }
+        finish();
     }
 };
 
