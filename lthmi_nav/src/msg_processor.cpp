@@ -35,6 +35,8 @@ public:
     typedef char* doc;
 };
 
+
+
 class CourseParams : public Record {
 public:
     timestamp   run;    //static doc doc_run      = "Time ...";
@@ -68,12 +70,12 @@ public:
     void headerOut(ostream& out) {
         out << 
             setw(14)<<"run" << setw(14)<<"start" << setw(10)<<"commit" << 
-            setw(16)<<"map" << setw(5)<<"path"   << setw(5)<<"resol"   << setw(4)<<"tries"<<
-            setw(8)<<"mx"   << setw(8)<<"period" << setw(8)<<"vel"     << setw(10)<<"trobot"<< 
-            setw(8)<<"phigh"<< setw(8)<<"plow"   << setw(10)<<"peps"   <<
+            setw(16)<<"map" << setw(7)<<"path"   << setw(7)<<"resol"   << setw(7)<<"tries"<<
+            setw( 8)<<"mx"  << setw(8)<<"period" << setw(8)<<"vel"     << setw(10)<<"trobot"<< 
+            setw( 8)<<"phigh"<< setw(8)<<"plow"   << setw(10)<<"peps"   <<
             setw(15)<<"pos" << setw(8)<<"ksafe"  <<
             setw(15)<<"div" << setw(15)<<"popt"  <<
-            setw(6)<<"bag"  << setw(10)<<"rviz"  << setw(8)<<"delay";
+            setw( 6)<<"bag" << setw(10)<<"rviz"  << setw(8)<<"delay";
     }
 };
 
@@ -81,13 +83,16 @@ ostream& operator<<(ostream& out, const CourseParams& r) {
     char s = CourseParams::s;
     return cout << 
         setw(14)<<r.run  << setw(14)<<r.start  << setw(10)<<r.commit << 
-        setw(16)<<r.map  << setw(5)<<r.path    << setw(5)<<r.resol   << setw(4)<<r.tries <<
+        setw(16)<<r.map  << setw(7)<<r.path    << setw(7)<<r.resol   << setw(7)<<r.tries <<
         setw(8)<<r.mx    << setw(8)<<r.period  << setw(8)<<r.vel     << setw(10)<<r.trobot << 
         setw(8)<<r.phigh << setw(8)<<r.plow    << setw(10)<<r.peps   <<
         setw(15)<<r.pos  << setw(8)<<r.ksafe   <<
         setw(15)<<r.div  << setw(15)<<r.popt   <<
         setw(6)<<r.bag   << setw(10)<<r.rviz   << setw(8)<<r.delay;
 }
+
+
+
 
 class CourseStats : public Record {
 public:
@@ -108,16 +113,23 @@ public:
     //        drinference duty (drinf time/nav time)
     //        driving duty (pure driving time/nav time)
     //        inference duty (pure inference time/nav time) # in my case should be close to 0
+    
+    void headerOut(ostream& out) {
+        out << 
+        setw(12)<<"l_ideal"     <<setw(12)<<"l_real"    <<setw( 9)<<"dcs_total" <<setw(9)<<"dcs_wrong"   <<
+        setw( 9)<<"poi_total"   <<setw( 9)<<"poi_wrong" <<
+        setw(16)<<"t_inf"       <<setw(16)<<"t_drive"   <<setw(16)<<"t_drinf"    <<
+        setw(16)<<"t_pdf"       <<setw(16)<<"t_pos"     <<setw(16)<<"t_div";
+    }
 };
     
 
 ostream& operator<<(ostream& out, const CourseStats& v) {
-    char s = CourseParams::s;
-    return cout << 
-        v.l_ideal   <<s<< v.l_real      <<s<< v.dcs_total   <<s<< v.dcs_wrong   <<s<<
-        v.poi_total <<s<< v.poi_wrong   <<s<< 
-        v.t_inf     <<s<< v.t_drive     <<s<< v.t_drinf     <<s<<
-        v.t_pdf     <<s<< v.t_pos       <<s<< v.t_div;
+    return out << 
+            setw(12)<<v.l_ideal     <<setw(12)<<v.l_real    <<setw( 9)<<v.dcs_total <<setw(9)<<v.dcs_wrong   <<
+            setw( 9)<<v.poi_total   <<setw( 9)<<v.poi_wrong <<
+            setw(16)<<v.t_inf       <<setw(16)<<v.t_drive   <<setw(16)<<v.t_drinf    <<
+            setw(16)<<v.t_pdf       <<setw(16)<<v.t_pos     <<setw(16)<<v.t_div;    
 }
 
 class MsgProcessor {
@@ -148,6 +160,7 @@ public:
     MsgProcessor() {
         state = WAIT4POI;
         first_run_ = true;
+        writeTableHeader();
     }
     
     double calculateLengthToPOI() {
@@ -155,6 +168,10 @@ public:
     }
     
     void writeTableHeader () {
+        prms_.headerOut(cout);
+        cout << "    ";
+        stats_.headerOut(cout);
+        cout << endl;
     }
 
     void resetStats() {
