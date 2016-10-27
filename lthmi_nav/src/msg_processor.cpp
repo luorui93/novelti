@@ -100,6 +100,7 @@ public:
     duration t_pdf;     //"The accumulated amount of time spent calculating PDFs"
     duration t_pos;     //"The accumulated amount of time spent on search for bet pose"
     duration t_div;     //"The accumulated amount of time spent on map division"
+    duration t_nav;     //"Total navigation time: t_nav = t_pdf + t_pos + t_drive + t_drinf + t_inf (t_nav = arrived_t(DRIVING)-pose_intended_t)"
     //        overdrive_length = course_path_l_real/course_path_length_ideal"
     //        overdrive_time = (time_pure_inference+time_drinference+time_pure_driving)/ideal_nav_time
     //        drinference duty (drinf time/nav time)
@@ -108,8 +109,8 @@ public:
     
     void headerOut(ostream& out) {
         out << boost::format(
-            "%12s  %12s  %9s  %9s  %9s  %9s  %18s  %18s  %18s  %18s  %18s  %18s") %
-            "l_ideal" % "l_real" % "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
+            "%12s  %12s  %9s  %9s  %9s  %9s  %18s  %18s  %18s  %18s  %18s  %18s  %18s") %
+            "l_ideal" % "l_real" % "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "t_nav" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
     }
 };
     
@@ -117,8 +118,8 @@ public:
 ostream& operator<<(ostream& out, const CourseStats& v) {
     return out << boost::format(
       // l_idea  l_real  d_t  d_w  p_t  p_w  t_inf   t_driv  t_drnf  t_pdf   t_pos   t_div
-        "%12.3f  %12.3f  %9d  %9d  %9d  %9d  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f") %
-        v.l_ideal % v.l_real % v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
+        "%12.3f  %12.3f  %9d  %9d  %9d  %9d  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f") %
+        v.l_ideal % v.l_real % v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.t_nav % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
 }
 
 class MsgProcessor {
@@ -137,6 +138,8 @@ public:
     int try_;
     vector<Point> pois_;
     vector<Point> waypoints_;
+    timestamp stamp_pose_intended_;
+    timestamp stamp_cmd_detected_;
     timestamp stamp_cmd_intended_;
     timestamp stamp_pdf_;
     timestamp stamp_pose_best_;
@@ -174,13 +177,14 @@ public:
     void writeTableRow () {
         prms_.tryidx++;
         sout << prms_ << "  " <<  stats_ << endl;
-        ROS_ERROR("POIs: (%d,%d), (%d,%d), (%d,%d)", pois_[0].x, pois_[0].y, pois_[1].x, pois_[1].y, pois_[2].x, pois_[2].y);
+        //ROS_DEBUG("POIs: (%d,%d), (%d,%d), (%d,%d)", pois_[0].x, pois_[0].y, pois_[1].x, pois_[1].y, pois_[2].x, pois_[2].y);
         resetStats();
     }
     
     void resetStats() {
         init_pose_defined_ = false;
         pois_.resize(1);
+        stamp_cmd_detected_ = ros::Time(0);
         
         stats_.l_ideal   = 0.0;
         stats_.l_real    = 0.0;
@@ -194,6 +198,7 @@ public:
         stats_.t_pdf     = ros::Duration(0);
         stats_.t_pos     = ros::Duration(0);
         stats_.t_div     = ros::Duration(0);
+        stats_.t_nav     = ros::Duration(0);
     }
     
 
@@ -241,26 +246,26 @@ public:
     }
     
     void poseCurrentCb(geometry_msgs::PoseStampedConstPtr msg) {
-        ROS_DEBUG("got pose_current: (%f,%f)", msg->pose.position.x, msg->pose.position.y);
+        //ROS_DEBUG("got pose_current: (%f,%f)", msg->pose.position.x, msg->pose.position.y);
         if (!init_pose_defined_) {
             init_pose_defined_ = true;
             Point pt;
             updateVertex(msg->pose, pt.x, pt.y);
             pois_[0] = pt;
-            ROS_WARN("Added POI=(%d,%d)", pt.x, pt.y);
+            ROS_DEBUG("Added POI=(%d,%d)", pt.x, pt.y);
             waypoints_.push_back(pt);
         }
     }
     
     void poseIntendedCb(geometry_msgs::PoseStampedConstPtr msg) {
         ROS_DEBUG("got pose_intended");
-        stamp_cmd_intended_ = msg->header.stamp;
+        stamp_pose_intended_ = msg->header.stamp;
         if (state==WAIT4POI) {
-            prms_.start = stamp_cmd_intended_;
+            prms_.start = stamp_pose_intended_;
             Point pt;
             updateVertex(msg->pose, pt.x, pt.y);
             pois_.push_back(pt);
-            ROS_WARN("Added POI=(%d,%d)", pt.x, pt.y);
+            ROS_DEBUG("Added POI=(%d,%d)", pt.x, pt.y);
             stats_.poi_total++;
             state = INFERENCE;
         }
@@ -270,7 +275,15 @@ public:
         ROS_DEBUG("got pdf");
         if (state==INFERENCE) {
             stamp_pdf_ = msg->header.stamp;
-            stats_.t_pdf += stamp_pdf_-stamp_cmd_intended_;
+            ros::Duration dt;
+            //ROS_INFO(">--- cmd_det=%f, 0t=%f", stamp_cmd_detected_.toSec(),ros::Time(0).toSec());
+            if (stamp_cmd_detected_==ros::Time(0)) {
+                dt = stamp_pdf_-stamp_pose_intended_;
+            } else {
+                dt = stamp_pdf_-stamp_cmd_detected_;
+            }
+            stats_.t_pdf += dt;
+            //ROS_INFO(">>>>>> added to t_pdf=%f : (%d , %d)=%f - (%d , %d)=%f", dt.toSec(), stamp_pdf_.sec, stamp_pdf_.nsec, stamp_pdf_.toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec());
         } else {
             desyncedMessage("pdf");
         }
@@ -293,6 +306,7 @@ public:
         if (state==INFERENCE) {
             stamp_map_divided_ = msg->header.stamp;
             stats_.t_div += stamp_map_divided_-stamp_pose_best_;
+            //ROS_INFO("*****>>>> added to t_drive=%f, (%d , %d)=%f - (%d , %d)=%f", (stamp_map_divided_-stamp_pose_best_).toSec(), stamp_map_divided_.sec, stamp_map_divided_.nsec, stamp_map_divided_.toSec(), stamp_pose_best_.sec, stamp_pose_best_.nsec, stamp_pose_best_.toSec());
             stats_.t_drive += stamp_map_divided_-stamp_pose_best_;
         } else {
             desyncedMessage("map_divided");
@@ -311,10 +325,14 @@ public:
                 stats_.l_real += calculateLengthToPOI();
                 waypoints_.resize(0);
                 waypoints_.push_back(wp);
+                stats_.t_nav += stamp_pose_arrived_-stamp_pose_intended_;
                 stats_.t_drive += stamp_pose_arrived_-stamp_pose_inferred_;
+                //ROS_INFO(">>>>>> (%d , %d)=%f - (%d , %d)=%f", stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec(), stamp_pose_inferred_.sec, stamp_pose_inferred_.nsec, stamp_pose_inferred_.toSec());
+                stamp_cmd_detected_=ros::Time(0);
                 ROS_DEBUG("=====arrived to POI ====");
             } else {
-                stats_.t_drive += stamp_pose_arrived_-stamp_map_divided_;
+                stats_.t_drinf += stamp_pose_arrived_-stamp_map_divided_;
+                //ROS_INFO("--->>>> added to t_dvive=%f from  (%d , %d)=%f - (%d , %d)=%f", (double)(stamp_pose_arrived_-stamp_map_divided_).toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec(), stamp_map_divided_.sec, stamp_map_divided_.nsec, stamp_map_divided_.toSec());
                 ROS_DEBUG("== arrived to waypoint ==");
             }
         } else {
@@ -331,10 +349,13 @@ public:
             desyncedMessage("cmd_intended");
         }
     }
-    
+
     void cmdDetectedCb(CommandConstPtr msg) {
         ROS_DEBUG("got cmd_detected");
         if (state==INFERENCE) {
+            stamp_cmd_detected_ = msg->header.stamp;
+            stats_.t_inf += stamp_cmd_detected_-stamp_pose_arrived_;
+            //ROS_INFO(">>>>>> added to t_inf=%f : (%d , %d)=%f - (%d , %d)=%f", (stamp_cmd_detected_-stamp_pose_arrived_).toSec(), stamp_cmd_detected_.sec, stamp_cmd_detected_.nsec, stamp_cmd_detected_.toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec());
             if (msg->cmd != cmd_intended_)
                 stats_.dcs_wrong++;
         } else {
