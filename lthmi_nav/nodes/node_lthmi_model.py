@@ -78,7 +78,6 @@ class StochHmiModel (SynchronizableNode):
         is_fisrt_msg = (self.cmd_intended is None)
         self.cmd_intended = msg.cmd
         if self.period==0.0:
-            self.cmd_detected.header.stamp = rospy.Time.now()
             self.cmd_detected.cmd = self.randomize(self.cmd_intended)
             if self.delay==0.0:
                 raw_input("Press Enter to continue\n")
@@ -86,6 +85,7 @@ class StochHmiModel (SynchronizableNode):
                 rospy.loginfo("%s: sleeping %fsec" %(rospy.get_name(), self.delay))
                 rospy.sleep(self.delay) 
             #rospy.loginfo("%s: 2>>>>>>>>>>>>>>> SEQ==%d", rospy.get_name(), self.cmd_detected.header.seq)
+            self.cmd_detected.header.stamp = rospy.Time.now()
             self.pub.publish(self.cmd_detected)
             #rospy.loginfo("%s: 3>>>>>>>>>>>>>>> SEQ==%d", rospy.get_name(), self.cmd_detected.header.seq)
             rospy.loginfo("%s: published detected command, intended=%d, detected=%d (SEQ==%d)", rospy.get_name(), self.cmd_intended, self.cmd_detected.cmd, self.cmd_detected.header.seq)
