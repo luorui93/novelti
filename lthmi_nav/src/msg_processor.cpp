@@ -94,6 +94,7 @@ public:
     int dcs_wrong;  //"Number of decisions that have been incorrectly detected"
     int poi_total;  //"Total number of POIs visited in this course"
     int poi_wrong;  //"Number of POIs that were inferred incorrectly"
+    int waypts;    //"Total number of waypoints (includes POIs as well)"
     duration t_inf;     //"The accumulated amount of time spent purely on inference"
     duration t_drive;   //"The accumulated amount of time spent purely on driving"
     duration t_drinf;   //"The accumulated amount of time spent on simulteneous driving and inference"
@@ -109,17 +110,17 @@ public:
     
     void headerOut(ostream& out) {
         out << boost::format(
-            "%12s  %12s  %9s  %9s  %9s  %9s  %18s  %18s  %18s  %18s  %18s  %18s  %18s") %
-            "l_ideal" % "l_real" % "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "t_nav" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
+            "%12s  %12s  %9s  %9s  %9s  %9s  %6d  %18s  %18s  %18s  %18s  %18s  %18s  %18s") %
+            "l_ideal" % "l_real" % "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "waypts" % "t_nav" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
     }
 };
     
 
 ostream& operator<<(ostream& out, const CourseStats& v) {
     return out << boost::format(
-      // l_idea  l_real  d_t  d_w  p_t  p_w  t_inf   t_driv  t_drnf  t_pdf   t_pos   t_div
-        "%12.3f  %12.3f  %9d  %9d  %9d  %9d  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f") %
-        v.l_ideal % v.l_real % v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.t_nav % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
+      // l_idea  l_real  d_t  d_w  p_t  p_w  wpts t_inf   t_driv  t_drnf  t_pdf   t_pos   t_div
+        "%12.3f  %12.3f  %9d  %9d  %9d  %9d  %6d  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f") %
+        v.l_ideal % v.l_real % v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.waypts % v.t_nav % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
 }
 
 class MsgProcessor {
@@ -228,6 +229,7 @@ public:
         stats_.dcs_wrong = 0;
         stats_.poi_total = 0;
         stats_.poi_wrong = 0;
+        stats_.waypts    = 0;
         stats_.t_inf     = ros::Duration(0);
         stats_.t_drive   = ros::Duration(0);
         stats_.t_drinf   = ros::Duration(0);
@@ -269,7 +271,7 @@ public:
     }
     
     void mapCb(IntMapConstPtr msg) { 
-        ROS_DEBUG("got map=========================================");
+        ROS_DEBUG("got map =========================================");
         readMap(msg);
         if (prms_.run==ros::Time(0))
             prms_.run = msg->header.stamp;
@@ -358,7 +360,9 @@ public:
         double dl = calculatePathLength(waypoints_);
         ROS_DEBUG("Real path length to POI: %f", dl);
         stats_.l_real += dl;
-
+        stats_.waypts += waypoints_.size()-1;
+        ROS_DEBUG("-------------------Added number of waypts: %d", (int)(waypoints_.size()-1));
+        
         waypoints_[0] = waypoints_.back();
         waypoints_.resize(1);
         stats_.t_nav += stamp_pose_arrived_-stamp_pose_intended_;
@@ -392,6 +396,7 @@ public:
         if (state==INFERENCE) {
             cmd_intended_ = msg->cmd;
             stats_.dcs_total++;
+            ROS_DEBUG("+++++++++ stats_.dcs_total=%d", stats_.dcs_total);
         } else {
             desyncedMessage("cmd_intended");
         }
