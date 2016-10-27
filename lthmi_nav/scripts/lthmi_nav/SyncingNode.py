@@ -42,6 +42,7 @@ class SyncingNode:
     
     def publishMap(self, resolution):
         m = IntMap()
+        m.header.stamp = rospy.Time.now()
         m.header.frame_id = "/map"
         m.info.width  = self.grid.width
         m.info.height = self.grid.height
