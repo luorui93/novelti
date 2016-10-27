@@ -123,6 +123,7 @@ public:
     void writeTableRow () {
         prms_.tryidx++;
         stats_.l_ideal = calculatePathLength(pois_);
+        stats_.t_sep = (stats_.t_inf+stats_.t_drinf).toSec() + (stats_.l_ideal/prms_.vel);
         updateStats2();
         sout << prms_ << "  " <<  stats_ << "  " << stats2_ << endl;
         //ROS_DEBUG("POIs: (%d,%d), (%d,%d), (%d,%d)", pois_[0].x, pois_[0].y, pois_[1].x, pois_[1].y, pois_[2].x, pois_[2].y);
@@ -154,6 +155,7 @@ public:
     void updateStats2() {
         stats2_.over_len  = stats_.l_real/stats_.l_ideal;
         stats2_.over_time = stats_.t_nav.toSec()/(stats_.l_ideal/prms_.vel);
+        stats2_.sep2nav   = stats_.t_sep/stats_.t_nav.toSec();
         stats2_.det_rate  = 100.0 * (stats_.dcs_total-stats_.dcs_wrong) / stats_.dcs_total;
         stats2_.per_calc  = 100.0 * (stats_.t_pdf.toSec() + stats_.t_pos.toSec()) / stats_.t_nav.toSec();
         stats2_.per_drive = 100.0 * stats_.t_drive.toSec()/stats_.t_nav.toSec();

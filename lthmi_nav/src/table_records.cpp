@@ -113,16 +113,17 @@ public:
     duration t_pos;     //"The accumulated amount of time spent on search for bet pose"
     duration t_div;     //"The accumulated amount of time spent on map division"
     duration t_nav;     //"Total navigation time: t_nav = t_pdf + t_pos + t_drive + t_drinf + t_inf (t_nav = arrived_t(DRIVING)-pose_intended_t)"
+    double   t_sep;     //"Time that would be required for navigation if inference and driving weren't parallelized"
     
     void headerOut(ostream& out) {
         out << boost::format(
                 "%12s  %12s  "
                 "%9s  %9s  %9s  %9s  %6d  "
-                "%18s  %18s  %18s  %18s  %18s  %18s  %18s"
+                "%18s  %18s  %18s  %18s  %18s  %18s  %18s  %18s"
             ) %
             "l_ideal" % "l_real" % 
             "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "waypts" % 
-            "t_nav" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
+            "t_nav" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div" % "t_sep";
     }
 };
 
@@ -131,11 +132,11 @@ ostream& operator<<(ostream& out, const CourseStats& v) {
           // l_idea  l_real  d_t  d_w  p_t  p_w  wpts t_inf   t_driv  t_drnf  t_pdf   t_pos   t_div
             "%12.3f  %12.3f  "
             "%9d  %9d  %9d  %9d  %6d  "
-            "%18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f"
+            "%18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f"
         ) %
         v.l_ideal % v.l_real % 
         v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.waypts % 
-        v.t_nav % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
+        v.t_nav % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div % v.t_sep;
 }
 
 
@@ -144,8 +145,9 @@ class CourseStats2 : public Record {
 public:
     double over_len;  //l_real/l_ideal
     double over_time; //t_nav/t_ideal = t_nav/(l_ideal/vel);
-    double det_rate; // 100% * dcs_correct/dcs_total = (dcs_total-dcs_wrong)/dcs_total
-
+    double sep2nav;   //t_sep/t_nav
+    double det_rate;  // 100% * dcs_correct/dcs_total = (dcs_total-dcs_wrong)/dcs_total
+    
     double per_calc;  // 100% * (t_pdf + t_pos)/t_nav
     double per_drive; // 100% * t_drive/t_nav
     double per_drinf; // 100% * t_drinf/t_nav
@@ -153,10 +155,10 @@ public:
     
     void headerOut(ostream& out) {
         out << boost::format(
-                "%9s  %9s  %9s  "
+                "%9s  %9s  %9s  %9s  "
                 "%9s  %9s  %9s  %9s"
             ) %
-            "over_len" % "over_time" % "det_rate" % 
+            "over_len" % "over_time" % "sep2nav" % "det_rate" % 
             "per_calc" % "per_drive" % "per_drinf" % "per_infer";
     }
 };
@@ -164,11 +166,11 @@ public:
 
 ostream& operator<<(ostream& out, const CourseStats2& v) {
     return out << boost::format(
-            "%9.3f  %9.3f  %9.3f  "
+            "%9.3f  %9.3f  %9.3f  %9.3f  "
             "%9.3f  %9.3f  %9.3f  %9.3f"
         ) %
-        v.over_len % v.over_time % v.det_rate % 
-        v.per_calc % v.per_drive  % v.per_drinf % v.per_infer;
+        v.over_len % v.over_time % v.sep2nav   % v.det_rate % 
+        v.per_calc % v.per_drive % v.per_drinf % v.per_infer;
 }
 
 } //namespace lthmi_nav
