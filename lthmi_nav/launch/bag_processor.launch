@@ -3,12 +3,15 @@
     <arg name="bag" /> <!-- path to input bag-file-->
     <arg name="out" default="/tmp/1" /> <!-- path to output stats-file-->
     <arg name="debug" default="0" />
+    <arg name="gdb" default="1" />
     
     <env if="$(arg debug)" name="ROSCONSOLE_CONFIG_FILE" value="$(find lthmi_nav)/debug/debug_rosconsole.conf"/>
     
-    
+    <arg     if="$(arg gdb)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_bag_processor - -args" />
+    <arg unless="$(arg gdb)" name="prefix" default="" />
 
-    <node pkg="lthmi_nav" type="bag_processor" name="bag_processor" output="screen" required="true">
+
+    <node pkg="lthmi_nav" type="bag_processor" name="bag_processor" output="screen" required="true"  launch-prefix="$(arg prefix)">
         <param name="bag_path" value="$(arg bag)" />
         <param name="stats_path" value="$(arg out)" />
     </node>
