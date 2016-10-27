@@ -31,7 +31,7 @@
     
     <!-- Recording -->
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args="-O $(arg dir)/data.bag /rosout /map /pose_intended /pose_current /pose_optimal /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
+            args="-O $(arg dir)/data.bag /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
     </node>
     <node if="$(arg bag)"  pkg="lthmi_nav" type="node_param_publisher.py" name="node_param_publisher">
         <param name="rosbag_node_name" value="rosbag_record" />
