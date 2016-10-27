@@ -133,6 +133,7 @@ public:
             onArrival();
     }
     void onArrival() {
+        pose_current_.header.stamp = ros::Time::now();
         pub_pose_arrived_.publish(pose_current_);
     }
     
