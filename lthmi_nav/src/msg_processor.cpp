@@ -149,7 +149,7 @@ public:
     int cmd_intended_;
     double resolution_;
     
-    //CompoundMap cmap_;
+    CompoundMap cmap_;
     
     
     MsgProcessor(ostream& outs) :
@@ -159,13 +159,46 @@ public:
         prms_.run = ros::Time(0);
         prms_.tryidx = 0;
         pois_.push_back(Point());
+        waypoints_.push_back(Point());
         first_run_ = true;
         resetStats();
         writeTableHeader();
     }
+
+    void readMap(IntMapConstPtr msg) { 
+        new (&cmap_) CompoundMap(msg->info.width, msg->info.height);
+        //ROS_INFO("w=%d, h=%d", msg->info.width, msg->info.height);
+        for (int x=0; x<msg->info.width; x++)
+            for (int y=0; y<msg->info.height; y++)
+                if (msg->data[x + y*msg->info.width]==255)
+                    cmap_.setPixel(x,y, FREED); //free
+    }
     
-    double calculateLengthToPOI() {
-        return 1.0;
+    double calculateDist(Point& p1, Point& p2) {
+        CWave2 cw(cmap_);
+        CWave2Processor dummy;
+        cw.setProcessor(&dummy);
+        cw.calc(p1);
+        double d = resolution_*cmap_.getExactDist(p2.x, p2.y);
+        //double d =0.5*cmap_.getPoint(p2.x, p2.y); 
+        //int dd = cmap_.getPoint(p2.x, p2.y);
+        cmap_.clearDist();
+        ROS_DEBUG("Calculated distance from (%d,%d) to (%d,%d) -> %f", p1.x, p1.y, p2.x, p2.y, d);
+        return d;
+    }
+    
+    void printPath(vector<Point> path) {
+        for (const auto& pt: path)
+            ROS_DEBUG( "(%d,%d) ", pt.x,pt.y);
+        ROS_DEBUG("\n");
+    }
+    
+    double calculatePathLength(vector<Point> path) {
+        double d = 0.0;
+        for (int k=1; k<path.size(); k++) {
+            d += calculateDist(path[k-1], path[k]);
+        }
+        return d;
     }
     
     void writeTableHeader () {
@@ -174,8 +207,10 @@ public:
         stats_.headerOut(sout);
         sout << endl;
     }
+    
     void writeTableRow () {
         prms_.tryidx++;
+        stats_.l_ideal = calculatePathLength(pois_);
         sout << prms_ << "  " <<  stats_ << endl;
         //ROS_DEBUG("POIs: (%d,%d), (%d,%d), (%d,%d)", pois_[0].x, pois_[0].y, pois_[1].x, pois_[1].y, pois_[2].x, pois_[2].y);
         resetStats();
@@ -184,6 +219,7 @@ public:
     void resetStats() {
         init_pose_defined_ = false;
         pois_.resize(1);
+        waypoints_.resize(1);
         stamp_cmd_detected_ = ros::Time(0);
         
         stats_.l_ideal   = 0.0;
@@ -234,6 +270,7 @@ public:
     
     void mapCb(IntMapConstPtr msg) { 
         ROS_DEBUG("got map=========================================");
+        readMap(msg);
         if (prms_.run==ros::Time(0))
             prms_.run = msg->header.stamp;
         if (state==WAIT4POI) {
@@ -253,7 +290,7 @@ public:
             updateVertex(msg->pose, pt.x, pt.y);
             pois_[0] = pt;
             ROS_DEBUG("Added POI=(%d,%d)", pt.x, pt.y);
-            waypoints_.push_back(pt);
+            waypoints_[0] = pt;
         }
     }
     
@@ -313,6 +350,24 @@ public:
         }
     }
 
+    void onPoiReached() {
+        state = WAIT4POI;
+
+        ROS_DEBUG("Real path to POI: ");
+        printPath(waypoints_);
+        double dl = calculatePathLength(waypoints_);
+        ROS_DEBUG("Real path length to POI: %f", dl);
+        stats_.l_real += dl;
+
+        waypoints_[0] = waypoints_.back();
+        waypoints_.resize(1);
+        stats_.t_nav += stamp_pose_arrived_-stamp_pose_intended_;
+        stats_.t_drive += stamp_pose_arrived_-stamp_pose_inferred_;
+        //ROS_INFO(">>>>>> (%d , %d)=%f - (%d , %d)=%f", stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec(), stamp_pose_inferred_.sec, stamp_pose_inferred_.nsec, stamp_pose_inferred_.toSec());
+        stamp_cmd_detected_=ros::Time(0);
+        ROS_DEBUG("=====arrived to POI ====");
+    }
+    
     void poseArrivedCb(geometry_msgs::PoseStampedConstPtr msg) {
         ROS_DEBUG("got pose_arrived");
         if (state==INFERENCE || state==DRIVING) {
@@ -321,15 +376,7 @@ public:
             updateVertex(msg->pose, wp.x, wp.y);
             waypoints_.push_back(wp);
             if (state==DRIVING) {
-                state = WAIT4POI;
-                stats_.l_real += calculateLengthToPOI();
-                waypoints_.resize(0);
-                waypoints_.push_back(wp);
-                stats_.t_nav += stamp_pose_arrived_-stamp_pose_intended_;
-                stats_.t_drive += stamp_pose_arrived_-stamp_pose_inferred_;
-                //ROS_INFO(">>>>>> (%d , %d)=%f - (%d , %d)=%f", stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec(), stamp_pose_inferred_.sec, stamp_pose_inferred_.nsec, stamp_pose_inferred_.toSec());
-                stamp_cmd_detected_=ros::Time(0);
-                ROS_DEBUG("=====arrived to POI ====");
+                onPoiReached();
             } else {
                 stats_.t_drinf += stamp_pose_arrived_-stamp_map_divided_;
                 //ROS_INFO("--->>>> added to t_dvive=%f from  (%d , %d)=%f - (%d , %d)=%f", (double)(stamp_pose_arrived_-stamp_map_divided_).toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec(), stamp_map_divided_.sec, stamp_map_divided_.nsec, stamp_map_divided_.toSec());
