@@ -94,7 +94,7 @@ public:
     int dcs_wrong;  //"Number of decisions that have been incorrectly detected"
     int poi_total;  //"Total number of POIs visited in this course"
     int poi_wrong;  //"Number of POIs that were inferred incorrectly"
-    int waypts;    //"Total number of waypoints (includes POIs as well)"
+    int waypts;    //"Total number of waypoints (includes POIs as well): waypts = dcs_total+poi_total (extra waypoints is added on every POI)"
     duration t_inf;     //"The accumulated amount of time spent purely on inference"
     duration t_drive;   //"The accumulated amount of time spent purely on driving"
     duration t_drinf;   //"The accumulated amount of time spent on simulteneous driving and inference"
