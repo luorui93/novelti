@@ -70,15 +70,16 @@ public:
         pub_pose_arrived_ = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, false); //not latched
         sub_pose_desired_ = node.subscribe("/pose_desired", 1, &NoKinRobotModel::desiredPoseCallback, this);
         sub_pose_inferred_ = node.subscribe("/pose_inferred", 1, &NoKinRobotModel::desiredPoseCallback, this);
+        pub_pose_current_.publish(pose_current_);
         state_ = STOPPED;
     }
     
     void stop() {
+        state_ = WAITING;
         sub_pose_desired_.shutdown();
         sub_pose_inferred_.shutdown();
         pub_pose_current_.shutdown();
         pub_pose_arrived_.shutdown();
-        state_ = WAITING;
     }
     
     void desiredPoseCallback(geometry_msgs::PoseStamped pose_des) {
@@ -143,7 +144,7 @@ public:
                     updateCurrentPose(ros::Time::now());
                 pose_current_.header.stamp = ros::Time::now();
                 pub_pose_current_.publish(pose_current_);
-                //ROS_INFO("robot_model: published currrent_pose");
+                //ROS_INFO("robot_model: published currrent_pose: (%f,%f)", pose_current_.pose.position.x, pose_current_.pose.position.y);
             }
             ros::spinOnce();
             r.sleep();
