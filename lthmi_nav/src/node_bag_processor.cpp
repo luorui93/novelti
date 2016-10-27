@@ -14,7 +14,9 @@ public:
     rosbag::Bag bag_;
     std::vector<std::string> topics_;
     
-    BagProcessor(string& bag_path) {
+    BagProcessor(string& bag_path, ostream& out) :
+        MsgProcessor(out)
+    {
         bag_.open(bag_path.c_str(), rosbag::bagmode::Read);
         topics_.push_back("/parameters");
         topics_.push_back("/map");
@@ -54,13 +56,23 @@ public:
 int main(int argc, char **argv) {
     ros::init(argc, argv, "bag_processor");
     ros::NodeHandle node("~");
-    string bag_path;
+    string bag_path, stats_path;
     node.getParam("bag_path", bag_path);
+    node.getParam("stats_path", stats_path);
     if (bag_path.size()<=0) {
         ROS_ERROR("ROS parameter bag_path is required");
         return 1;
     }
-    BagProcessor pr(bag_path);
-    pr.run();
+    
+    if (stats_path.size()>0) {
+        ofstream stats_stream;
+        stats_stream.open(stats_path);
+        BagProcessor pr(bag_path, stats_stream);
+        pr.run();
+        stats_stream.close();
+    } else {
+        BagProcessor pr(bag_path, std::cout);
+        pr.run();
+    }
     return 0;
 }

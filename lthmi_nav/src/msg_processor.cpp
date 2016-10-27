@@ -39,7 +39,7 @@ public:
 
 class CourseParams : public Record {
 public:
-    timestamp   run;    //static doc doc_run      = "Time ...";
+    timestamp   run;    //static doc doc_run      = "Timestamp of the first /map message (can identify the bag)";
     int         tries;  //static doc doc_tries    = "Number of tries this experiment was run";
     int         tryidx; //static doc doc_tryidx   = "Try's index";
     timestamp   start;  //static doc doc_start    = "Timestamp from the /pose_intended message in each run";
@@ -78,8 +78,8 @@ public:
 ostream& operator<<(ostream& out, const CourseParams& r) {
     char s = CourseParams::s;
     return out << boost::format(
-      // run   trs  try  strt  cmmt  map   pth  resol  mx   perd   vel    trobo  phigh  plow   eps  pos   ksafe  div   popt  bag  rviz  delay;
-        "%22f  %5d  %3d  %22f  %10s  %16s  %5d  %6.3f  %8s  %6.4f  %7.4f  %7.5f  %5.3f  %5.3f  %8f  %16s  %5.3f  %12s  %10s  %3d  %10s  %6.4f") %
+      // run   trs  try  strt  cmmt  map   pth  resol  mx   perd   vel    trobo  phigh  plow   eps    pos   ksafe  div   popt  bag  rviz  delay;
+        "%22f  %5d  %3d  %22f  %10s  %16s  %5d  %6.3f  %8s  %6.4f  %7.4f  %7.5f  %5.3f  %5.3f  %8.2e  %16s  %5.3f  %12s  %10s  %3d  %10s  %6.4f") %
         r.run % r.tries % r.tryidx % r.start % r.commit % r.map  % r.path % r.resol % r.mx % r.period % r.vel % r.trobot % r.phigh % r.plow % r.peps % r.pos % r.ksafe % r.div % r.popt % r.bag % r.rviz % r.delay;
 }
 
@@ -110,10 +110,6 @@ public:
         out << boost::format(
             "%12s  %12s  %9s  %9s  %9s  %9s  %18s  %18s  %18s  %18s  %18s  %18s") %
             "l_ideal" % "l_real" % "dcs_total" % "dcs_wrong" % "poi_total" % "poi_wrong" % "t_inf" % "t_drive" % "t_drinf" % "t_pdf" % "t_pos" % "t_div";
-        /*setw(12)<<"l_ideal"     <<setw(12)<<"l_real"    <<setw( 9)<<"dcs_total" <<setw(9)<<"dcs_wrong"   <<
-        setw( 9)<<"poi_total"   <<setw( 9)<<"poi_wrong" <<
-        setw(16)<<"t_inf"       <<setw(16)<<"t_drive"   <<setw(16)<<"t_drinf"    <<
-        setw(16)<<"t_pdf"       <<setw(16)<<"t_pos"     <<setw(16)<<"t_div";*/
     }
 };
     
@@ -123,16 +119,15 @@ ostream& operator<<(ostream& out, const CourseStats& v) {
       // l_idea  l_real  d_t  d_w  p_t  p_w  t_inf   t_driv  t_drnf  t_pdf   t_pos   t_div
         "%12.3f  %12.3f  %9d  %9d  %9d  %9d  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f  %18.6f") %
         v.l_ideal % v.l_real % v.dcs_total % v.dcs_wrong % v.poi_total  % v.poi_wrong % v.t_inf % v.t_drive % v.t_drinf % v.t_pdf % v.t_pos % v.t_div;
-        //setw(12)<<v.l_ideal     <<setw(12)<<v.l_real    <<setw( 9)<<v.dcs_total <<setw(9)<<v.dcs_wrong   <<
-            //setw( 9)<<v.poi_total   <<setw( 9)<<v.poi_wrong <<
-            //setw(16)<<v.t_inf       <<setw(16)<<v.t_drive   <<setw(16)<<v.t_drinf    <<
-            //setw(16)<<v.t_pdf       <<setw(16)<<v.t_pos     <<setw(16)<<v.t_div;    
 }
 
 class MsgProcessor {
 public:
     enum State { WAIT4POI, INFERENCE, DRIVING };
     State state;
+    
+    ostream& sout;
+    
     bool init_pose_defined_;
     bool first_run_;
     CourseParams prms_;
@@ -154,8 +149,13 @@ public:
     //CompoundMap cmap_;
     
     
-    MsgProcessor() {
+    MsgProcessor(ostream& outs) :
+        sout(outs)
+    {
         state = WAIT4POI;
+        prms_.run = ros::Time(0);
+        prms_.tryidx = 0;
+        pois_.push_back(Point());
         first_run_ = true;
         resetStats();
         writeTableHeader();
@@ -166,17 +166,22 @@ public:
     }
     
     void writeTableHeader () {
-        prms_.headerOut(cout);
-        cout << "  ";
-        stats_.headerOut(cout);
-        cout << endl;
+        prms_.headerOut(sout);
+        sout << "  ";
+        stats_.headerOut(sout);
+        sout << endl;
     }
     void writeTableRow () {
-        cout << prms_ << "  " <<  stats_ << endl;
+        prms_.tryidx++;
+        sout << prms_ << "  " <<  stats_ << endl;
+        ROS_ERROR("POIs: (%d,%d), (%d,%d), (%d,%d)", pois_[0].x, pois_[0].y, pois_[1].x, pois_[1].y, pois_[2].x, pois_[2].y);
         resetStats();
     }
     
     void resetStats() {
+        init_pose_defined_ = false;
+        pois_.resize(1);
+        
         stats_.l_ideal   = 0.0;
         stats_.l_real    = 0.0;
         stats_.dcs_total = 0;
@@ -224,22 +229,26 @@ public:
     
     void mapCb(IntMapConstPtr msg) { 
         ROS_DEBUG("got map=========================================");
+        if (prms_.run==ros::Time(0))
+            prms_.run = msg->header.stamp;
         if (state==WAIT4POI) {
             resolution_ = msg->info.resolution;
-            if (!first_run_)
+            if (!first_run_) {
                 writeTableRow();
+            }
             first_run_ = false;
         }
     }
     
     void poseCurrentCb(geometry_msgs::PoseStampedConstPtr msg) {
-        //ROS_DEBUG("got pose_current");
+        ROS_DEBUG("got pose_current: (%f,%f)", msg->pose.position.x, msg->pose.position.y);
         if (!init_pose_defined_) {
             init_pose_defined_ = true;
-            int x,y;
-            updateVertex(msg->pose, x, y);
-            pois_.push_back(Point(x,y));
-            waypoints_.push_back(Point(x,y));
+            Point pt;
+            updateVertex(msg->pose, pt.x, pt.y);
+            pois_[0] = pt;
+            ROS_WARN("Added POI=(%d,%d)", pt.x, pt.y);
+            waypoints_.push_back(pt);
         }
     }
     
@@ -247,6 +256,12 @@ public:
         ROS_DEBUG("got pose_intended");
         stamp_cmd_intended_ = msg->header.stamp;
         if (state==WAIT4POI) {
+            prms_.start = stamp_cmd_intended_;
+            Point pt;
+            updateVertex(msg->pose, pt.x, pt.y);
+            pois_.push_back(pt);
+            ROS_WARN("Added POI=(%d,%d)", pt.x, pt.y);
+            stats_.poi_total++;
             state = INFERENCE;
         }
     }
@@ -334,8 +349,10 @@ public:
             stamp_pose_inferred_ = msg->header.stamp;
             Point wp;
             updateVertex(msg->pose, wp.x, wp.y);
-            if (wp.x!=pois_.back().x || wp.y!=pois_.back().y )
+            if (wp.x!=pois_.back().x || wp.y!=pois_.back().y ) {//'2': [[188, 296], [125, 137], [84, 196]],
+                ROS_ERROR("poi=(%d,%d), pt=(%d,%d)", pois_.back().x, pois_.back().y, wp.x, wp.y);
                 stats_.poi_wrong++;
+            }
         } else {
             desyncedMessage("pose_inferred");
         }
