@@ -91,6 +91,7 @@ void MapDivider::divideAndPublish() {
     divide();
     endDivider();
     ROS_INFO("%s: probs_actual: [%f, %f, %f, %f]", getName().c_str(), probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+    map_divided.header.stamp = ros::Time::now();
     pub_map_div.publish(map_divided);
     ros::spinOnce();
     ROS_INFO("%s: published divided map", getName().c_str());
