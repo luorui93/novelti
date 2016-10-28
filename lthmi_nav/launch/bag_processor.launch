@@ -3,7 +3,7 @@
     <arg name="bag" /> <!-- path to input bag-file-->
     <arg name="out" default="/tmp/1" /> <!-- path to output stats-file-->
     <arg name="debug" default="0" />
-    <arg name="gdb" default="1" />
+    <arg name="gdb" default="0" />
     
     <env if="$(arg debug)" name="ROSCONSOLE_CONFIG_FILE" value="$(find lthmi_nav)/debug/debug_rosconsole.conf"/>
     
