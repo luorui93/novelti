@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="dir" default="/home/sd/Desktop/lthmi_nav_data/bags" />
+    <arg name="bagpath" default="/home/sd/Desktop/lthmi_nav_data/bag/tmp.bag" />
     
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
@@ -13,6 +13,7 @@
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
     <arg name="prob_eps"         default="1.0e-8" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
     <arg name="ksafe" default="0.9" />
+    <arg name="trobot" default="0.025" />
     
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
     <arg name="path"  default="2" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
@@ -31,7 +32,7 @@
     
     <!-- Recording -->
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args="-O $(arg dir)/data.bag /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
+            args="-O $(arg bagpath)t /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
     </node>
     <node if="$(arg bag)"  pkg="lthmi_nav" type="node_param_publisher.py" name="node_param_publisher">
         <param name="rosbag_node_name" value="rosbag_record" />
@@ -80,7 +81,7 @@
     <node pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" >
         <remap from="/pose_desired" to="/pose_best" />
         <param name="max_vel"     value="$(arg vel)" />
-        <param name="pub_period"  value="0.025" />
+        <param name="pub_period"  value="$(arg trobot)" />
     </node>
     <node pkg="lthmi_nav" type="node_human_model.py" name="human_model" output="screen"> </node>
     <node pkg="lthmi_nav" type="node_lthmi_model.py" name="lthmi_model" output="screen" >
