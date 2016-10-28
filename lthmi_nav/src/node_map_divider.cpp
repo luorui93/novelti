@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     else if (p=="htile")    mdiv = new HorizTileMapDivider();
     else if (p=="equidist") mdiv = new EquidistMapDivider();
     else if (p=="extremal") mdiv = new ExtremalMapDivider();
-    else if (p="vchess")    mdiv = new VertChessMapDivider();
+    else if (p=="vchess")   mdiv = new VertChessMapDivider();
 //     else if (p=="mixed1")      mdiv = Mixed1MapDividerNode();
 //     else if (p=="mixed2")      mdiv = Mixed2MapDividerNode();
      else { 

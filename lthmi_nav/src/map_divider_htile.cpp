@@ -11,11 +11,11 @@
 
 namespace lthmi_nav {
 
-class VertTileMapDivider :  public MapDivider {
+class HorizTileMapDivider :  public MapDivider {
     public:
         int half;
 
-        VertTileMapDivider() :
+        HorizTileMapDivider() :
             MapDivider() 
         { }
         

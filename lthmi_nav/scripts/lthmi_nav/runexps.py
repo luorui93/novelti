@@ -51,7 +51,7 @@ varprms = {
 
 prmsets = {
     'set0' : {
-        'mx' : 'mx85',
+        'mx' : ['mx91', 'mx70']
         'pos': 'cog2lopt',
         'div': 'vtile',
         'path': 2,
@@ -60,12 +60,12 @@ prmsets = {
         'period': 0.5
     },
     'set1' : {
-        'pos': ['ra_maxprob', 'cog2lopt'],
-        'div': 'vtile',
-        'path': [2,7],
+        'pos': ['maxprob_obst', 'nearcog_obst'],
+        'div': ['vtile', 'htile'],
+        'path': [1,2,7],
         'tries': 3,
-        'vel': 4.0,
-        'period': 0.5
+        'vel': 2.0,
+        'period': 1.0
     }
 }
 
