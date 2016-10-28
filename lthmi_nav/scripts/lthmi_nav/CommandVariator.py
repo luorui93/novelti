@@ -1,49 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
-
-cmd_templates = [("roslaunch lthmi_nav run.launch  "
-        "tries:=%(tries)d  map:=%(map)s  resol:=%(resol)f  path:=%(path)d  "
-        "mx:=%(mx)s  period:=%(period)f  vel:=%(vel)f  trobot:=%(trobot)f  "
-        "phigh:=%(phigh)f  plow:=%(plow)f  peps:=%(peps)e  "
-        "pos:=%(pos)s  ksafe:=%(ksafe)f  "
-        "div:=%(div)s  popt:=%(popt)s  "
-        "rviz:=%(rviz)s  bag:=%(bag)d  "
-        "bagpath:=%(dir)s/bag/%(bagid)s.bag  ")
-        ,
-        "roslaunch lthmi_nav bag_processor.launch bag:=%(dir)s/bag/%(bagid)s.bag out:=%(dir)s/stats/%(bagid)s.bag.txt"
-        ,
-        "tar -czf %(dir)s/tar/%(bagid)s.bag.tar.gz %(dir)s/bag/%(bagid)s.bag"
-        ,
-        "rm -rf %(dir)s/bag/%(bagid)s.bag"
-        ]
-
-varprms = {
-    'dir' :"/home/sd/Desktop/lthmi_nav_data",
-    'bagid': lambda: "lthmi-auto-nav-experiment-%s" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")),
-    'tries': 30,
-    'map': 'ak500inflated',
-    'resol': 0.1,
-    'path': [7, 12, 59],
-    
-    'mx': ['mx55', 'mx85'],
-    'period': 1.0,
-    'vel': 3.0,
-    'trobot' : 0.025,
-    
-    'phigh': 0.9,
-    'plow': 0.6,
-    'peps': 1.0e-12,
-    
-    'pos': ['maxprob_obst', 'cog2lopt'], #ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt
-    'ksafe': 0.9,
-    
-    'div': ['vtile', 'equidist'], #vtile  htile  equidist  extremal
-    'popt': 'equal',
-    
-    'rviz': 'none',
-    'bag': 0,
-}
+import subprocess
 
 class Variator(object):
     def __init__(self, arr):
@@ -68,6 +26,7 @@ class Variator(object):
             for k in range(firstNonZero):
                 self.ret[k] = self.arr[k]
             return self.ret
+
 
 class ParameterVariator:
     def __init__(self, prms):
@@ -105,6 +64,7 @@ class ParameterVariator:
                 self.ret[k] = v()
         return self.ret
 
+
 class CommandVariator:
     def __init__(self, cmds, varprms):
         self.prmVariator = ParameterVariator(varprms)
@@ -115,7 +75,7 @@ class CommandVariator:
             for tmpl in self.cmds:
                 cmd = tmpl % prmset
                 print "Invoking command: \n$ %s" % cmd
-                status = 1 #subprocess.call(cmd, shell=True)
+                status = subprocess.call(cmd, shell=True)
                 if status != 0:
                     raise RuntimeError("Command '%s' FAILED (exit status=%d)" % (cmd,status))
             
