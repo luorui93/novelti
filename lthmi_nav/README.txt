@@ -84,7 +84,7 @@ TODO:
             navigation time
         total for each
         
-sudo sshfs -o allow_other,defer_permissions git@zzzzzz.no-ip.org:/home/git/lthmi_nav_data/tar /home/sd/Desktop/lthmi_nav_data/tar
+sudo sshfs -o allow_other -p 2222 git@zzzzzz.no-ip.org:/home/git/lthmi_nav_data/tar /home/sd/Desktop/lthmi_nav_data/tar
         
         
         
