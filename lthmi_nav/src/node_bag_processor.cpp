@@ -65,8 +65,15 @@ int main(int argc, char **argv) {
     }
     
     if (stats_path.size()>0) {
+        ROS_INFO("Outputting stats to file: %s", stats_path.c_str());
         ofstream stats_stream;
-        stats_stream.open(stats_path);
+        stats_stream.exceptions( ios::failbit );
+        try {
+            stats_stream.open(stats_path, fstream::out);
+        } catch( const std::exception & ex ) {
+            ROS_ERROR_STREAM("Failed to open file "<< stats_path << " for writing: \n"   << ex.what());
+            //return 1;
+        }
         BagProcessor pr(bag_path, stats_stream);
         pr.run();
         stats_stream.close();
