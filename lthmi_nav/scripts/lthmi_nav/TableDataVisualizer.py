@@ -146,6 +146,12 @@ class FiveDData:
                 delta = x - self.means[ix]
                 self.means[ix] += delta / self.nums[ix]
                 self.m2s[ix] = delta * (x - self.means[ix])
+        it = np.nditer(self.m2s, flags=['multi_index'])
+        while not it.finished:
+            if self.nums[it.multi_index]>=2:
+                self.stds[it.multi_index] = self.m2s[it.multi_index] / (self.nums[it.multi_index]-1)
+            it.iternext()
+
 
     """def get(v0,v1,v1,v3,v4):
         k0 = self.dims[params[0]][v0]
@@ -177,6 +183,57 @@ data = np.genfromtxt(fname, #https://docs.scipy.org/doc/numpy/reference/generate
     invalid_raise=True) #If True, an exception is raised if an inconsistency is detected in the number of columns. If False, a warning is emitted and the offending lines are skipped.
 """
 
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+def drawTableWithBars(means, stds, group_names, color_names):
+    matplotlib.rcParams.update({'font.size': 16})
+    bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
+                '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
+    gap = 0.5 # measured in bar width's
+    n_colors = len(color_names)
+    n_groups = len(group_names)
+    width = 1.0 /(n_colors+gap)
+    
+    
+    color_offsets = width*np.arange(n_colors)
+    colors = [bar_colors[cid] for cid in xrange(n_colors)]
+
+    plt.figure(num=None, dpi=80, facecolor='w')  
+    ax = plt.gca()
+    
+    group_barplots = []
+    for gid, group_name in enumerate(group_names):
+        barplot = ax.bar(gid+color_offsets, means[gid], width, color=colors, yerr=stds[gid])
+        group_barplots.append(barplot)
+
+    ax.set_xticks(np.arange((1.0-gap*width)/2, n_groups,1))
+    ax.set_xticklabels(tuple(group_names))
+    
+    ax.legend(group_barplots[0], color_names,
+        ncol=len(color_names),
+        bbox_to_anchor=(0., 1.01, 1., .101), 
+        loc=3,
+        mode="expand", 
+        borderaxespad=0.
+    )
+    #legend_patches = [mpatches.Patch(color=bar_colors[cid], label=color_names[cid]) for cid in xrange(n_colors)]
+    #print legend_patches
+    #group_barplots[0].legend(
+        #handles=legend_patches#,
+        #ncol=len(color_names), 
+        #loc="upper center", 
+        #bbox_to_anchor=(0.5, 1.135)
+    #)
+ 
+
+    ax.yaxis.grid(True)
+    #ax.xaxis.grid(True)
+    plt.show()
+    return plt, ax
+
+
+
 if __name__=="__main__":
     dims = ('pos','div','mx','path')
     vals = ('over_len', 'sep2nav', 'over_time')
@@ -199,5 +256,31 @@ if __name__=="__main__":
     dt = DataTable.fromCsvFiles(files)
     
     dd = FiveDData(dt, dims, vals)
-    print dd.m2s
+    #print dd.stds
+    
+    means = np.random.rand(2,5)
+    stds = np.random.rand(2,5)/4.0
+    
+    drawTableWithBars(means, stds, ["gid1", "gid2"], ["cid1", "cid2", "cid3", "cid4", "cid5"])
 
+    #t = np.arange(0.0, 2.0, 0.01)
+    #s1 = np.sin(2*np.pi*t)
+    #s2 = np.sin(4*np.pi*t)
+
+    #plt.figure(1)
+    #plt.subplot(211)
+    #plt.plot(t, s1)
+    #plt.subplot(212)
+    #plt.plot(t, 2*s1)
+
+    #plt.figure(2)
+    #plt.plot(t, s2)
+
+    ## now switch back to figure 1 and make some changes
+    #plt.figure(1)
+    #plt.subplot(211)
+    #plt.plot(t, s2, 'gs')
+    #ax = plt.gca()
+    #ax.set_xticklabels([])
+
+    #plt.show()
