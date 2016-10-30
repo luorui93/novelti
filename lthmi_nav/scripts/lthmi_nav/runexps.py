@@ -24,7 +24,7 @@ cmds = [("roslaunch lthmi_nav exp.launch  "
 
 varprms = {
     'dir' :"/home/sd/Desktop/lthmi_nav_data",
-    'bagid': lambda: "lthmi-auto-nav-experiment-%s" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")),
+    'bagid': lambda: "lthmi-auto-nav-experiment-%s" % (datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
     'tries': 30,
     'map': 'ak500inflated',
     'resol': 0.1,
@@ -35,7 +35,7 @@ varprms = {
     'vel': 3.0,
     'trobot' : 0.025,
     
-    'phigh': 0.9,
+    'phigh': 0.95,
     'plow': 0.6,
     'peps': 1.0e-12,
     
@@ -51,7 +51,7 @@ varprms = {
 
 prmsets = {
     'set0' : {
-        'mx' : ['mx91', 'mx70']
+        'mx' : ['mx91', 'mx70'],
         'pos': 'cog2lopt',
         'div': 'vtile',
         'path': 2,
@@ -60,11 +60,13 @@ prmsets = {
         'period': 0.5
     },
     'set1' : {
+        'tries': 3,
+        'mx' : ['mx91', 'mx70'],
         'pos': ['maxprob_obst', 'nearcog_obst'],
         'div': ['vtile', 'htile'],
         'path': [1,2,7],
         'tries': 3,
-        'vel': 2.0,
+        'vel': 3.0,
         'period': 1.0
     }
 }
