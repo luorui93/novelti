@@ -52,10 +52,13 @@ class DataTable:
         returns True if row added
         """
         for k,val in enumerate(row):
-            try:                #try to parse as a number
-                row[k] = float(val)
-            except ValueError: #if fails, keep as string
-                pass
+            try:                #try to parse as int
+                row[k] = int(val)
+            except ValueError: #if fails, try to pass as float
+                try:
+                    row[k] = float(val)
+                except ValueError: #if fails, keep as string
+                    pass
         return self.addDataRow(keys,row)
     
     def addFromCsvFile(self, fname):
@@ -88,61 +91,74 @@ class DataTable:
             self.addFromCsvFile(fname)
         return self
     
-class FiveDData:
     
-    def __init__(self, dtable, params, results):
+class Table2NDimVector:
+    
+    def __init__(self, dtable, dim_names, result_cols):
         """
-        len(params) must be =4
-        len(results) is equalt to the number of columns to analyze as rersult values
-        From the 2D table, generates a 5D array: data[param1][param2][param3][param4][result]
+        Constucts a FiveDData object that represents the table data as an N-dimensional vector
+        of mean values and standard deviations (corrected sample standard deviations).
+        N-1 dimensions conrrespond to parameters and 1 dimension corresponds to the specific result value.
+        paramconsider a data table (dtable):
+        :param dtable: Data table of the following format
+        prm_1    prm_2    prm_3     ... prm_NPRM    res_1   res_2   ... res_NRES
+        "qwe"    "ddd"    "aaaa"        4           0.1     0.23        123.12
+        "asd"    "eee"    "bbbb"        7           1.1     6.12        2345.98
+        Here prm_K are experement setup parameters, and res_K are value measured in the experiment
+        :param dim_names: List of N strings that represent names of the dimensions (in the desired order): 
+            N-1 elements in the list should be parameter names, and 
+            1 element name shoud be "_res_" which represents the result values
+            example:
+                ["_res_", "prm_3", "prm_1", "prm_7"]
+        :param result_cols: List of column names from the table that represent results (measured values)
+            that we want to include in the N-dim vector.
+        :returns: nothing
         """
-        self.readDimensions(dtable, params, results)
-        self.sizes = (len(self.dims[params[0]]),
-                      len(self.dims[params[1]]),
-                      len(self.dims[params[2]]),
-                      len(self.dims[params[3]]),
-                      len(results))
-        print(self.sizes)
-        self.params  = params
-        self.results = results
-        self.calcMeansAndStds(dtable, params, results)
+        self.readDimensions(dtable, dim_names, result_cols)
+        print(self.dim_sizes)
+        self.dim_names  = dim_names
+        self.calcMeansAndStds(dtable, dim_names, result_cols)
 
-    def readDimensions(self, dtable, params, results):
-        self.dims = {key:{} for key in params}
-        for rowid in range(dtable.nrows):
-            for prmid, prm in enumerate(params):
-                val = dtable.data[prm][rowid]
-                if not (val in self.dims[prm]):
-                    self.dims[prm][val] = len(self.dims[prm])
-        self.dims['result'] = {v: k for (k, v) in enumerate(results)}
+    def readDimensions(self, dtable, dim_names, result_cols):
+        self.res_dim_k = next(k for k,name in enumerate(dim_names) if name=="_res_")
+        self.idx2val = [[] for k,v in enumerate(dim_names)]
+        self.idx2val[self.res_dim_k] = result_cols
+        #read possible values
+        for row_k in range(dtable.nrows):
+            for dim_k, dim_name in enumerate(dim_names):
+                if dim_k!=self.res_dim_k:
+                    val = dtable.data[dim_name][row_k]
+                    if not (val in self.idx2val[dim_k]):
+                        self.idx2val[dim_k].append(val)
+        #sort parameter values and create val2idx mapping:
+        self.val2idx = [{} for k,v in enumerate(dim_names)]
+        self.val2idx[self.res_dim_k] = {v:k for k,v in enumerate(result_cols)}
+        for dim_k, dim_name in enumerate(dim_names):
+            if dim_k != self.res_dim_k:
+                self.idx2val[dim_k].sort()
+                self.val2idx[dim_k] = {v:k for k,v in enumerate(self.idx2val[dim_k])}
+        self.dim_sizes = tuple([len(v) for v in self.idx2val])
     
-    def names2indexes(self, n0, n1, n2, n3, res):
-        return (self.dims[self.params[0]][n0],
-                self.dims[self.params[1]][n1],
-                self.dims[self.params[2]][n2],
-                self.dims[self.params[3]][n3],
-                res)
-        
-    def calcMeansAndStds(self, dtable, params, results):
+    def calcMeansAndStds(self, dtable, dim_names, result_cols):
         """using online variance calculation (verified by myself):
         https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
         Best explanation of the source of bias when calculating sample variance value
         https://en.wikipedia.org/wiki/Bessel%27s_correction#Source_of_bias"""
-        self.nums  = np.zeros(self.sizes, dtype=np.float) #5D array
-        self.means = np.zeros(self.sizes, dtype=np.float) #5D array
-        self.m2s   = np.zeros(self.sizes, dtype=np.float) #5D array
-        self.stds  = np.zeros(self.sizes, dtype=np.float) # corrected sample standard deviation https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation 
-        for r in range(dtable.nrows):
-            for resid, res in enumerate(results):
-                ix = self.names2indexes(
-                    dtable.data[params[0]][r],
-                    dtable.data[params[1]][r],
-                    dtable.data[params[2]][r],
-                    dtable.data[params[3]][r],
-                    resid)
-                #print ix
+        self.nums  = np.zeros(self.dim_sizes, dtype=np.float) #5D array
+        self.means = np.zeros(self.dim_sizes, dtype=np.float) #5D array
+        self.m2s   = np.zeros(self.dim_sizes, dtype=np.float) #5D array
+        self.stds  = np.zeros(self.dim_sizes, dtype=np.float) # corrected sample standard deviation https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation 
+        for row_k in range(dtable.nrows):
+            index = [0]*len(dim_names)
+            for dim_k, dim_name in enumerate(dim_names):
+                if dim_k != self.res_dim_k:
+                    val = dtable.data[dim_name][row_k]
+                    index[dim_k] = self.val2idx[dim_k][val]
+            for res_k, res_name in enumerate(result_cols):
+                index[self.res_dim_k] = res_k
+                ix = tuple(index)
                 self.nums[ix] += 1
-                x = dtable.data[res][r]
+                x = dtable.data[res_name][res_k]
                 delta = x - self.means[ix]
                 self.means[ix] += delta / self.nums[ix]
                 self.m2s[ix] = delta * (x - self.means[ix])
@@ -153,41 +169,11 @@ class FiveDData:
             it.iternext()
 
 
-    """def get(v0,v1,v1,v3,v4):
-        k0 = self.dims[params[0]][v0]
-        k1 = self.dims[params[1]][v1]
-        k2 = self.dims[params[2]][v2]
-        k3 = self.dims[params[3]][v3]
-        k4 = self.dims[params[4]][v4]
-        return self.sd[k0][k1][k2][k3][k4]
-
-    def upd(v0,v1,v1,v3,v4, new_value):
-        k0 = self.dims[params[0]][v0]
-        k1 = self.dims[params[1]][v1]
-        k2 = self.dims[params[2]][v2]
-        k3 = self.dims[params[3]][v3]
-        k4 = self.dims[params[4]][v4]
-        self.sd[k0][k1][k2][k3][k4] = new_value"""
-
-"""
-fname = "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-03-30.bag.txt"
-
-data = np.genfromtxt(fname, #https://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html
-    dtype=None, # None means determine individually
-    comments='#',
-    delimiter=None, #None means any whitespaces
-    converters=None, #use default converters
-    names=True, 
-    case_sensitive=True, 
-    loose=False,  #If True, do not raise errors for invalid values.
-    invalid_raise=True) #If True, an exception is raised if an inconsistency is detected in the number of columns. If False, a warning is emitted and the offending lines are skipped.
-"""
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-def drawTableWithBars(means, stds, group_names, color_names):
-    matplotlib.rcParams.update({'font.size': 16})
+def drawTableWithBars(ax, means, stds, group_names, color_names):
+    #matplotlib.rcParams.update({'font.size': 16})
     bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
                 '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
     gap = 0.5 # measured in bar width's
@@ -198,9 +184,6 @@ def drawTableWithBars(means, stds, group_names, color_names):
     
     color_offsets = width*np.arange(n_colors)
     colors = [bar_colors[cid] for cid in xrange(n_colors)]
-
-    plt.figure(num=None, dpi=80, facecolor='w')  
-    ax = plt.gca()
     
     group_barplots = []
     for gid, group_name in enumerate(group_names):
@@ -217,26 +200,31 @@ def drawTableWithBars(means, stds, group_names, color_names):
         mode="expand", 
         borderaxespad=0.
     )
-    #legend_patches = [mpatches.Patch(color=bar_colors[cid], label=color_names[cid]) for cid in xrange(n_colors)]
-    #print legend_patches
-    #group_barplots[0].legend(
-        #handles=legend_patches#,
-        #ncol=len(color_names), 
-        #loc="upper center", 
-        #bbox_to_anchor=(0.5, 1.135)
-    #)
  
 
     ax.yaxis.grid(True)
     #ax.xaxis.grid(True)
-    plt.show()
-    return plt, ax
 
+def display4DdataAsBarPlotPage(means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+    n_rows = len(page_row_names)
+    n_cols = len(page_col_names)
+    f, axarr = plt.subplots(n_rows, n_cols, sharex=True, facecolor='white')
+    for page_row in range(n_rows):
+        for page_col in range(n_cols):
+            means2d = means[page_row, page_col, :, :]
+            stds2d  = stds[page_row, page_col, :, :]
+            drawTableWithBars(axarr[page_row, page_col], means2d, stds2d, plot_group_names, plot_color_names)
+            if page_row==0:
+                axarr[page_row, page_col].set_title(page_col_names[page_col])
+            if page_col==0:
+                axarr[page_row, page_col].set_ylabel(page_row_names[page_row])
+    plt.show()
+    
 
 
 if __name__=="__main__":
-    dims = ('pos','div','mx','path')
-    vals = ('over_len', 'sep2nav', 'over_time')
+
+    
     files = [
         "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-39-05.bag.txt",
         "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-40-20.bag.txt",
@@ -255,32 +243,21 @@ if __name__=="__main__":
         "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-23-21.bag.txt"]
     dt = DataTable.fromCsvFiles(files)
     
-    dd = FiveDData(dt, dims, vals)
+    dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
+    vals = ('over_len', 'sep2nav', 'over_time')
+    v = Table2NDimVector(dt, dims, vals)
     #print dd.stds
     
-    means = np.random.rand(2,5)
-    stds = np.random.rand(2,5)/4.0
+    display4DdataAsBarPlotPage(v.means[0], v.stds[0], v.idx2val[1], v.idx2val[2], v.idx2val[3], v.idx2val[4])
     
-    drawTableWithBars(means, stds, ["gid1", "gid2"], ["cid1", "cid2", "cid3", "cid4", "cid5"])
-
-    #t = np.arange(0.0, 2.0, 0.01)
-    #s1 = np.sin(2*np.pi*t)
-    #s2 = np.sin(4*np.pi*t)
-
-    #plt.figure(1)
-    #plt.subplot(211)
-    #plt.plot(t, s1)
-    #plt.subplot(212)
-    #plt.plot(t, 2*s1)
-
-    #plt.figure(2)
-    #plt.plot(t, s2)
-
-    ## now switch back to figure 1 and make some changes
-    #plt.figure(1)
-    #plt.subplot(211)
-    #plt.plot(t, s2, 'gs')
-    #ax = plt.gca()
-    #ax.set_xticklabels([])
-
+    #means = np.random.rand(2,5)
+    #stds = np.random.rand(2,5)/4.0
+    #group_names = ["gid1", "gid2"]
+    #color_names = ["cid1", "cid2", "cid3", "cid4", "cid5"]
+    
+    #f, axarr = plt.subplots(3, 2, sharex=True, facecolor='white')
+    #for row in range(3):
+        #for col in range(2):
+            #drawTableWithBars(axarr[row, col], means, stds, group_names, color_names)
     #plt.show()
+
