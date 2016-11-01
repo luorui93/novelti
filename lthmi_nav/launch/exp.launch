@@ -5,7 +5,7 @@
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
     <arg name="vel"   default="8.0" />       <!-- robot velocity in m/s -->
-    <arg name="T"     default="0.25" />        <!-- interface period -->
+    <arg name="period" default="0.25" />        <!-- interface period -->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
@@ -89,7 +89,7 @@
     <node pkg="lthmi_nav" type="node_lthmi_model.py" name="lthmi_model" output="screen" >
         <remap from="~interface_matrix" to="/$(arg mx)"/>
         <param if="$(arg by_key)"     name="delay" value="0.0"/>
-        <param unless="$(arg by_key)" name="delay" value="$(arg T)"/>
+        <param unless="$(arg by_key)" name="delay" value="$(arg period)"/>
     </node>
     
     
@@ -107,7 +107,7 @@
         <param name="method"      value="$(arg pos)" />
         <param name="max_vel"     value="$(arg vel)" />
         <param name="safety_coef" value="$(arg ksafe)" />
-        <param name="period"      value="$(arg T)" />
+        <param name="period"      value="$(arg period)" />
     </node>
     <node pkg="lthmi_nav" type="map_divider" name="map_divider" output="screen" > <!--launch-prefix="xterm -geometry 200x30+10+20 -e gdb - -args"-->
         <remap from="~probs_optimal"    to="/probs_optimal/$(arg popt)"/>
