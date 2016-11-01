@@ -7,6 +7,7 @@ import csv
 import os
 import sys
 
+#to fix: lthmi-auto-nav-experiment-2016-10-31_18-49-40.bag.txt
 
 class DataTable:
     """
@@ -82,11 +83,11 @@ class DataTable:
                         self.data[key].append(None)
 
     @classmethod
-    def fromCsvFiles(cls, fnames):
+    def fromCsvFiles(cls, fnames, filter_dict={}):
         """
         list of CSV-file names
         """
-        self = cls()
+        self = cls(filter_dict)
         for fname in fnames:
             self.addFromCsvFile(fname)
         return self
@@ -115,7 +116,7 @@ class Table2NDimVector:
         :returns: nothing
         """
         self.readDimensions(dtable, dim_names, result_cols)
-        print(self.dim_sizes)
+        #print(self.dim_sizes)
         self.dim_names  = dim_names
         self.calcMeansAndStds(dtable, dim_names, result_cols)
 
@@ -139,6 +140,9 @@ class Table2NDimVector:
                 self.val2idx[dim_k] = {v:k for k,v in enumerate(self.idx2val[dim_k])}
         self.dim_sizes = tuple([len(v) for v in self.idx2val])
     
+    def multiindexToStr(ix):
+        return 
+    
     def calcMeansAndStds(self, dtable, dim_names, result_cols):
         """using online variance calculation (verified by myself):
         https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
@@ -157,15 +161,17 @@ class Table2NDimVector:
             for res_k, res_name in enumerate(result_cols):
                 index[self.res_dim_k] = res_k
                 ix = tuple(index)
+                #print ix
                 self.nums[ix] += 1
-                x = dtable.data[res_name][res_k]
+                x = dtable.data[res_name][row_k]
+                print x
                 delta = x - self.means[ix]
                 self.means[ix] += delta / self.nums[ix]
                 self.m2s[ix] = delta * (x - self.means[ix])
         it = np.nditer(self.m2s, flags=['multi_index'])
         while not it.finished:
             if self.nums[it.multi_index]>=2:
-                self.stds[it.multi_index] = self.m2s[it.multi_index] / (self.nums[it.multi_index]-1)
+                self.stds[it.multi_index] = np.sqrt(self.m2s[it.multi_index] / (self.nums[it.multi_index]-1))
             it.iternext()
 
 
@@ -205,59 +211,30 @@ def drawTableWithBars(ax, means, stds, group_names, color_names):
     ax.yaxis.grid(True)
     #ax.xaxis.grid(True)
 
-def display4DdataAsBarPlotPage(means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
     n_rows = len(page_row_names)
     n_cols = len(page_col_names)
-    f, axarr = plt.subplots(n_rows, n_cols, sharex=True, facecolor='white')
+    f, axarr = plt.subplots(n_rows, n_cols, sharex=True, facecolor='white', figsize=(16, 12))
+    
     for page_row in range(n_rows):
         for page_col in range(n_cols):
             means2d = means[page_row, page_col, :, :]
             stds2d  = stds[page_row, page_col, :, :]
-            drawTableWithBars(axarr[page_row, page_col], means2d, stds2d, plot_group_names, plot_color_names)
+            if n_rows==1:
+                if n_cols==1:
+                    ax = axarr
+                else:
+                    ax = axarr[page_col]
+            elif n_cols==1:
+                ax = axarr[page_row]
+            else:
+                ax = axarr[page_row, page_col]
+            drawTableWithBars(ax, means2d, stds2d, plot_group_names, plot_color_names)
             if page_row==0:
-                axarr[page_row, page_col].set_title(page_col_names[page_col])
+                ax.set_title(page_col_names[page_col], y=1.1)
             if page_col==0:
-                axarr[page_row, page_col].set_ylabel(page_row_names[page_row])
+                ax.set_ylabel(page_row_names[page_row])
+    f.suptitle(title, fontsize=14, fontweight='bold')
+    plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
     plt.show()
     
-
-
-if __name__=="__main__":
-
-    
-    files = [
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-39-05.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-40-20.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-01-04.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-41-32.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-02-30.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-41-54.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-03-00.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-42-15.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-03-30.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-48-37.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-12-42.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-55-08.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-21-53.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-56-16.bag.txt",
-        "/home/sd/Desktop/lthmi_nav_data/stats/lthmi-auto-nav-experiment-2016-10-28-17-23-21.bag.txt"]
-    dt = DataTable.fromCsvFiles(files)
-    
-    dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
-    vals = ('over_len', 'sep2nav', 'over_time')
-    v = Table2NDimVector(dt, dims, vals)
-    #print dd.stds
-    
-    display4DdataAsBarPlotPage(v.means[0], v.stds[0], v.idx2val[1], v.idx2val[2], v.idx2val[3], v.idx2val[4])
-    
-    #means = np.random.rand(2,5)
-    #stds = np.random.rand(2,5)/4.0
-    #group_names = ["gid1", "gid2"]
-    #color_names = ["cid1", "cid2", "cid3", "cid4", "cid5"]
-    
-    #f, axarr = plt.subplots(3, 2, sharex=True, facecolor='white')
-    #for row in range(3):
-        #for col in range(2):
-            #drawTableWithBars(axarr[row, col], means, stds, group_names, color_names)
-    #plt.show()
-
