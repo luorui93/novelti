@@ -318,7 +318,7 @@ public:
         if (state==INFERENCE) {
             cmd_intended_ = msg->cmd;
             stats_.dcs_total++;
-            ROS_DEBUG("+++++++++ stats_.dcs_total=%d", stats_.dcs_total);
+            //ROS_DEBUG("+++++++++ stats_.dcs_total=%d", stats_.dcs_total);
         } else {
             desyncedMessage("cmd_intended");
         }
@@ -329,7 +329,7 @@ public:
         if (state==INFERENCE) {
             stamp_cmd_detected_ = msg->header.stamp;
             stats_.t_inf += stamp_cmd_detected_-stamp_pose_arrived_;
-            //ROS_INFO(">>>>>> added to t_inf=%f : (%d , %d)=%f - (%d , %d)=%f", (stamp_cmd_detected_-stamp_pose_arrived_).toSec(), stamp_cmd_detected_.sec, stamp_cmd_detected_.nsec, stamp_cmd_detected_.toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec());
+            ROS_INFO(">>>>>> added to t_inf=%f : (%d , %d)=%f - (%d , %d)=%f", (stamp_cmd_detected_-stamp_pose_arrived_).toSec(), stamp_cmd_detected_.sec, stamp_cmd_detected_.nsec, stamp_cmd_detected_.toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec());
             if (msg->cmd != cmd_intended_)
                 stats_.dcs_wrong++;
         } else {
