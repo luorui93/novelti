@@ -29,8 +29,7 @@ varprms = {
     'map': 'ak500inflated',
     'resol': 0.1,
     'path': [7, 12, 59],
-    
-    'mx': ['mx55', 'mx85'],
+    'mx': ['mx31','mx40','mx49','mx55','mx61','mx70','mx79','mx85','mx91','mx100'],
     'period': 1.0,
     'vel': 3.0,
     'trobot' : 0.025,
@@ -40,7 +39,7 @@ varprms = {
     'peps': 1.0e-12,
     
     'pos': ['ra_maxprob', 'maxprob_euq', 'maxprob_obst', 'cog_euq', 'nearcog_euq', 'nearcog_obst', 'cog2lopt', 'cog2gopt'],
-    'ksafe': 0.95,
+    'ksafe': 0.90,
     
     'div': ['vtile', 'htile', 'equidist', 'extremal'],
     'popt': 'equal',
@@ -64,9 +63,19 @@ prmsets = {
         'mx' : ['mx91', 'mx70'],
         'pos': ['maxprob_obst', 'nearcog_obst'],
         'div': ['vtile', 'htile'],
-        'path': [1,2,7],
+        'path': [1,2],
         'tries': 3,
         'vel': 3.0,
+        'period': 1.0
+    },
+    'set2' : {
+        'tries': 3,
+        'mx' : ['mx70', 'mx79', 'mx91'],
+        'pos': ['maxprob_obst', 'nearcog_obst', 'cog2lopt'],
+        'div': ['vtile', 'htile'],
+        'path': [100,115,120,125],
+        'tries': 10,
+        'vel': 2.0,
         'period': 1.0
     }
 }
