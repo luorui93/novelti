@@ -135,6 +135,7 @@ public:
     void onArrival() {
         pose_current_.header.stamp = ros::Time::now();
         pub_pose_arrived_.publish(pose_current_);
+        ROS_INFO("%s: published /pose_arrived (%f,%f)", getName().c_str(), pose_current_.pose.position.x, pose_current_.pose.position.y);
     }
     
     void run() {
