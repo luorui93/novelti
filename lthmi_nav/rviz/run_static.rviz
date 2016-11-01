@@ -5,8 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - //debug_reach_area1
-        - /Pose1
       Splitter Ratio: 0.625
     Tree Height: 376
   - Class: rviz/Selection
@@ -90,7 +88,7 @@ Visualization Manager:
       Axes Radius: 0.1
       Class: rviz/Pose
       Color: 145; 147; 5
-      Enabled: true
+      Enabled: false
       Head Length: 0.0001
       Head Radius: 0.1
       Name: /pose_current
@@ -99,7 +97,7 @@ Visualization Manager:
       Shape: Arrow
       Topic: /pose_current
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -193,11 +191,26 @@ Visualization Manager:
       Enabled: true
       Head Length: 0.3
       Head Radius: 0.1
-      Name: Pose
+      Name: /debug_pose
       Shaft Length: 2
       Shaft Radius: 0.2
       Shape: Arrow
       Topic: /debug_pose
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: /pose_arrived
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Arrow
+      Topic: /pose_arrived
       Unreliable: false
       Value: true
   Enabled: true
@@ -232,11 +245,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 28.7961
+      Scale: 88.9996
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 15.1242
-      Y: 17.4228
+      X: 9.19564
+      Y: 18.8859
     Saved: ~
 Window Geometry:
   Displays:
