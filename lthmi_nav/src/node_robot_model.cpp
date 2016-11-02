@@ -60,7 +60,7 @@ public:
     {
         node.param("max_vel", max_vel_,  0.5);
         node.param("max_vel_ang", max_vel_ang_, 0.5); //currently ignored
-        node.param("pub_period", pub_period_, 0.025);
+        node.param("pub_period", pub_period_, 0.01);
         pose_.header.frame_id = "/map";
         active_ = false;
     }
@@ -71,11 +71,12 @@ public:
         pose_lock_.unlock();
         
         traj_lock_.lock();
-        new (&cmap_) CompoundMap(req.map.info.width, req.map.info.height);
-        for (int x=0; x<req.map.info.width; x++)
-            for (int y=0; y<req.map.info.height; y++)
-                if (req.map.data[x + y*req.map.info.width]==0)
-                    cmap_.setPixel(x,y, FREED); //free
+            traj_.moving = false;
+            new (&cmap_) CompoundMap(req.map.info.width, req.map.info.height);
+            for (int x=0; x<req.map.info.width; x++)
+                for (int y=0; y<req.map.info.height; y++)
+                    if (req.map.data[x + y*req.map.info.width]==0)
+                        cmap_.setPixel(x,y, FREED); //free
         traj_lock_.unlock();
                     
         pub_lock_.lock();
@@ -191,16 +192,15 @@ public:
                     if (updateCurrentPose(ros::Time::now()))
                         publishPoseArrived();
                     publishCurrentPose();
-                    //ROS_INFO("robot_model: published currrent_pose: (%f,%f)", pose_current_.pose.position.x, pose_current_.pose.position.y);
+                    //ROS_INFO("robot_model: published currrent_pose: (%f,%f)", pose_.pose.position.x, pose_.pose.position.y);
                 pub_lock_.unlock();
             }
             ros::spinOnce();
             r.sleep();
         }
     }
-    
 };
-}
+} //namespace lthmi_nav
 
 
 
