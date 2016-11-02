@@ -72,7 +72,7 @@ prmsets = {
         'mx' : ['mx70', 'mx79', 'mx91'],
         'pos': ['maxprob_obst', 'nearcog_obst', 'cog2lopt'],
         'div': ['vtile', 'htile'],
-        'path': [100,115,120,125],
+        'path': [100,103,110,116],
         'vel': 2.0,
         'period': 1.0
     }
