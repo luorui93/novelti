@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="bagpath" default="/home/sd/Desktop/lthmi_nav_data/bag/tmp.bag" />
+    <arg name="bagpath" default="/tmp/tmp.bag" />
     
     <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
@@ -34,14 +34,17 @@
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
             args="-O $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
     </node>
+    <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
     <node if="$(arg bag)"  pkg="lthmi_nav" type="node_param_publisher.py" name="node_param_publisher">
         <param name="rosbag_node_name" value="rosbag_record" />
         <!-- remapped parameters (by default not save on param server-->
+        <param name="map" value="$(arg map)" />
         <param name="mx" value="$(arg mx)" />
         <param name="path" value="$(arg path)" />
         <param name="popt" value="$(arg popt)" />
         <param name="bag" value="$(arg bag)" />
-        <param name="map" value="$(arg map)" />
+        <param name="bag" value="$(arg bag)" />
+        <param name="waited_srvs_name" value="$(arg waited_srvs_name)" />
         <param name="rviz" value="$(arg rviz)" />
         <param name="commit"     command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log --format='%H' -n 1" />
         <param name="commit_log" command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log -n 1" />
@@ -65,6 +68,11 @@
         mx40:   [0.4 , 0.2 , 0.2 , 0.2 ,    0.2 , 0.4 , 0.2 , 0.2 ,     0.2 , 0.2 , 0.4 , 0.2 ,     0.2 , 0.2 , 0.2 , 0.4 ,]
         mx31:   [0.31, 0.23, 0.23, 0.23,    0.23, 0.31, 0.23, 0.23,     0.23, 0.23, 0.31, 0.23,     0.23, 0.23, 0.23, 0.31,]
     </rosparam>
+    <rosparam>
+        waited_srvs: 
+            mode0: ['/rviz/reload_shaders']
+            mode1: ['/rosbag_record/get_loggers', '/rviz/reload_shaders']
+    </rosparam>
 
     
     <node pkg="lthmi_nav" type="node_experimentator.py" name="experimentator" output="screen" required="true" >
@@ -72,10 +80,10 @@
         <remap from="~poses" to="/paths/$(arg path)"/>
         <param name="resol" value="$(arg resol)" />
         <param name="n_runs" value="$(arg tries)" />
+        <remap from="~waited_srvs" to="$(arg waited_srvs_name)"/>
         <rosparam>
-            waited_srvs: ['/rosbag_record/get_loggers', '/rviz/reload_shaders']
             synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
-        </rosparam> <!--  '/rosbag_record/get_loggers' -->
+        </rosparam>
     </node>
     
     
