@@ -122,7 +122,7 @@ if __name__=="__main__":
             sys.exit(1)
         prmset = dict(varprms) #copy
         prmset.update(prmsets[s])
-        print "======================= RUNNING paramset=%s =======================\n prms=%s" % (s, str(prmset))
+        print "======================================================== RUNNING paramset=%s ========================================================\n prms=%s" % (s, str(prmset))
         c = CommandVariator(cmds, prmset)
         c.run()
-
+        print "======================================================== SUCCESSFULLY FINISHED paramset=%s ========================================================\n prms=%s" % (s, str(prmset))
