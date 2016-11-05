@@ -164,7 +164,7 @@ class Table2NDimVector:
                 #print ix
                 self.nums[ix] += 1
                 x = dtable.data[res_name][row_k]
-                print x
+                print "%s=%s" % (res_name, str(x))
                 delta = x - self.means[ix]
                 self.means[ix] += delta / self.nums[ix]
                 self.m2s[ix] = delta * (x - self.means[ix])
@@ -173,6 +173,7 @@ class Table2NDimVector:
             if self.nums[it.multi_index]>=2:
                 self.stds[it.multi_index] = np.sqrt(self.m2s[it.multi_index] / (self.nums[it.multi_index]-1))
             it.iternext()
+        print self.means
 
 
 import matplotlib.pyplot as plt
@@ -201,7 +202,7 @@ def drawTableWithBars(ax, means, stds, group_names, color_names):
     
     ax.legend(group_barplots[0], color_names,
         ncol=len(color_names),
-        bbox_to_anchor=(0., 1.01, 1., .101), 
+        bbox_to_anchor=(0.0, 1.03, 1.0, 0.1), 
         loc=3,
         mode="expand", 
         borderaxespad=0.
@@ -231,7 +232,7 @@ def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_name
                 ax = axarr[page_row, page_col]
             drawTableWithBars(ax, means2d, stds2d, plot_group_names, plot_color_names)
             if page_row==0:
-                ax.set_title(page_col_names[page_col], y=1.1)
+                ax.set_title(page_col_names[page_col], y=1.15)
             if page_col==0:
                 ax.set_ylabel(page_row_names[page_row])
     f.suptitle(title, fontsize=14, fontweight='bold')
