@@ -7,7 +7,7 @@ from std_srvs.srv import *
 
 class SynchronizableNode:
     def __init__(self):
-        rospy.loginfo("%s: started a new Experim"% rospy.get_name())
+        #rospy.loginfo("%s: started a new Experim"% rospy.get_name())
         self.start_srv = rospy.Service('~start', StartExperiment, self.startSrv)
         self.stop_srv = rospy.Service('~stop', Empty, self.stopSrv)
     
