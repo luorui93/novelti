@@ -81,7 +81,7 @@ public:
                     
         pub_lock_.lock();
             pub_pose_current_  = node.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
-            pub_pose_arrived_  = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, false); //not latched
+            pub_pose_arrived_  = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, true); //latched
             sub_pose_desired_  = node.subscribe("/pose_desired", 1, &NoKinRobotModel::desiredPoseCallback, this);
             sub_pose_inferred_ = node.subscribe("/pose_inferred", 1, &NoKinRobotModel::desiredPoseCallback, this);
         pub_lock_.unlock();
@@ -134,6 +134,7 @@ public:
         pose_lock_.lock();
             pose_.header.stamp = ros::Time::now();
             pub_pose_current_.publish(pose_);
+            //ROS_INFO("robot_model: published currrent_pose: (%f,%f)", pose_.pose.position.x, pose_.pose.position.y);
         pose_lock_.unlock();
     }
     
@@ -192,7 +193,6 @@ public:
                     if (updateCurrentPose(ros::Time::now()))
                         publishPoseArrived();
                     publishCurrentPose();
-                    //ROS_INFO("robot_model: published currrent_pose: (%f,%f)", pose_.pose.position.x, pose_.pose.position.y);
                 pub_lock_.unlock();
             }
             ros::spinOnce();
