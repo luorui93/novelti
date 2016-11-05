@@ -10,8 +10,8 @@ from std_srvs.srv import Empty
 
 class HumanModel (SynchronizableNode):
     def __init__(self):
-        SynchronizableNode.__init__(self)
         self.srv_name = '/inference_unit/new_goal'
+        SynchronizableNode.__init__(self)
     
     def start(self, req):
         rospy.wait_for_service(self.srv_name)
@@ -30,6 +30,7 @@ class HumanModel (SynchronizableNode):
         reg = msg.data[self.vertex_intended[0] + self.vertex_intended[1]*msg.info.width]
         self.cmd_intended.header.stamp = rospy.Time.now()
         self.cmd_intended.cmd = reg
+        rospy.loginfo("%s: number of connections=%d" % (rospy.get_name(), self.pub_cmd_intended.get_num_connections()))
         self.pub_cmd_intended.publish(self.cmd_intended)
         rospy.loginfo("%s: /map_divided recieived (SEQ=%d), published /cmd_intended=%d (SEQ=%d)." % (rospy.get_name(), msg.header.seq, reg,  self.cmd_intended.header.seq))
 
