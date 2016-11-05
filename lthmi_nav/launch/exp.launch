@@ -94,7 +94,7 @@
         <param name="max_vel"     value="$(arg vel)" />
         <param name="pub_period"  value="$(arg trobot)" />
     </node>
-    <node pkg="lthmi_nav" type="node_human_model.py" name="human_model" output="screen" required="true"> 
+    <node pkg="lthmi_nav" type="human_model" name="human_model" output="screen" required="true"> 
     </node>
     <node pkg="lthmi_nav" type="node_lthmi_model.py" name="lthmi_model" output="screen" required="true">
         <remap from="~interface_matrix" to="/$(arg mx)"/>
