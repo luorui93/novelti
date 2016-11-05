@@ -11,11 +11,11 @@ cmds = [("roslaunch lthmi_nav exp.launch  "
         "rviz:=%(rviz)s  bag:=%(bag)d  "
         "bagpath:=%(dir)s/bag/%(bagid)s.bag  ")
         ,
-        "ls -l %(dir)s/bag/%(bagid)s.bag"
+        "rm %(dir)s/bag/%(bagid)s.bag.success"
         ,
         "roslaunch lthmi_nav bag_processor.launch bag:=%(dir)s/bag/%(bagid)s.bag out:=%(dir)s/stats/%(bagid)s.bag.txt"
         ,
-        "ls -l %(dir)s/stats/%(bagid)s.bag.txt"
+        "rm  %(dir)s/bag/%(bagid)s.bag.stats.success"
         ,
         "tar -czf %(dir)s/tar/%(bagid)s.bag.tar.gz -C %(dir)s/bag  %(bagid)s.bag"
         ,
@@ -32,7 +32,7 @@ varprms = {
     'mx': ['mx31','mx40','mx49','mx55','mx61','mx70','mx79','mx85','mx91','mx100'],
     'period': 1.0,
     'vel': 3.0,
-    'trobot' : 0.025,
+    'trobot' : 0.01,
     
     'phigh': 0.95,
     'plow': 0.6,
@@ -75,6 +75,33 @@ prmsets = {
         'path': [100,103,110,116],
         'vel': 2.0,
         'period': 1.0
+    },
+    'fast2' : {
+        'tries': 5,
+        'mx' : ['mx91'],
+        'pos': ['maxprob_obst', 'cog2lopt', 'cog2gopt'],
+        'div': ['equidist', 'htile'],
+        'path': [100,110],
+        'vel': 8.0,
+        'period': 0.25
+    },
+    'qqq' : {
+        'tries': 20,
+        'mx' : ['mx70', 'mx79', 'mx91', 'mx100'],
+        'pos': ['maxprob_obst', 'nearcog_obst', 'cog2lopt'],
+        'div': ['vtile', 'htile'],
+        'path': [100,103,110,116],
+        'vel': 8.0,
+        'period': 0.25
+    },
+    'qqq2' : {
+        'tries': 7,
+        'mx' : ['mx70', 'mx91', 'mx100', 'mx79'],
+        'pos': ['maxprob_obst', 'nearcog_obst', 'cog2lopt'],
+        'div': ['vtile', 'htile'],
+        'path': [100,103,116,110],
+        'vel': 8.0,
+        'period': 0.25
     }
 }
 

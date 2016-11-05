@@ -15,6 +15,7 @@ class Experimentator (SyncingNode):
             'resolution':   rospy.get_param('~resolution', 0.1),
             'n_runs':       rospy.get_param('~n_runs', 1),
             'poses':        rospy.get_param('~poses', []),
+            'success_file': rospy.get_param('~success_file', None),
         })
         #rospy.loginfo("=======================================%s" % str( self.cfg['poses']))
         self.vxIter = iter([]) #self.cfg['poses'])
@@ -30,6 +31,8 @@ class Experimentator (SyncingNode):
         if nextVx is None:
             if self.runs_left == 0:
                 rospy.loginfo("%s: ^^^^^^^^^^^^^^^^^^^ all runs completed ^^^^^^^^^^^^^^^^^^^^^^^^" % (rospy.get_name()))
+                if self.cfg['success_file'] is not None:
+                    open(self.cfg['success_file'], 'a').close()
                 rospy.signal_shutdown("finished")
                 return
             self.vxIter = iter(self.cfg['poses'])
@@ -67,6 +70,7 @@ class Experimentator (SyncingNode):
             self.publishNextIntendedPose()
 
     def poseArrivedCallback(self, msg):
+        rospy.loginfo("%s: received /pose_arrived, state==%s" % (rospy.get_name(), self.state))
         if self.state=="INFERRED":
             rospy.loginfo("%s: reached destination" % (rospy.get_name()))
             self.state="INFERRING"

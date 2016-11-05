@@ -56,9 +56,10 @@ public:
 int main(int argc, char **argv) {
     ros::init(argc, argv, "bag_processor");
     ros::NodeHandle node("~");
-    string bag_path, stats_path;
+    string bag_path, stats_path, success_file_suffix;
     node.getParam("bag_path", bag_path);
     node.getParam("stats_path", stats_path);
+    node.getParam("success_file_suffix", success_file_suffix);
     if (bag_path.size()<=0) {
         ROS_ERROR("ROS parameter bag_path is required");
         return 1;
@@ -80,6 +81,12 @@ int main(int argc, char **argv) {
     } else {
         BagProcessor pr(bag_path, std::cout);
         pr.run();
+    }
+    
+    if (success_file_suffix.size()>0) {
+        fstream fs;
+        fs.open(bag_path+success_file_suffix, ios::out);
+        fs.close();
     }
     return 0;
 }

@@ -14,6 +14,7 @@
     <node pkg="lthmi_nav" type="bag_processor" name="bag_processor" output="screen" required="true"  launch-prefix="$(arg prefix)">
         <param name="bag_path" value="$(arg bag)" />
         <param name="stats_path" value="$(arg out)" />
+        <param name="success_file_suffix" value=".stats.success" />
     </node>
 
 </launch>
