@@ -17,10 +17,11 @@ if __name__=="__main__":
         
     files = sys.argv[1:]
     #print files
-    dt = DataTable.fromCsvFiles(files)#, filter_dict={'pos':'nearcog_obst', 'div' : 'htile', 'path':1})
+    dt = DataTable.fromCsvFiles(files)#, filter_dict={'pos':'maxprob_obst', 'div' : 'htile', 'path':110})
     
     dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
     vals = ('over_len', 'sep2nav', 'over_time')
+    #vals = ('sep2nav',)
     v = Table2NDimVector(dt, dims, vals)
     #print dd.stds
     title = "Various characterestics, %s=%s" %(v.dim_names[0], str(v.idx2val[0][0]))
