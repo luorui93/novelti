@@ -3,6 +3,8 @@
 
 //#define DEBUG_POSE_FINDER 1 
 
+#include <mutex>
+
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 
@@ -51,6 +53,7 @@ public:
     #endif
     
     Point cur_vertex;
+    std::mutex cur_vertex_lock_;
     geometry_msgs::PoseStamped pose_best;
     lthmi_nav::FloatMap reach_area;
      

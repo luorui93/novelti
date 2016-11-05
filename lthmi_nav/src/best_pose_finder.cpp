@@ -73,8 +73,9 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
 
 void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStampedConstPtr pose) {
     //ROS_INFO("%s: received /pose_current", getName().c_str());
-    updateVertex(pose->pose, cur_vertex.x, cur_vertex.y);
-    r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
+    cur_vertex_lock_.lock();
+        updateVertex(pose->pose, cur_vertex.x, cur_vertex.y);
+    cur_vertex_lock_.unlock();
 }
 
 void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
@@ -90,7 +91,10 @@ void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
 }
 
 void BestPoseFinder::calcReachArea() {
-    Point center(cur_vertex.x, cur_vertex.y);
+    cur_vertex_lock_.lock();
+        r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
+        Point center(cur_vertex.x, cur_vertex.y);
+    cur_vertex_lock_.unlock();
     //ROS_INFO("%s: --------------------- center =(%d,%d)", getName().c_str(), center.x, center.y);
     CWave2 cw(cmap);
     CWave2Processor dummy;
