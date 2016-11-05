@@ -253,6 +253,13 @@ target_link_libraries(robot_model
 add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
 
 
+add_executable(human_model src/node_human_model.cpp)
+target_link_libraries(human_model
+   ${catkin_LIBRARIES}
+)
+add_dependencies(human_model ${PROJECT_NAME}_generate_messages_cpp)
+
+
 add_library(lthmi_nav_rviz_plugin ${SOURCE_FILES})
 target_link_libraries(lthmi_nav_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 
