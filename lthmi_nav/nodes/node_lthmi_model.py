@@ -11,7 +11,6 @@ from lthmi_nav.SynchronizableNode import SynchronizableNode
 
 class StochHmiModel (SynchronizableNode):
     def __init__(self):
-        SynchronizableNode.__init__(self)
         self.cmd_intended = None
         #read parameters
         interface_matrix = rospy.get_param('~interface_matrix', [])
@@ -35,21 +34,13 @@ class StochHmiModel (SynchronizableNode):
             for k in xrange(n):
                 row[k] = thresh+row[k]
                 thresh = row[k]
-                
-                
-        #self.interface_matrix_thresholds = list(interface_matrix)
-        #for row in self.interface_matrix_thresholds:
-            #thresh = 0.0
-            #for k in xrange(len(row)):
-                #row[k] = thresh+row[k]
-                #thresh = row[k]
-        
+        SynchronizableNode.__init__(self)
     
     def start(self, req):
         self.cmd_detected = Command()
         #rospy.loginfo("%s: 1>>>>>>>>>>>>>>> SEQ==%d", rospy.get_name(), self.cmd_detected.header.seq)
         self.sub = rospy.Subscriber('/cmd_intended', Command, self.cmdIntendedCallback)
-        self.pub = rospy.Publisher('/cmd_detected', Command, queue_size=10)
+        self.pub = rospy.Publisher('/cmd_detected', Command, queue_size=1, latch=True)
     
     def stop(self):
         self.sub.unregister()
@@ -71,6 +62,7 @@ class StochHmiModel (SynchronizableNode):
             rospy.sleep(self.period) 
             self.cmd_detected.header.stamp = rospy.Time.now()
             self.cmd_detected.cmd = self.randomize(self.cmd_intended)
+            rospy.loginfo("%s: number of connections=%d" % (rospy.get_name(), self.pub.get_num_connections()))
             self.pub.publish(self.cmd_detected)
             rospy.loginfo("%s: published detected command, intended=%d, detected=%d (SEQ==%d)", rospy.get_name(), self.cmd_intended, self.cmd_detected.cmd, self.cmd_detected.header.seq)
     
