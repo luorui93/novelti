@@ -8,6 +8,10 @@ class Variator(object):
         self.arr = arr
         self.ret = list(arr)
         self.first = True
+        self.total = 1
+        for n in arr:
+            self.total *= (n+1)
+        self.ind = 0
 
     def __iter__(self):
         return self
@@ -17,6 +21,7 @@ class Variator(object):
         return self.next()
 
     def next(self):
+        self.ind += 1
         if self.first:
             self.first = False
             return self.ret
@@ -74,7 +79,8 @@ class CommandVariator:
         for prmset in self.prmVariator:
             for tmpl in self.cmds:
                 cmd = tmpl % prmset
-                print "Invoking command: \n$ %s" % cmd
+                print "Invoking command (variation %d out of %d): \n$ %s" % \
+                    (self.prmVariator.variator.ind, self.prmVariator.variator.total, cmd)
                 status = subprocess.call(cmd, shell=True)
                 if status != 0:
                     raise RuntimeError("Command '%s' FAILED (exit status=%d)" % (cmd,status))
