@@ -79,7 +79,7 @@ void MapDivider::pdfCallback(lthmi_nav::FloatMapConstPtr msg){
 }
 
 void MapDivider::divideAndPublish() {
-    if (map_divided.header.seq != pdf->header.seq || map_divided.header.seq != pose_best->header.seq) {
+    if (false && (map_divided.header.seq != pdf->header.seq || map_divided.header.seq != pose_best->header.seq)) {
         ROS_FATAL("%s: SYNCHRONIZATION BROKEN! map_divided.seq==%d, pdf.seq==%d, pose_best.seq==%d.",
                  getName().c_str(), map_divided.header.seq, pdf->header.seq, pose_best->header.seq);
         ros::shutdown();
