@@ -29,7 +29,7 @@ class MapDividerTester (SyncingNode):
         })
         
         self.pdf_publisher   = rospy.Publisher('/pdf', FloatMap, queue_size=1, latch=True) #, latch=False)
-        self.pose_publisher  = rospy.Publisher('/pose_optimal', PoseStamped, queue_size=1, latch=True)#, latch=False)
+        self.pose_publisher  = rospy.Publisher('/pose_best', PoseStamped, queue_size=1, latch=True)#, latch=False)
         self.map_divided_sub = rospy.Subscriber('/map_divided', IntMap, self.mapDividedCallback)
         self.exps_left       = self.cfg['n_experiments']
         self.poses_left      = 0
@@ -86,13 +86,13 @@ class MapDividerTester (SyncingNode):
 
     def publishPose(self):
         pose = PoseStamped()
-        pose.header.stamp = rospy.Time.now()
+        
         if self.cfg['pose_x'] != 0:
             optimalVertex = [self.cfg['pose_x'], self.cfg['pose_y']]
         else:
             optimalVertex = self.grid.genRandUnblockedVertex() #[114,22]
-        pose.pose.position.x = optimalVertex[0]*self.cfg['resolution']
-        pose.pose.position.y = optimalVertex[1]*self.cfg['resolution']
+        pose.pose = self.vertex2pose(optimalVertex)
+        pose.header.stamp = rospy.Time.now()
         pose.header.frame_id="/map"
         self.pose_publisher.publish(pose)
         rospy.loginfo("%s: published /pose_optimal vertex=(%d,%d), pose=(%f,%f)" % (rospy.get_name(), optimalVertex[0], optimalVertex[1], pose.pose.position.x, pose.pose.position.y))
@@ -101,7 +101,9 @@ class MapDividerTester (SyncingNode):
         for x in range(msg.info.width):
             for y in range(msg.info.height):
                 reg = msg.data[x + y*msg.info.width]
-                if reg==255 and self.pdf.data[x + y*msg.info.width]>=0:
+                if reg==255 and self.pdf.data[x + y*msg.info.width]>=0: #there are unexplored vertices
+                    if True:
+                        return
                     rospy.logerr("%s: ERROR: divided map contains a vertex at [%d,%d] without a region assigned" % (rospy.get_name(),x,y))
                     exit(1)
         rospy.loginfo("%s: /divided_map recieived and checked for unussigned vertices (all fine)." % (rospy.get_name()))
