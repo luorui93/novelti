@@ -94,11 +94,11 @@ prmsets = {
         'vel': 8.0,
         'period': 0.25
     },
-    'qqq2' : {
+    'qqq_eq' : {
         'tries': 7,
         'mx' : ['mx70', 'mx91', 'mx100', 'mx79'],
         'pos': ['maxprob_obst', 'nearcog_obst', 'cog2lopt'],
-        'div': ['vtile', 'htile'],
+        'div': ['equidist'],
         'path': [100,103,116,110],
         'vel': 8.0,
         'period': 0.25
