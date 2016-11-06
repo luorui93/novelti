@@ -9,6 +9,73 @@ import sys
 
 #to fix: lthmi-auto-nav-experiment-2016-10-31_18-49-40.bag.txt
 
+
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+def drawTableWithBars(ax, means, stds, group_names, color_names):
+    #matplotlib.rcParams.update({'font.size': 16})
+    bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
+                '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
+    gap = 0.5 # measured in bar width's
+    n_colors = len(color_names)
+    n_groups = len(group_names)
+    width = 1.0 /(n_colors+gap)
+    
+    
+    color_offsets = width*np.arange(n_colors)
+    colors = [bar_colors[cid] for cid in xrange(n_colors)]
+    
+    group_barplots = []
+    for gid, group_name in enumerate(group_names):
+        barplot = ax.bar(gid+color_offsets, means[gid], width, color=colors, yerr=stds[gid])
+        group_barplots.append(barplot)
+
+    ax.set_xticks(np.arange((1.0-gap*width)/2, n_groups,1))
+    ax.set_xticklabels(tuple(group_names))
+    
+    ax.legend(group_barplots[0], color_names,
+        ncol=len(color_names),
+        bbox_to_anchor=(0.0, 1.03, 1.0, 0.1), 
+        loc=3,
+        mode="expand", 
+        borderaxespad=0.
+    )
+ 
+
+    ax.yaxis.grid(True)
+    #ax.xaxis.grid(True)
+
+def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+    n_rows = len(page_row_names)
+    n_cols = len(page_col_names)
+    f, axarr = plt.subplots(n_rows, n_cols, sharex=True, facecolor='white', figsize=(16, 12))
+    
+    for page_row in range(n_rows):
+        for page_col in range(n_cols):
+            means2d = means[page_row, page_col, :, :]
+            stds2d  = stds[page_row, page_col, :, :]
+            if n_rows==1:
+                if n_cols==1:
+                    ax = axarr
+                else:
+                    ax = axarr[page_col]
+            elif n_cols==1:
+                ax = axarr[page_row]
+            else:
+                ax = axarr[page_row, page_col]
+            drawTableWithBars(ax, means2d, stds2d, plot_group_names, plot_color_names)
+            if page_row==0:
+                ax.set_title(page_col_names[page_col], y=1.15)
+            if page_col==0:
+                ax.set_ylabel(page_row_names[page_row])
+    f.suptitle(title, fontsize=14, fontweight='bold')
+    plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
+    plt.show()
+
+
+
 class DataTable:
     """
     Represents the data in the follwoing  format
@@ -175,67 +242,12 @@ class Table2NDimVector:
             it.iternext()
         print self.means
 
+    def display4dPage(self, firstDimValue, title=None):
+        varIdx = self.val2idx[0][firstDimValue]
+        if title is None:
+            title = "Various characteristics, %s=%s" %(self.dim_names[0], str(self.idx2val[0][varIdx]))
+        display4DdataAsBarPlotPage(title, self.means[varIdx], self.stds[varIdx], \
+            self.idx2val[1], self.idx2val[2], self.idx2val[3], self.idx2val[4])
+                      
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-
-def drawTableWithBars(ax, means, stds, group_names, color_names):
-    #matplotlib.rcParams.update({'font.size': 16})
-    bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
-                '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
-    gap = 0.5 # measured in bar width's
-    n_colors = len(color_names)
-    n_groups = len(group_names)
-    width = 1.0 /(n_colors+gap)
-    
-    
-    color_offsets = width*np.arange(n_colors)
-    colors = [bar_colors[cid] for cid in xrange(n_colors)]
-    
-    group_barplots = []
-    for gid, group_name in enumerate(group_names):
-        barplot = ax.bar(gid+color_offsets, means[gid], width, color=colors, yerr=stds[gid])
-        group_barplots.append(barplot)
-
-    ax.set_xticks(np.arange((1.0-gap*width)/2, n_groups,1))
-    ax.set_xticklabels(tuple(group_names))
-    
-    ax.legend(group_barplots[0], color_names,
-        ncol=len(color_names),
-        bbox_to_anchor=(0.0, 1.03, 1.0, 0.1), 
-        loc=3,
-        mode="expand", 
-        borderaxespad=0.
-    )
- 
-
-    ax.yaxis.grid(True)
-    #ax.xaxis.grid(True)
-
-def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
-    n_rows = len(page_row_names)
-    n_cols = len(page_col_names)
-    f, axarr = plt.subplots(n_rows, n_cols, sharex=True, facecolor='white', figsize=(16, 12))
-    
-    for page_row in range(n_rows):
-        for page_col in range(n_cols):
-            means2d = means[page_row, page_col, :, :]
-            stds2d  = stds[page_row, page_col, :, :]
-            if n_rows==1:
-                if n_cols==1:
-                    ax = axarr
-                else:
-                    ax = axarr[page_col]
-            elif n_cols==1:
-                ax = axarr[page_row]
-            else:
-                ax = axarr[page_row, page_col]
-            drawTableWithBars(ax, means2d, stds2d, plot_group_names, plot_color_names)
-            if page_row==0:
-                ax.set_title(page_col_names[page_col], y=1.15)
-            if page_col==0:
-                ax.set_ylabel(page_row_names[page_row])
-    f.suptitle(title, fontsize=14, fontweight='bold')
-    plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
-    plt.show()
     
