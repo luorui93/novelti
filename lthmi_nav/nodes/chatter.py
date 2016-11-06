@@ -8,7 +8,7 @@ def talker():
     rospy.sleep(10) # just to ensure we don't miss any messages with rostopic echo
     rate = rospy.Rate(1)
     msg = PoseStamped()
-    #msg.header.seq = -1
+    msg.header.seq = 5  # this assignment won't work
     while not rospy.is_shutdown():
         pub.publish(msg)
         rospy.loginfo("seq=%d" % msg.header.seq)
