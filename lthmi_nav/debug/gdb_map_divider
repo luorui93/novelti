@@ -15,10 +15,6 @@ define sp
     b cwave:: Walker::setPoint
 end
 
-#b cwave::qqq if (x==2 && y==19)
-
-#b cwave::CWave2::addStar if (s.c.x==10 && s.c.y==14)
-
 b lthmi_nav::ExtremalMapDivider::isPointIn if (pt.x==58 && pt.y==119)
 
 define dline
@@ -32,7 +28,7 @@ end
 #b lthmi_nav::MapDivider::divideAndPublish
 
 dline
-#d
+d
 #u
 #v
 r
