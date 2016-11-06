@@ -132,6 +132,7 @@ public:
     
     void resetStats() {
         init_pose_defined_ = false;
+        resolution_ = -1.0;
         pois_.resize(1);
         waypoints_.resize(1);
         stamp_cmd_detected_ = ros::Time(0);
@@ -198,17 +199,18 @@ public:
         if (prms_.run==ros::Time(0))
             prms_.run = msg->header.stamp;
         if (state==WAIT4POI) {
-            resolution_ = msg->info.resolution;
             if (!first_run_) {
                 writeTableRow();
             }
+            resolution_ = msg->info.resolution;
+            ROS_DEBUG("resolution = %f", resolution_);
             first_run_ = false;
         }
     }
     
     void poseCurrentCb(geometry_msgs::PoseStampedConstPtr msg) {
         //ROS_DEBUG("got pose_current: (%f,%f)", msg->pose.position.x, msg->pose.position.y);
-        if (!init_pose_defined_) {
+        if (!init_pose_defined_ && resolution_>0.0) {
             init_pose_defined_ = true;
             Point pt;
             updateVertex(msg->pose, pt.x, pt.y);
@@ -328,8 +330,15 @@ public:
         ROS_DEBUG("got cmd_detected");
         if (state==INFERENCE) {
             stamp_cmd_detected_ = msg->header.stamp;
-            stats_.t_inf += stamp_cmd_detected_-stamp_pose_arrived_;
-            ROS_DEBUG("added to t_inf=%f : (%d , %d)=%f - (%d , %d)=%f", (stamp_cmd_detected_-stamp_pose_arrived_).toSec(), stamp_cmd_detected_.sec, stamp_cmd_detected_.nsec, stamp_cmd_detected_.toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec());
+            if (stamp_pose_arrived_!= ros::Time(0)) {
+                /* Theoretically, stamp_pose_arrived_ should never be 0, because due to
+                 * best_pose_finder's safety_coef<1.0 /pose_arrived should always come before /cmd_detected
+                 * However sometimes (not very often) in bag files that's not true, for some reason.
+                 * This can be addressed later, for now, just don't increase t_inf 
+                 * if pose_arrived has not yet arrived (stamp_pose_arrived==0) */
+                stats_.t_inf += stamp_cmd_detected_-stamp_pose_arrived_;
+                ROS_DEBUG("added to t_inf=%f : (%d , %d)=%f - (%d , %d)=%f", (stamp_cmd_detected_-stamp_pose_arrived_).toSec(), stamp_cmd_detected_.sec, stamp_cmd_detected_.nsec, stamp_cmd_detected_.toSec(), stamp_pose_arrived_.sec, stamp_pose_arrived_.nsec, stamp_pose_arrived_.toSec());
+            }
             if (msg->cmd != cmd_intended_)
                 stats_.dcs_wrong++;
         } else {
