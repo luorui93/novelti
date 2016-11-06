@@ -1,4 +1,4 @@
-//#define EXTREMAL_MAP_DIVIDER_DEBUG 1
+//#define DEBUG_DIVIDER 1
         /* +--------------------------------+
          * |                 \              |
          * |  ____            \             |
@@ -60,7 +60,7 @@
 #include <CompoundMap.h>
 #include <CWave2.h>
 
-#ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+#ifdef DEBUG_DIVIDER
     #include <tf/transform_datatypes.h>
 #endif    
 
@@ -96,7 +96,7 @@ public:
     vector<int> branch1;
     vector<int> branch2;
     
-    #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+    #ifdef DEBUG_DIVIDER
         IntMap track_map_msg;
         ros::Publisher pub_debug_pose_border;
         ros::Publisher pub_debug_track_map;
@@ -106,8 +106,8 @@ public:
     ExtremalMapDivider() :
         MapDivider() 
     { 
-        #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
-            pub_debug_pose_border   = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, false); //not latched
+        #ifdef DEBUG_DIVIDER
+            pub_debug_pose_border = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, false); //not latched
             pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, false); //not latched
         #endif
     }
@@ -119,7 +119,7 @@ public:
                 if (req.map.data[x + y*req.map.info.width]==0)
                     cmap.setPixel(x,y, FREED); //free
         MapDivider::start(req);
-        #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+        #ifdef DEBUG_DIVIDER
             track_map_msg = map_divided; //copy
         #endif
         //track_stars = std::vector<MyStar>(50);
@@ -129,12 +129,13 @@ public:
     
     void divide() {
         //beforeCWave();
+        //ROS_INFO_NAMED("qwert", "%s: qqqqqqqqqqqqqqqqqqqqqqq", getName().c_str());
         map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
         CWave2 cw(cmap);
         cw.setProcessor(this);
         cw.calc(pt_best);
         //afterCwave();
-        #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+        #ifdef DEBUG_DIVIDER
             track_map_msg.data = cmap.track_map;
             pub_debug_track_map.publish(track_map_msg);
         #endif
@@ -145,7 +146,7 @@ public:
         do {
             if (moved)
                 processBoundaryVertex();
-            #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+            #ifdef DEBUG_DIVIDER
                 publishBoundaryPose();
                 pub_map_div.publish(map_divided);
             #endif
@@ -443,10 +444,11 @@ public:
         }
     }
     
-    #ifdef EXTREMAL_MAP_DIVIDER_DEBUG
+    #ifdef DEBUG_DIVIDER
         void publishBoundaryPose() {
             //ROS_WARN("Boundary pose: (%d,%d), oct=%d", wp.x, wp.y, woct);
-            geometry_msgs::PoseStamped msg = Vertex::toPose(wp.x, wp.y, map_divided.info.resolution);
+            geometry_msgs::PoseStamped msg;
+            updatePose(msg, wp.x, wp.y);
             msg.header.frame_id="/map";
             msg.pose.orientation = tf::createQuaternionMsgFromYaw((double)(woct)*M_PI/4);
             pub_debug_pose_border.publish(msg);

@@ -7,8 +7,15 @@
     <arg name="py" default="0" />  <!-- both 0 means random -->
     <arg name="pdf_seed" default="-1" /> <!-- negative means random -->
     
-    <arg     if="$(arg debug)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_map_divider - -args" />
-    <arg unless="$(arg debug)" name="prefix" default="" />
+    
+    <arg name="gdb" default="0" />
+    <arg name="verb" default="info" />
+    
+    <!-- Check ROSCONSOLE_MIN_SEVERITY value in CMakeList.txt for given node. More on that in http://wiki.ros.org/rosconsole -->
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find lthmi_nav)/debug/rosconsole_conf_verb_$(arg verb).conf"/> 
+    <arg     if="$(arg gdb)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_map_divider - -args" />
+    <arg unless="$(arg gdb)" name="prefix" default="" />
+    
     
     <node pkg="lthmi_nav" type="test_map_divider.py" name="test_map_divider" 
             output="screen" required="true">

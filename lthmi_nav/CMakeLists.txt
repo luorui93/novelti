@@ -222,7 +222,7 @@ target_link_libraries(chatter
 )
 
 add_executable(map_divider src/node_map_divider.cpp src/map_divider.cpp)
-target_compile_definitions(map_divider PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_compile_definitions(map_divider PRIVATE  ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO  CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
 target_link_libraries(map_divider
     ${catkin_LIBRARIES}
     ${CWAVE_LIB_DIR}/libcwaveproc.a
