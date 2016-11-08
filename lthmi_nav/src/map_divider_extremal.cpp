@@ -1,4 +1,3 @@
-//#define DEBUG_DIVIDER 1
         /* +--------------------------------+
          * |                 \              |
          * |  ____            \             |
@@ -85,8 +84,8 @@ public:
     const int OCT2POINT_MOVE[8][2] = {{0,1}, {55,55}, {-1,0}, {55,55}, {0,-1}, {55,55}, {1,0},  {55,55}};
     
     CompoundMap cmap;
-    int region;
-    double prob;
+    //int region;
+    //double prob;
     
     Point wp; //walker point/position
     char woct; //walker orientation (octant: 0, 1...7)
@@ -107,8 +106,8 @@ public:
         MapDivider() 
     { 
         #ifdef DEBUG_DIVIDER
-            pub_debug_pose_border = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, false); //not latched
-            pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, false); //not latched
+            pub_debug_pose_border = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, true); //not latched
+            pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, true); //not latched
         #endif
     }
     
@@ -125,7 +124,62 @@ public:
         //track_stars = std::vector<MyStar>(50);
     }
     
+    
+    void qqq(int x, int y) {};
 
+    void reassignSeparatedVertices(CompoundMap& cmap) {
+        int sid, neigh_sid, neigh_merge_vertex_sid;
+        TrackStar star;
+        bool separated_vertex;
+        int neighs[8][2] = {{1,0},{1,1},{0,1},{-1,-1},  {-1,0},{-1,-1},{0,-1},{1,-1}};
+        int neighs4[4][2] = {{1,0},{0,1},  {-1,0},{0,-1}};
+        Point pt;
+        Point npt;
+        for (pt.x=1;pt.x<cmap.width()-1; pt.x++) {
+            for (pt.y=1;pt.y<cmap.height()-1; pt.y++) {
+                if (pt.x==399 && pt.y==335 || (pt.x==397 && pt.y==336))
+                    qqq(pt.x,pt.y);
+                sid = cmap.getTrackStarId(pt.x, pt.y);
+                //ROS_DEBUG("x=%d,y=%d", pt.x, pt.y);
+                if (sid>=0) {
+                    star = cmap.getTrackStar(sid);
+                    separated_vertex = true;
+                    for (int n=0; n<4; n++) {//find neighbors 
+                        npt.x = pt.x+neighs4[n][0]; npt.y = pt.y+neighs4[n][1];
+                        neigh_sid = cmap.getTrackStarId(npt.x,npt.y);
+                        if (neigh_sid == sid || (sid!=0 && star.x==npt.x && star.y==npt.y)) {
+                            separated_vertex = false;
+                            break;
+                        }
+                    }
+                    if (separated_vertex) {
+                        neigh_merge_vertex_sid = -1;
+                        for (int n=0; n<4; n++) {
+                            npt.x = pt.x+neighs4[n][0]; npt.y = pt.y+neighs4[n][1];
+                            neigh_sid = cmap.getTrackStarId(npt.x,npt.y);
+                            if (neigh_sid >=0 && !isPointIn(pt, npt)) {
+                                neigh_merge_vertex_sid = neigh_sid;
+                            }
+                        }
+                        if (neigh_merge_vertex_sid>=0) {
+                            cmap.updTrackMap(pt.x,pt.y,neigh_merge_vertex_sid);
+                            ROS_DEBUG("%s: fixed a separated_vertex at (%d,%d), reset star_id %d->%d", getName().c_str(), pt.x,pt.y, sid, neigh_merge_vertex_sid);
+                            /*ROS_DEBUG("%s: found a separated_vertex at (%d,%d), current star_id=%d", getName().c_str(), pt.x,pt.y, sid);
+                            for (int n=0; n<8; n++) {//find neighbors with assigned vertices
+                                neigh_sid = cmap.getTrackStarId(pt.x+neighs[n][0], pt.y+neighs[n][1]);
+                                if (neigh_sid>=0) {
+                                    cmap.updTrackMap(pt.x,pt.y,neigh_sid);
+                                    ROS_DEBUG("%s: fixed a separated_vertex at (%d,%d), reset star_id %d->%d", getName().c_str(), pt.x,pt.y, sid, neigh_sid);
+                                    break;
+                                }
+                            }*/
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     
     void divide() {
         //beforeCWave();
@@ -139,8 +193,14 @@ public:
             track_map_msg.data = cmap.track_map;
             pub_debug_track_map.publish(track_map_msg);
         #endif
-        prob = 0.0;
-        region = 0;
+        reassignSeparatedVertices(cmap);
+        reassignSeparatedVertices(cmap);
+        #ifdef DEBUG_DIVIDER
+            track_map_msg.data = cmap.track_map;
+            pub_debug_track_map.publish(track_map_msg);
+        #endif
+        //prob = 0.0;
+        //region = 0;
         bool moved=true;
         Point start = boundaryWalkerInit(pt_best);
         do {
@@ -152,26 +212,26 @@ public:
             #endif
             moved = boundaryWalkerUpdate();
         } while (!boundaryWalkerLooped(start));
-        probs_actual[region] = prob;
+        //probs_actual[region] = prob;
 
         removeSingleUnassigned();
         cmap.clearDist();
         //cmap.clearTrack();
         
-        double p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
+        /*double p0=probs_actual[0], p1=probs_actual[1], p2=probs_actual[2], p3=probs_actual[3];
         double sum = p0+p1+p2+p3;
         ROS_INFO("%s: probs_actual=[%f,%f,%f,%f], sum=%f", getName().c_str(), p0,p1,p2,p3, sum);
         if (fabs(sum-1.0)>0.001) {
             ROS_ERROR("%s: ERROR: sum of actual probabilities is %f which is too far from 1.0", getName().c_str(), sum);
             exit(1);
-        }
+        }*/
     }
     
     #define LINE_WALK_MACRO(xx, yy) \
         while (x<dx) {\
             if (leps>=0) {leps -= dx; y++;}\
             leps += dy; x++;\
-            visitVertex(s.x+(xx), s.y+(yy));\
+            markVertex(s.x+(xx), s.y+(yy));\
         }; \
         break;
     
@@ -200,7 +260,7 @@ public:
         dx=x; dy=y; x=0; y=0;
         int leps = dy - (oct%2==0 ? dx : 1);
         
-        visitVertex(s.x, s.y);
+        markVertex(s.x, s.y);
         switch(oct) {
             case 0: LINE_WALK_MACRO( x,  y); 
             case 1: LINE_WALK_MACRO( y,  x); 
@@ -214,7 +274,7 @@ public:
     }
     
     
-    void visitVertex(int x, int y) {
+    /*void visitVertex(int x, int y) {
         double p;
         int cur = map_divided.data[x + y*map_divided.info.width];
         if (cur == 255) {
@@ -227,7 +287,7 @@ public:
                 region++;
             }
         }
-    }
+    }*/
     
     int findLowestCommonAncestor(int s1, int s2) {
         branch1.resize(0);
@@ -296,46 +356,47 @@ public:
         return cmap.getTrackStarId(s.x, s.y);
     }
     
-    bool isPointIn(Point& pt) {
+    bool isPointIn(Point& pt, Point& wpt) {
         int s = cmap.getTrackStarId(pt.x, pt.y);
-        if (s==wstar) {
+        int ws = cmap.getTrackStarId(wpt.x, wpt.y);
+        if (s==ws) {
             return true;
-        } else if (s!=0 && getParentStar(s)==wstar) {//parent->child
+        } else if (s!=0 && getParentStar(s)==ws) {//parent->child
             TrackStar child  = cmap.getTrackStar(s);
-            TrackStar parent = cmap.getTrackStar(wstar);
-            int Qx=wp.x-parent.x,       Qy=wp.y-parent.y;
+            TrackStar parent = cmap.getTrackStar(ws);
+            int Qx=wpt.x-parent.x,       Qy=wpt.y-parent.y;
             int Rx=pt.x-parent.x,       Ry=pt.y-parent.y;
             int Cx=child.x-parent.x,    Cy=child.y-parent.y;
 /*            int cx = pt.x-child.x,      cy = pt.y-child.y;
             int px = child.x-parent.x,  py = child.y-parent.y;
-            if ((child.x==wp.x && child.y==wp.y)||px*cy-py*cx >= 0) {*/
+            if ((child.x==wpt.x && child.y==wpt.y)||px*cy-py*cx >= 0) {*/
             if ((Qx*Cy-Qy*Cx)*(Cx*Ry-Cy*Rx)>=0) {
-                wstar = s;
+                ws = s;
                 return true;
             }
-        } else if (wstar!=0 && getParentStar(wstar)==s) {//child->parent
-            TrackStar child  = cmap.getTrackStar(wstar);
+        } else if (ws!=0 && getParentStar(ws)==s) {//child->parent
+            TrackStar child  = cmap.getTrackStar(ws);
             TrackStar parent = cmap.getTrackStar(s);
-            /*int cx = wp.x-child.x,      cy = wp.y-child.y;
+            /*int cx = wpt.x-child.x,      cy = wpt.y-child.y;
             int px = child.x-parent.x,  py = child.y-parent.y;
             if ((child.x==pt.x && child.y==pt.y  ) || cx*py-cy*px >= 0) {*/
-            int Qx=wp.x-parent.x,       Qy=wp.y-parent.y;
+            int Qx=wpt.x-parent.x,       Qy=wpt.y-parent.y;
             int Rx=pt.x-parent.x,       Ry=pt.y-parent.y;
             int Cx=child.x-parent.x,    Cy=child.y-parent.y;
             if ((Qx*Cy-Qy*Cx)*(Cx*Ry-Cy*Rx)>=0) {
-                wstar = s;
+                ws = s;
                 return true;
             }
         } else {
-            int lca = findLowestCommonAncestor(wstar, s);
+            int lca = findLowestCommonAncestor(ws, s);
             TrackStar pivotStar = cmap.getTrackStar(lca);
-            Point rightVec(wp.x-pivotStar.x, wp.y-pivotStar.y);
+            Point rightVec(wpt.x-pivotStar.x, wpt.y-pivotStar.y);
             Point leftVec(pt.x-pivotStar.x, pt.y-pivotStar.y);
             if (allWayPointsBetweenVectors(rightVec, leftVec, pivotStar, branch1, lca) &&
                 allWayPointsBetweenVectors(rightVec, leftVec, pivotStar, branch2, lca)) {
-            /*if (isContinuousTurnPath(branch1, wp, lca, false) &&
+            /*if (isContinuousTurnPath(branch1, wpt, lca, false) &&
                 isContinuousTurnPath(branch2, pt, lca, true)) {*/
-                wstar = s;
+                ws = s;
                 return true;
             }
         }
@@ -371,7 +432,7 @@ public:
                 } else {
                     pt.x = wp.x+OCT2POINT[woct][0];
                     pt.y = wp.y+OCT2POINT[woct][1];
-                    if (isPointIn(pt)) {
+                    if (isPointIn(pt,wp)) {
                         woct -= 2; woct &= 7; //turn by -90deg
                         wp = pt;
                         moved = true;
@@ -385,7 +446,7 @@ public:
                 wstate = StraightReach;
                 pt.x = wp.x+OCT2POINT[woct][0];
                 pt.y = wp.y+OCT2POINT[woct][1];
-                if (isPointIn(pt)) {
+                if (isPointIn(pt,wp)) {
                     woct -= 1; woct &= 7; //turn by -45deg
                     wp = pt;
                     moved = true;
@@ -400,7 +461,7 @@ public:
                 } else {
                     pt.x = wp.x+OCT2POINT[woct+1][0];
                     pt.y = wp.y+OCT2POINT[woct+1][1];
-                    if (isPointIn(pt)) {
+                    if (isPointIn(pt,wp)) {
                         //wp.x += OCT2POINT_MOVE[woct][0];
                         //wp.y += OCT2POINT_MOVE[woct][1];
                         wstate = DiagReach;
@@ -410,7 +471,7 @@ public:
                     } else {
                         /*pt.x = wp.x+OCT2POINT[woct][0];
                         pt.y = wp.y+OCT2POINT[woct][1];
-                        if (isPointIn(pt)) {
+                        if (isPointIn(pt,wp)) {
                             wp = pt;
                             woct -= 2; woct &= 7; //turn by -90deg
                             moved = true;
