@@ -1,5 +1,3 @@
-//#define DEBUG_DIVIDER 1
-
 /*
        subs                                       pubs
                    +--------------------+
@@ -121,8 +119,9 @@ void MapDivider::updateProbsScaled() {
 
 void MapDivider::markVertex(int x, int y) {
     int k = x + y*(pdf->info.width);
+    int cur = map_divided.data[k];
     double p = pdf->data[k];
-    if (p>=0.0) {
+    if (p>=0.0 && cur==255) {
         prob += p;
         if (prob > probs_scaled[cur_region] && cur_region<probs_scaled.size()-1) {
             //ROS_INFO("_________________ probs_actual = [%f,%f,%f,%f]", probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
