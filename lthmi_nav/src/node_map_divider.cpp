@@ -1,5 +1,3 @@
-//#define DEBUG_DIVIDER 1
-
 /*
        subs                                       pubs
                    +--------------------+
