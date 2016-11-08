@@ -1,13 +1,14 @@
 #ifndef LTHMI_NAV_MAP_DIVIDER_H
 #define LTHMI_NAV_MAP_DIVIDER_H
 
+#include <ros/ros.h>
 
-#if ROSCONSOLE_MIN_SEVERITY==ROSCONSOLE_SEVERITY_DEBUG
+#if ROSCONSOLE_MIN_SEVERITY == ROSCONSOLE_SEVERITY_DEBUG
     #define DEBUG_DIVIDER 1
 #endif
 
 
-#include <ros/ros.h>
+
 #include <geometry_msgs/PoseStamped.h>
 
 #include <lthmi_nav/IntMap.h>
