@@ -102,11 +102,14 @@ class MapDividerTester (SyncingNode):
             for y in range(msg.info.height):
                 reg = msg.data[x + y*msg.info.width]
                 if reg==255 and self.pdf.data[x + y*msg.info.width]>=0: #there are unexplored vertices
-                    if True:
-                        return
                     rospy.logerr("%s: ERROR: divided map contains a vertex at [%d,%d] without a region assigned" % (rospy.get_name(),x,y))
-                    exit(1)
+                    shutdown_on_unassigned = False
+                    if shutdown_on_unassigned:
+                        rospy.signal_shutdown("ERROR: divided map contains a vertex at [%d,%d] without a region assigned" % (x,y))
+                    return
         rospy.loginfo("%s: /divided_map recieived and checked for unussigned vertices (all fine)." % (rospy.get_name()))
+        if rospy.is_shutdown():
+            rospy.signal_shutdown("Interrupt?")
         
         if self.cfg['delay']>0:
             rospy.sleep(self.cfg['delay'])
