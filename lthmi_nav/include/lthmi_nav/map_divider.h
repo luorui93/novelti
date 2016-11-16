@@ -56,6 +56,7 @@ public:
     void startDivider();
     void updateProbsScaled();
     void markVertex(int x, int y);
+    void markVertex(int k);
     void endDivider();
     
     virtual void divide(){};

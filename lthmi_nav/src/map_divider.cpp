@@ -118,7 +118,10 @@ void MapDivider::updateProbsScaled() {
 }
 
 void MapDivider::markVertex(int x, int y) {
-    int k = x + y*(pdf->info.width);
+    markVertex(x + y*(pdf->info.width));
+}
+
+void MapDivider::markVertex(int k) {
     int cur = map_divided.data[k];
     double p = pdf->data[k];
     if (p>=0.0 && cur==255) {
