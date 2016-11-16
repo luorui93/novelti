@@ -68,6 +68,84 @@ using namespace cwave;
 
 namespace lthmi_nav {
 
+/*class ExtremalMapDivCwaveProcessor : public CWave2Processor {
+public:
+    typedef Point BorderVertex;
+    typedef std::list<BorderVertex> StarBorder;
+    typedef BeamBorder std::list<>;
+    
+    struct BBeam {
+        ...  start;
+        ...  end;
+    }
+    
+    struct SStar {
+        std::list<BorderVertex>  border;
+        std::list<BBeam> beams;
+    }
+    
+    CompoundMap& prev_cmap_;
+    vector<SStar> sstars_;
+    
+    Point cur_vertex_;
+    
+    ExtremalMapDivCwaveProcessor(CompoundMap& prev_cmap) :
+        prev_cmap_(prev_cmap)
+    {
+    }
+    
+    void processVertex(const Point& p) {
+        cur_vertex_ = p;
+    }
+    
+    void addStartCandidate() {
+        double alpha = atan2(cur_vertex_.x - cur_star_.x, cur_vertex_.y - cur_star_.y);
+        if (alpha < cur_beam_.start->alpha) {
+            //update
+            *(cur_beam_.start) = {cur_vertex_.x, cur_vertex_.y, alpha};
+        } else {
+            //add
+            cur_beam_.start++;//
+            cur_beam_.start = cur_star_.border.insert(cur_beam_.start, {cur_vertex_.x, cur_vertex_.y, alpha});
+        }
+    }
+    
+    void addEndCandidate() {
+        double alpha = atan2(cur_vertex_.x - cur_star_.x, cur_vertex_.y - cur_star_.y);
+        if (alpha > cur_beam_.end->alpha) {
+            //update
+            *(cur_beam_.end) = {cur_vertex_.x, cur_vertex_.y, alpha};
+        } else {
+            //add
+            cur_beam_.end++;//
+            cur_beam_.end = cur_star_.border.insert(cur_beam_.end, {cur_vertex_.x, cur_vertex_.y, alpha});
+        }
+    }
+    
+    void onInitSource(Point& p) {};
+    void onAddStar(Star& parent_star, Star& s) {};
+    void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& p, int old_dist, int new_dist) {
+        if (star.id == prev_cmap_.getTrackStarId(p.x,p.y)
+            processVertex(p);
+    };
+    void onDistanceCorrection(Star& parent_star, Point& p, int old_dist, int new_dist) {};
+    void onNextStar() {
+        cur_star_ = 
+    };
+    void onNextBeam() {};
+    void onBeamDeletion() {};
+    void onBeamAddition() {};
+    void onBeamStart() {
+        cur_beam_.
+    };
+    void onBeamEnd() {};
+    void onRecursiveCall() {
+        
+    };
+    void onRecursiveReturn() {}; 
+}*/
+
+
 
 class ExtremalMapDivider :  public MapDivider, public CWave2Processor {
 public:
