@@ -20,7 +20,8 @@
 #include "map_divider_vtile.cpp"
 #include "map_divider_htile.cpp"
 #include "map_divider_equidist.cpp"
-#include "map_divider_extremal.cpp"
+//#include "map_divider_extremal.cpp"
+#include "map_divider_extremal_sort.cpp"
 #include "map_divider_vchess.cpp"
 
 using namespace lthmi_nav;
