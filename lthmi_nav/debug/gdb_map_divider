@@ -12,7 +12,11 @@ define v
 end
 
 define sp
-    b cwave:: Walker::setPoint
+    b cwave::Walker::setPoint
+end
+
+define as
+    b cwave::CWave2::addStar if (s.c.x==13 && s.c.y==12)
 end
 
 b lthmi_nav::ExtremalMapDivider::isPointIn if (pt.x==58 && pt.y==119)

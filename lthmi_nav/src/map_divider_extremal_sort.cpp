@@ -51,7 +51,7 @@ public:
     void divideByExtremals();
     void iterateStarRegion(CWaveProcPassTwo& procTwo, int s);
     void publishBoundaryPose(int x, int y);
-    bool isChildFirst(int star_id, int child_k, int next_k);
+    bool isChildFirst(int base_star_id, int star_k, int child_k, int next_k);
 };
     
 
@@ -84,6 +84,8 @@ public:
     };
     
     void onAddStar(Star& parent_star, Star& s) {
+        if (s.id==15 || s.id==16)
+            ROS_INFO(">>>>>>>>>>>>>>>>>>> parent_star_id=%d",parent_star.id);
         //star_map_[s.c.x + s.c.y*cmap_.width()] = s.id;
         verts_per_star_.push_back(0);
     };
@@ -111,7 +113,7 @@ public:
     
     void updateStarMap() {
         TrackStar star;
-        for (int s=0;s<cmap_.track_stars.size(); s++) {
+        for (int s=cmap_.track_stars.size()-1;s>=0; s--) {
             star = cmap_.track_stars[s];
             star_map_[star.x + star.y*cmap_.width()] = s;
         }
@@ -263,19 +265,42 @@ ExtremalMapDivider::ExtremalMapDivider() :
         cw2.setProcessor(&procTwo);
         cw2.calc(pt_best);
         
+        
+        procOne.star_map_ = vector<int>(cmap_.width()*cmap_.height(), -1);
+        
+        TrackStar star;
+        int k, cur_star_id;
+        for (int s=cmap_.track_stars.size()-1;s>=0; s--) {
+            star = cmap_.track_stars[s];
+            k = star.x + star.y*cmap_.width();
+            cur_star_id = procOne.star_map_[k];
+            if ( cur_star_id >= 0 && cur_star_id != s) {
+                procTwo.star_vertices_[cur_star_id].insert( 
+                    procTwo.star_vertices_[cur_star_id].end(), 
+                    procTwo.star_vertices_[s].begin(), 
+                    procTwo.star_vertices_[s].end() 
+                );
+            } else {
+                procOne.star_map_[k] = s;
+            }
+        }
+        
+        
+        
         procTwo.sortRegions();
         markVertex(pt_best.x, pt_best.y);
         iterateStarRegion(procTwo, 0);
         cmap_.clearDist();
     }
     
-    bool ExtremalMapDivider::isChildFirst(int star_k, int child_k, int next_k) {
+    bool ExtremalMapDivider::isChildFirst(int base_star_id, int star_k, int child_k, int next_k) {
+        TrackStar base_star = cmap_.getTrackStar(base_star_id);
         int sx = star_k % cmap_.width();
         int sy = star_k / cmap_.width();
         int cx = child_k % cmap_.width() - sx;
         int cy = child_k / cmap_.width() - sy;
-        int nx = next_k % cmap_.width()  - sx;
-        int ny = next_k / cmap_.width()  - sy;
+        int nx = next_k % cmap_.width()  - base_star.x;
+        int ny = next_k / cmap_.width()  - base_star.y;
         return cx*ny - cy*nx >0;
     }
     
@@ -306,7 +331,7 @@ ExtremalMapDivider::ExtremalMapDivider() :
                 if (i == procTwo.star_vertices_[s].size()-1 || (
                         procTwo.star_vertices_[child_star_id].size()>0 
                             &&
-                        isChildFirst(v.k, procTwo.star_vertices_[child_star_id][0].k, procTwo.star_vertices_[s][i+1].k)
+                        isChildFirst(s, v.k, procTwo.star_vertices_[child_star_id][0].k, procTwo.star_vertices_[s][i+1].k)
                     )
                 )
                     iterateStarRegion(procTwo, child_star_id);
