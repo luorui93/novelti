@@ -27,6 +27,7 @@ public:
     enum State { WAITING, ONLY_POSE, ONLY_PDF };
     State state;
     ros::Publisher pub_map_div;
+    ros::Publisher pub_debug_map_div;
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     

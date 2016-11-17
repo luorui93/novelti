@@ -33,6 +33,9 @@ void MapDivider::stop() {
     sub_pose_opt.shutdown();
     sub_pdf.shutdown();
     pub_map_div.shutdown();
+    #ifdef DEBUG_DIVIDER
+        pub_debug_map_div.shutdown();
+    #endif
 }
 
 void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
@@ -47,9 +50,14 @@ void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
     map_divided.info.origin.position.x = -0.5*req.map.info.resolution;
     map_divided.info.origin.position.y = -0.5*req.map.info.resolution;
     map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
-    pub_map_div   = node.advertise<lthmi_nav::IntMap>("/map_divided", 1, true); //not latched
+    
+    pub_map_div   = node.advertise<lthmi_nav::IntMap>("/map_divided", 1, true); //latched
     sub_pose_opt  = node.subscribe("/pose_best", 1, &MapDivider::poseOptCallback, this);
     sub_pdf       = node.subscribe("/pdf", 1, &MapDivider::pdfCallback, this);
+    
+    #ifdef DEBUG_DIVIDER
+        pub_debug_map_div   = node.advertise<lthmi_nav::IntMap>("/debug_map_divided", 1, true); //latched
+    #endif
 }
 
 void MapDivider::poseOptCallback(geometry_msgs::PoseStampedConstPtr msg) {
