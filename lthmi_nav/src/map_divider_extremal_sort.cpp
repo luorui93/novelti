@@ -31,26 +31,23 @@ using namespace cwave;
 
 namespace lthmi_nav {
 
+class CWaveProcPassOne;
 class CWaveProcPassTwo;
 
 class ExtremalMapDivider :  public MapDivider, public CWave2Processor {
 public:
     CompoundMap cmap_;
-    //int region;
-    //double prob;
     
     #ifdef DEBUG_DIVIDER
-        IntMap track_map_msg;
-        ros::Publisher pub_debug_pose_border;
         ros::Publisher pub_debug_track_map;
     #endif
         
     ExtremalMapDivider();
     void start(lthmi_nav::StartExperiment::Request& req);
     void divide();
+    void preprocessOverlappingStars(CWaveProcPassOne& procOne, CWaveProcPassTwo& procTwo);
     void divideByExtremals();
     void iterateStarRegion(CWaveProcPassTwo& procTwo, int s);
-    void publishBoundaryPose(int x, int y);
     bool isChildFirst(int base_star_id, int star_k, int child_k, int next_k);
 };
     
@@ -84,22 +81,22 @@ public:
     };
     
     void onAddStar(Star& parent_star, Star& s) {
-        if (s.id==15 || s.id==16)
-            ROS_INFO(">>>>>>>>>>>>>>>>>>> parent_star_id=%d",parent_star.id);
+        //if (s.id==15 || s.id==16)
+        //    ROS_INFO(">>>>>>>>>>>>>>>>>>> parent_star_id=%d",parent_star.id);
         //star_map_[s.c.x + s.c.y*cmap_.width()] = s.id;
         verts_per_star_.push_back(0);
     };
     
     void procVertex(Star& star, Point& p, int old_dist) {
         #ifdef DEBUG_DIVIDER
-            //d_.publishBoundaryPose(p.x,p.y);
+            //d_.publishDebugPose(p.x,p.y);
         #endif
         if (old_dist == MAP_POINT_UNEXPLORED) {
             verts_per_star_[star.id]++;
         } else {
             int old_star_id = cmap_.getTrackStarId(p.x,p.y);
             verts_per_star_[star.id]++;
-            verts_per_star_[old_star_id]--;
+            //verts_per_star_[old_star_id]--;
         }
     }
     
@@ -159,6 +156,11 @@ public:
         indexes_ = vector<int>(procOne.verts_per_star_.size(), 0);
     }
     
+    /*~CWaveProcPassTwo() {
+        star_vertices_.~vector<vector<SortVertex>>();
+        indexes_.~vector<int>();
+    }*/
+    
     float calcPseudoangle_0to4(int dx, int dy) { //return 0..4
         //from: http://stackoverflow.com/a/16542043/5787022
         float p = (float)dy/(abs(dx)+abs(dy));
@@ -180,7 +182,7 @@ public:
     
     void procVertex(Star& star, Point& p, int old_dist) {
         #ifdef DEBUG_DIVIDER
-            procOne_.d_.publishBoundaryPose(p.x,p.y);
+            procOne_.d_.publishDebugPose(p.x,p.y);
         #endif
         int k = p.x + p.y*cmap_.width();
         if (star.id == track_map_[k]) {
@@ -196,7 +198,8 @@ public:
                 
             ROS_DEBUG("s=%d, p=(%d,%d), (dx,dy)=(%d,%d) -> pangle=%f", star.id, p.x, p.y, dx, dy, pangle);
             star_vertices_[star.id][indexes_[star.id]] = {k, pangle, star.idist};
-            //ROS_DEBUG("aaaaaaa");
+            if (indexes_[star.id] >= star_vertices_[star.id].size())
+                ROS_INFO("--------------------------- star.id=%d, index=%d, p=(%d,%d)", star.id, indexes_[star.id], p.x, p.y);
             indexes_[star.id]++;
         }
     }
@@ -212,7 +215,8 @@ public:
     
     void sortRegions() {
         for (int s=0; s<star_vertices_.size() ; s++) {
-             std::sort(star_vertices_[s].begin(), star_vertices_[s].end());
+            star_vertices_[s].resize(indexes_[s]);
+            std::sort(star_vertices_[s].begin(), star_vertices_[s].end());
         }
     }
 };
@@ -222,7 +226,6 @@ ExtremalMapDivider::ExtremalMapDivider() :
         MapDivider() 
     { 
         #ifdef DEBUG_DIVIDER
-            pub_debug_pose_border = node.advertise<geometry_msgs::PoseStamped>("/debug_pose_border", 1, true); //not latched
             pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, true); //not latched
         #endif
     }
@@ -234,10 +237,6 @@ ExtremalMapDivider::ExtremalMapDivider() :
                 if (req.map.data[x + y*req.map.info.width]==0)
                     cmap_.setPixel(x,y, FREED); //free
         MapDivider::start(req);
-        #ifdef DEBUG_DIVIDER
-            track_map_msg = map_divided; //copy
-        #endif
-        //track_stars = std::vector<MyStar>(50);
     }
     
     
@@ -245,29 +244,8 @@ ExtremalMapDivider::ExtremalMapDivider() :
         divideByExtremals();
     }
     
-    void ExtremalMapDivider::divideByExtremals() {
-        map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
-        CWave2 cw(cmap_);
-        CWaveProcPassOne procOne(cmap_, *this);
-        cw.setProcessor(&procOne);
-        cw.calc(pt_best);
-        #ifdef DEBUG_DIVIDER
-            track_map_msg.data = cmap_.track_map;
-            pub_debug_track_map.publish(track_map_msg);
-        #endif
-        vector<int> track_map = cmap_.track_map;
-        procOne.updateStarMap();
-        
-        cmap_.clearDist();
-            
-        CWave2 cw2(cmap_);
-        CWaveProcPassTwo procTwo(cmap_, procOne, track_map);
-        cw2.setProcessor(&procTwo);
-        cw2.calc(pt_best);
-        
-        
+    void ExtremalMapDivider::preprocessOverlappingStars(CWaveProcPassOne& procOne, CWaveProcPassTwo& procTwo) {
         procOne.star_map_ = vector<int>(cmap_.width()*cmap_.height(), -1);
-        
         TrackStar star;
         int k, cur_star_id;
         for (int s=cmap_.track_stars.size()-1;s>=0; s--) {
@@ -284,8 +262,30 @@ ExtremalMapDivider::ExtremalMapDivider() :
                 procOne.star_map_[k] = s;
             }
         }
+    }
+    
+    void ExtremalMapDivider::divideByExtremals() {
+        map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
+        CWave2 cw(cmap_);
+        CWaveProcPassOne procOne(cmap_, *this);
+        cw.setProcessor(&procOne);
+        cw.calc(pt_best);
+        #ifdef DEBUG_DIVIDER
+            IntMap track_map_msg = map_divided;
+            track_map_msg.data = cmap_.track_map;
+            pub_debug_track_map.publish(track_map_msg);
+        #endif
+        vector<int> track_map = cmap_.track_map;
+        procOne.updateStarMap();
         
+        cmap_.clearDist();
+            
+        CWave2 cw2(cmap_);
+        CWaveProcPassTwo procTwo(cmap_, procOne, track_map);
+        cw2.setProcessor(&procTwo);
+        cw2.calc(pt_best);
         
+        preprocessOverlappingStars(procOne,procTwo);
         
         procTwo.sortRegions();
         markVertex(pt_best.x, pt_best.y);
@@ -323,8 +323,8 @@ ExtremalMapDivider::ExtremalMapDivider() :
             #ifdef DEBUG_DIVIDER
                 int x = v.k % cmap_.width();
                 int y = v.k / cmap_.width();
-                publishBoundaryPose(x,y);
-                pub_map_div.publish(map_divided);
+                publishDebugPose(x,y);
+                pub_debug_map_div.publish(map_divided);
             #endif
             int child_star_id = procTwo.procOne_.star_map_[v.k];
             if (child_star_id >=0) {
@@ -345,17 +345,6 @@ ExtremalMapDivider::ExtremalMapDivider() :
             left_stars.pop();
         }
     }
-    
-    #ifdef DEBUG_DIVIDER
-        void ExtremalMapDivider::publishBoundaryPose(int x, int y) {
-//             //ROS_WARN("Boundary pose: (%d,%d), oct=%d", wp.x, wp.y, woct);
-            geometry_msgs::PoseStamped msg;
-            updatePose(msg, x, y);
-            msg.header.frame_id="/map";
-            pub_debug_pose_border.publish(msg);
-        }
-    #endif
-    
 //};
 
 
