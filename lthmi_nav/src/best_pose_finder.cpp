@@ -135,7 +135,7 @@ void BestPoseFinder::calcReachArea() {
     #endif
 }
 
-void BestPoseFinder::moveToClosestInReachAreaEuq() {
+void BestPoseFinder::moveToClosestInReachAreaEuc() {
     //input (pt)  wrt to map
     //output (pt) wrt to reach_area
     Point out;

@@ -63,7 +63,7 @@ public:
     void poseCurCallback(geometry_msgs::PoseStampedConstPtr pose);
     void pdfCallback(lthmi_nav::FloatMapConstPtr pdf);
     void calcReachArea();
-    void moveToClosestInReachAreaEuq();
+    void moveToClosestInReachAreaEuc();
     void moveToClosestInReachAreaObst();
     void moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf);
     virtual void findBestPose(lthmi_nav::FloatMapConstPtr pdf);

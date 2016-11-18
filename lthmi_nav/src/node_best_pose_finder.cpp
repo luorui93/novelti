@@ -17,8 +17,9 @@
 */
 
 #include <lthmi_nav/best_pose_finder.h>
-#include "best_pose_finder_maxprob.cpp"
-#include <lthmi_nav/best_pose_finder_cog.h>
+//#include "best_pose_finder_maxprob.cpp"
+//#include <lthmi_nav/best_pose_finder_cog.h>
+#include <lthmi_nav/best_pose_finder_quasi_opt.h>
 #include "best_pose_finder_opt.cpp"
 
 
@@ -36,21 +37,25 @@ int main(int argc, char **argv) {
     if      (method=="no_move")
         bpf = new BestPoseFinder();
     else if (method=="ra_maxprob")   
-        bpf = new MaxprobPoseFinder();
-    else if (method=="maxprob_euq")  //doesn't guarantee convergance
-        bpf = new MaxprobPoseFinder(true);
+        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::RA_MAXPROB);
+    else if (method=="maxprob_euc")  //doesn't guarantee convergance
+        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::MAXPROB_EUC);
     else if (method=="maxprob_obst") 
-        bpf = new MaxprobPoseFinder(false);
+        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::MAXPROB_OBST);
     else if (method=="cog_euq")      //doesn't guarantee convergance
-        bpf = new CogPoseFinder();
+        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::COG_EUC);
     else if (method=="nearcog_euq")  //doesn't guarantee convergance
-        bpf = new CogPoseFinder(true);
+        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::NEARCOG_EUC);
     else if (method=="nearcog_obst") 
-        bpf = new CogPoseFinder(false);
-    else if (method=="cog2lopt")     
-        bpf = new OptPoseFinder(true);
-    else if (method=="cog2gopt")     
-        bpf = new OptPoseFinder(false);
+        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::NEARCOG_OBST);
+    else if (method=="cog2lopt")
+        bpf = new OptPoseFinder(OptPoseFinder::COG2LOPT);
+    else if (method=="ramaxprob2lopt")
+        bpf = new OptPoseFinder(OptPoseFinder::RAMAXPROB2LOPT);
+    else if (method=="maxprob2lopt")     
+        bpf = new OptPoseFinder(OptPoseFinder::MAXPROB2LOPT);
+    else if (method=="gopt")
+        bpf = new OptPoseFinder(OptPoseFinder::GOPT);
     else {
          ROS_ERROR("%s: wrong value for 'method' parameter ('%s'), will die now", getName().c_str(), method.c_str());
          return 1;

@@ -1,25 +1,26 @@
-#include <lthmi_nav/best_pose_finder_cog.h>
+#include <lthmi_nav/best_pose_finder_quasi_opt.h>
 #include <random>
 
 
 namespace lthmi_nav {
 
 
-class OptPoseFinder :  public CogPoseFinder, public CWave2Processor {
+class OptPoseFinder :  public QuasiOptPoseFinder, public CWave2Processor {
 public:
+    enum Method { COG2LOPT, RAMAXPROB2LOPT, MAXPROB2LOPT, GOPT };
+
     const int NEIGHBOURS[8][2] = {{1,0}, {1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1}, {0,-1}, {1,-1}};
-    bool local;
     int glob_max_attempts;
     std::default_random_engine generator;
     double meanDist;
     lthmi_nav::FloatMapConstPtr pdf;
+    Method method_;
     
-    
-    OptPoseFinder(bool isLocal) :
-        CogPoseFinder()
+    OptPoseFinder(Method method) :
+        QuasiOptPoseFinder(RA_MAXPROB),
+        method_(method)
     {
-        local = isLocal;
-        if (!local)
+        if (method_ == GOPT)
             node.param<int>("glob_max_attempts", glob_max_attempts, 25);
     }
     
@@ -89,7 +90,7 @@ public:
         findCogOnPdf(pdf);              PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestOnMap(pdf);        PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
-        slideToLocalMin();              
+        slideToLocalMin();
     }
     
     void genStartVertex() {
@@ -121,11 +122,17 @@ public:
     }
     
     void findBestPose(lthmi_nav::FloatMapConstPtr pdf1) {
-        pdf = pdf1;
-        if (local)
-            findLocalOptPose();
-        else
-            findGlobalOptPose();
+        pdf = pdf1; //COG2LOPT, RAMAXPROB2LOPT, MAXPROB2LOPT, GOPT
+        switch (method_) {
+            case COG2LOPT: 
+                findLocalOptPose(); break;
+            case MAXPROB2LOPT:
+                findLocalOptPose(); break;//findRaMaxprob2localOptPose
+            case RAMAXPROB2LOPT:
+                findLocalOptPose(); break;//findMaxprob2localOptPose
+            case GOPT:
+                findGlobalOptPose(); break;
+        }
     }
     
     void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& p, int old_dist, int new_dist) {
