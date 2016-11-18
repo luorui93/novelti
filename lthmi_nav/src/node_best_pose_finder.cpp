@@ -37,13 +37,13 @@ int main(int argc, char **argv) {
         bpf = new BestPoseFinder();
     else if (method=="ra_maxprob")   
         bpf = new MaxprobPoseFinder();
-    else if (method=="maxprob_euq")  
+    else if (method=="maxprob_euq")  //doesn't guarantee convergance
         bpf = new MaxprobPoseFinder(true);
     else if (method=="maxprob_obst") 
         bpf = new MaxprobPoseFinder(false);
-    else if (method=="cog_euq")      
+    else if (method=="cog_euq")      //doesn't guarantee convergance
         bpf = new CogPoseFinder();
-    else if (method=="nearcog_euq")  
+    else if (method=="nearcog_euq")  //doesn't guarantee convergance
         bpf = new CogPoseFinder(true);
     else if (method=="nearcog_obst") 
         bpf = new CogPoseFinder(false);
