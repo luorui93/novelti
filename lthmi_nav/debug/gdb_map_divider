@@ -45,11 +45,15 @@ b lthmi_nav::ExtremalMapDivider::divideByExtremals
 
 #b lthmi_nav::CWaveProcPassOne::procVertex if (star.id==18)
 
-#b lthmi_nav::ExtremalMapDivider::iterateStarRegion if (s==18)
+b lthmi_nav::ExtremalMapDivider::iterateStarRegion
 #b lthmi_nav::CWaveProcPassTwo::CWaveProcPassTwo
 #b lthmi_nav::CWaveProcPassOne::procVertex if (p.x==22 && p.y==6)
 #b lthmi_nav::CWaveProcPassTwo::procVertex if (p.x==22 && p.y==6)
-b lthmi_nav::CWaveProcPassTwo::procVertex if (star.id==18 && p.x==21 && p.y==6)
+#b lthmi_nav::CWaveProcPassTwo::procVertex if (star.id==18 && p.x==21 && p.y==6)
 #b lthmi_nav::CWaveProcPassTwo::onDistanceCorrection if (p.x==22 && p.y==6)
 
+#b lthmi_nav::CWaveProcPassTwo::~CWaveProcPassTwo
+
 r
+c
+#n 5444
