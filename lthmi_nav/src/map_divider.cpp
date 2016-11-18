@@ -35,6 +35,7 @@ void MapDivider::stop() {
     pub_map_div.shutdown();
     #ifdef DEBUG_DIVIDER
         pub_debug_map_div.shutdown();
+        pub_debug_pose.shutdown();
     #endif
 }
 
@@ -57,6 +58,7 @@ void MapDivider::start(lthmi_nav::StartExperiment::Request& req) {
     
     #ifdef DEBUG_DIVIDER
         pub_debug_map_div   = node.advertise<lthmi_nav::IntMap>("/debug_map_divided", 1, true); //latched
+        pub_debug_pose      = node.advertise<geometry_msgs::PoseStamped>("/debug_pose", 1, true); //not latched
     #endif
 }
 
@@ -152,3 +154,12 @@ void MapDivider::endDivider() {
     probs_actual[cur_region] = prob;
 }
 
+#ifdef DEBUG_DIVIDER
+    void MapDivider::publishDebugPose(int x, int y) {
+        //ROS_WARN("Debug pose vertex: (%d,%d)", x, y);
+        geometry_msgs::PoseStamped msg;
+        updatePose(msg, x, y);
+        msg.header.frame_id="/map";
+        pub_debug_pose.publish(msg);
+    }
+#endif

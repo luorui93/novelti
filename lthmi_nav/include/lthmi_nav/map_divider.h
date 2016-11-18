@@ -27,7 +27,6 @@ public:
     enum State { WAITING, ONLY_POSE, ONLY_PDF };
     State state;
     ros::Publisher pub_map_div;
-    ros::Publisher pub_debug_map_div;
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     
@@ -38,6 +37,12 @@ public:
     
     std::vector<double> probs_optimal;
     std::vector<double> probs_actual;
+    
+    #ifdef DEBUG_DIVIDER
+        ros::Publisher pub_debug_pose;
+        ros::Publisher pub_debug_map_div;
+        void publishDebugPose(int x, int y);
+    #endif
     
     MapDivider();
     void stop();
