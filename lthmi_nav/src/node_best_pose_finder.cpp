@@ -33,7 +33,9 @@ int main(int argc, char **argv) {
     ROS_INFO("%s: started. method=%s", getName().c_str(), method.c_str());
     
     BestPoseFinder* bpf = nullptr;
-    if      (method=="ra_maxprob")   
+    if      (method=="no_move")
+        bpf = new BestPoseFinder();
+    else if (method=="ra_maxprob")   
         bpf = new MaxprobPoseFinder();
     else if (method=="maxprob_euq")  
         bpf = new MaxprobPoseFinder(true);

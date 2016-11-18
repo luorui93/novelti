@@ -203,6 +203,12 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
     }
     pt = out;
 }
+
+void BestPoseFinder::findBestPose(lthmi_nav::FloatMapConstPtr pdf1) { //no move
+    pt.x = r2a.x + max_dist+1;
+    pt.y = r2a.y + max_dist+1;
+}
+
 #ifdef DEBUG_POSE_FINDER
     void BestPoseFinder::pubDebugPose(int x, int y, bool wrtMap) {
         if (!wrtMap) {

@@ -66,7 +66,7 @@ public:
     void moveToClosestInReachAreaEuq();
     void moveToClosestInReachAreaObst();
     void moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf);
-    virtual void findBestPose(lthmi_nav::FloatMapConstPtr pdf) {};
+    virtual void findBestPose(lthmi_nav::FloatMapConstPtr pdf);
     
 };
 }
