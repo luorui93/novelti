@@ -33,11 +33,13 @@ int main(int argc, char **argv) {
     std::string p = "htile";
     n.getParam("method", p);
     MapDivider* mdiv = nullptr;
-    if      (p=="vtile")    mdiv = new TileMapDivider(TileMapDivider::VERT);
-    else if (p=="htile")    mdiv = new TileMapDivider(TileMapDivider::HORIZ);
-    else if (p=="equidist") mdiv = new CWaveMapDivider(CWaveMapDivider::EQUIDIST);
-    else if (p=="extremal") mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREMAL);
-    else if (p=="vchess")   mdiv = new VertChessMapDivider();
+    if      (p=="vtile")        mdiv = new TileMapDivider(TileMapDivider::VERT);
+    else if (p=="htile")        mdiv = new TileMapDivider(TileMapDivider::HORIZ);
+    else if (p=="altertile")    mdiv = new TileMapDivider(TileMapDivider::ALTER);
+    else if (p=="equidist")     mdiv = new CWaveMapDivider(CWaveMapDivider::EQUIDIST);
+    else if (p=="extremal")     mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREMAL);
+    else if (p=="extredist")    mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREDIST);
+    else if (p=="vchess")       mdiv = new VertChessMapDivider();
 //     else if (p=="mixed1")      mdiv = Mixed1MapDividerNode();
 //     else if (p=="mixed2")      mdiv = Mixed2MapDividerNode();
      else { 

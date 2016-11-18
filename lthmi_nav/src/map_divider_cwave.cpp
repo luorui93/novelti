@@ -60,9 +60,10 @@ class CWaveProcPassTwo;
 
 class CWaveMapDivider :  public MapDivider, public CWave2Processor {
 public:
-    enum DivMethod {EQUIDIST, EXTREMAL};
+    enum DivMethod {EQUIDIST, EXTREMAL, EXTREDIST};
     
     DivMethod method_;
+    bool even_;
     CompoundMap cmap_;
     
     #ifdef DEBUG_DIVIDER
@@ -254,6 +255,7 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method) :
         MapDivider(),
         method_(method)
     { 
+        even_ = true;
         #ifdef DEBUG_DIVIDER
             pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, true); //not latched
         #endif
@@ -275,6 +277,12 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method) :
                 divideByEquidists(); break;
             case EXTREMAL:
                 divideByExtremals(); break;
+            case EXTREDIST:
+                if (even_)
+                    divideByExtremals();
+                else
+                    divideByEquidists();
+                even_ = !even_;
         }
         
     }

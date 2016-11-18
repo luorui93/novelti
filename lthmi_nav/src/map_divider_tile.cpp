@@ -26,21 +26,30 @@ namespace lthmi_nav {
 
 class TileMapDivider :  public MapDivider {
     public:
-        enum TileType {HORIZ, VERT};
+        enum TileType {HORIZ, VERT, ALTER};
         
         TileType type_;
+        bool even_;
         
         TileMapDivider(TileType type) :
             MapDivider(),
             type_(type)
-        { }
+        { 
+            even_ = true; 
+        }
         
         void divide() {
             switch(type_) {
                 case HORIZ: 
                     divideIntoHorizTiles(); break;
-                default:
+                case VERT:
                     divideIntoVertTiles(); break;
+                case ALTER:
+                    if (even_)
+                        divideIntoHorizTiles();
+                    else
+                        divideIntoVertTiles();
+                    even_ = !even_;
             }
         }
         
