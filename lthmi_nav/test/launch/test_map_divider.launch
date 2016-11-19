@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="map" default="office4" />
+    <arg name="map" default="ak500inflated" />
+    <arg name="div" default="extermal" />
     <arg name="delay" default="0.0" />
     <arg name="px" default="0" />  <!-- both 0 means random -->
     <arg name="py" default="0" />  <!-- both 0 means random -->
@@ -34,7 +35,7 @@
 
     <node pkg="lthmi_nav" name="map_divider" type="map_divider"  output="screen"
             launch-prefix="$(arg prefix)">
-        <param name="method" value="extremal" /> <!-- vtile htile equidist extremal    -->
+        <param name="method" value="$(arg div)" />
         <rosparam>
             probs_optimal: [0.25, 0.25, 0.25, 0.25]
         </rosparam>
