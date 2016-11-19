@@ -92,8 +92,7 @@ public:
             
     void findMaxprob2localOptPose() {
         findMaxprobInPdf(pdf);          PUB_DEBUG_POSE(pt.x,pt.y, true);
-        pt.x -= r2a.x; 
-        pt.y -= r2a.y; //now wrt to reach area
+        moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
         slideToLocalMin();
     }
     
@@ -131,9 +130,9 @@ public:
             case COG2LOPT: 
                 findLocalOptPose(); break;
             case MAXPROB2LOPT:
-                findRaMaxprob2localOptPose(); break;
-            case RAMAXPROB2LOPT:
                 findMaxprob2localOptPose(); break;
+            case RAMAXPROB2LOPT:
+                findRaMaxprob2localOptPose(); break;
             case GOPT:
                 findGlobalOptPose(); break;
         }
