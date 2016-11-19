@@ -38,10 +38,10 @@ varprms = {
     'plow': 0.6,
     'peps': 1.0e-12,
     
-    'pos': ['ra_maxprob', 'maxprob_euq', 'maxprob_obst', 'cog_euq', 'nearcog_euq', 'nearcog_obst', 'cog2lopt', 'cog2gopt'],
+    'pos': ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt", "gopt"],
     'ksafe': 0.90,
     
-    'div': ['vtile', 'htile', 'equidist', 'extremal'],
+    'div': ["vtile", "htile", "altertile", "equidist", "extremal", "extredist"],
     'popt': 'equal',
     
     'rviz': 'static',
@@ -106,8 +106,6 @@ prmsets = {
     'test_all' : {
         'tries': 3,
         'mx' : ['mx70', 'mx91', 'mx100', 'mx79'],
-        'pos': ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt", "gopt"],
-        'div': ["vtile", "htile", "altertile", "equidist", "extremal", "extredist"],
         'path': [100,103,116,110],
         'vel': 1.0,
         'period': 1.0

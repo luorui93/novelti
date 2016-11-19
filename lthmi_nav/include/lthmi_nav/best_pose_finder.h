@@ -1,11 +1,14 @@
 #ifndef LTHMI_NAV_BEST_POSE_FINDER_H
 #define LTHMI_NAV_BEST_POSE_FINDER_H
 
-//#define DEBUG_POSE_FINDER 1 
-
 #include <mutex>
 
 #include <ros/ros.h>
+
+#if ROSCONSOLE_MIN_SEVERITY == ROSCONSOLE_SEVERITY_DEBUG
+    #define DEBUG_POSE_FINDER 1
+#endif
+
 #include <geometry_msgs/PoseStamped.h>
 
 #include <CompoundMap.h>
