@@ -97,10 +97,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: /map_divided
       Topic: /map_divided
-      Value: false
+      Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -187,11 +187,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 298.436
+      Scale: 15.1027
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.857614
-      Y: 0.394322
+      X: 24.9938
+      Y: 18.6836
     Saved: ~
 Window Geometry:
   Displays:
@@ -209,5 +209,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1171
-  X: 685
-  Y: 65
+  X: 675
+  Y: 55

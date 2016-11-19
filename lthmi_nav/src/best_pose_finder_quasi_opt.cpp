@@ -28,7 +28,6 @@ namespace lthmi_nav {
     void QuasiOptPoseFinder::findMaxprobInReachArea(lthmi_nav::FloatMapConstPtr pdf) {
         //output (pt) wrt to reach_area
         double prob, maxprob = 0.0;
-        Point pt;
         for (int x=ra_min.x; x<ra_max.x; x++) {
             for (int y=ra_min.y; y<ra_max.y; y++) {
                 if (reach_area.data[x+y*reach_area.info.width] != REACH_AREA_UNREACHABLE) {

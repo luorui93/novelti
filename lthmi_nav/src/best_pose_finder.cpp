@@ -205,8 +205,8 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
 }
 
 void BestPoseFinder::findBestPose(lthmi_nav::FloatMapConstPtr pdf1) { //no move
-    pt.x = r2a.x + max_dist+1;
-    pt.y = r2a.y + max_dist+1;
+    pt.x = cur_vertex.x - r2a.x;
+    pt.y = cur_vertex.y - r2a.y;
 }
 
 #ifdef DEBUG_POSE_FINDER

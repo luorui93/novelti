@@ -83,6 +83,14 @@ Visualization Manager:
       Plane Cell Count: 1000
       Reference Frame: <Fixed Frame>
       Value: true
+    - Alpha: 0.7
+      Class: lthmi_nav/FloatMap
+      Color Scheme: float
+      Draw Behind: false
+      Enabled: true
+      Name: /pdf
+      Topic: /pdf
+      Value: true
     - Alpha: 1
       Class: lthmi_nav/IntMap
       Color Scheme: regions
@@ -96,7 +104,7 @@ Visualization Manager:
       Axes Radius: 0.1
       Class: rviz/Pose
       Color: 0; 0; 255
-      Enabled: true
+      Enabled: false
       Head Length: 0.3
       Head Radius: 0.1
       Name: /pose_current
@@ -105,7 +113,7 @@ Visualization Manager:
       Shape: Arrow
       Topic: /pose_current
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -116,10 +124,18 @@ Visualization Manager:
       Head Radius: 0.15
       Name: /pose_desired
       Shaft Length: 0.2
-      Shaft Radius: 1
+      Shaft Radius: 0.5
       Shape: Arrow
-      Topic: /pose_desired
+      Topic: /pose_best
       Unreliable: false
+      Value: true
+    - Alpha: 0.7
+      Class: lthmi_nav/FloatMap
+      Color Scheme: float
+      Draw Behind: false
+      Enabled: true
+      Name: /debug_reach_area
+      Topic: /debug_reach_area
       Value: true
   Enabled: true
   Global Options:
@@ -144,7 +160,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0.01
+      Angle: 0
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -153,11 +169,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 12.6005
+      Scale: 14.0287
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 21.7801
-      Y: 15.8228
+      X: 26.379
+      Y: 19.2905
     Saved: ~
 Window Geometry:
   Displays:
@@ -175,5 +191,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 557
+  X: 527
   Y: 14
