@@ -8,7 +8,8 @@ namespace lthmi_nav {
     { }
     
     
-    void QuasiOptPoseFinder::findCogOnPdf(lthmi_nav::FloatMapConstPtr pdf) { //returns wrt to map
+    void QuasiOptPoseFinder::findCogOnPdf(lthmi_nav::FloatMapConstPtr pdf) { 
+        //returns wrt to map
         float p, xsum=0.0, ysum=0.0, psum=0.0;
         for (int x=0; x<pdf->info.width; x++) {
             for (int y=0; y<pdf->info.height; y++) {
@@ -63,15 +64,15 @@ namespace lthmi_nav {
     void QuasiOptPoseFinder::findBestPose(lthmi_nav::FloatMapConstPtr pdf) {
         switch(method_) {
             case RA_MAXPROB:
-                findMaxprobInReachArea(pdf);    PUB_DEBUG_POSE(pt.x,pt.y, true);
+                findMaxprobInReachArea(pdf);    PUB_DEBUG_POSE(pt.x,pt.y, false); //false == wrt RA
                 break;
             case MAXPROB_EUC:
                 findMaxprobInPdf(pdf);          PUB_DEBUG_POSE(pt.x,pt.y, true);
-                moveToClosestInReachAreaEuc();  PUB_DEBUG_POSE(pt.x,pt.y, true);
+                moveToClosestInReachAreaEuc();
                 break;
             case MAXPROB_OBST:
                 findMaxprobInPdf(pdf);          PUB_DEBUG_POSE(pt.x,pt.y, true);
-                moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, true);
+                moveToClosestInReachAreaObst(); 
                 break;
             case COG_EUC:
                 findCogOnPdf(pdf);              PUB_DEBUG_POSE(pt.x,pt.y, true);

@@ -93,6 +93,18 @@ public:
         slideToLocalMin();
     }
     
+    void findRaMaxprob2localOptPose() {
+        findMaxprobInReachArea(pdf);    PUB_DEBUG_POSE(pt.x,pt.y, false);
+        slideToLocalMin();
+    }
+            
+    void findMaxprob2localOptPose() {
+        findMaxprobInPdf(pdf);          PUB_DEBUG_POSE(pt.x,pt.y, true);
+        pt.x -= r2a.x; 
+        pt.y -= r2a.y; //now wrt to reach area
+        slideToLocalMin();
+    }
+    
     void genStartVertex() {
         std::uniform_int_distribution<int> rand_distribution(0,n_unassigned-1);
         int n = rand_distribution(generator);
@@ -127,9 +139,9 @@ public:
             case COG2LOPT: 
                 findLocalOptPose(); break;
             case MAXPROB2LOPT:
-                findLocalOptPose(); break;//findRaMaxprob2localOptPose
+                findRaMaxprob2localOptPose(); break;
             case RAMAXPROB2LOPT:
-                findLocalOptPose(); break;//findMaxprob2localOptPose
+                findMaxprob2localOptPose(); break;
             case GOPT:
                 findGlobalOptPose(); break;
         }
