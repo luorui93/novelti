@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::MAXPROB_OBST);
     else if (method=="cog_euq")      //doesn't guarantee convergance
         bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::COG_EUC);
-    else if (method=="nearcog_euq")  //doesn't guarantee convergance
+    else if (method=="nearcog_euc")  //doesn't guarantee convergance
         bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::NEARCOG_EUC);
     else if (method=="nearcog_obst") 
         bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::NEARCOG_OBST);
