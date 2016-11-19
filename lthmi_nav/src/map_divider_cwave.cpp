@@ -308,7 +308,6 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method) :
     }
     
     void CWaveMapDivider::divideByExtremals() {
-        map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
         CWave2 cw(cmap_);
         CWaveProcPassOne procOne(cmap_, *this);
         cw.setProcessor(&procOne);

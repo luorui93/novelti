@@ -114,6 +114,7 @@ void MapDivider::startDivider() {
     cur_region = 0;
     std::fill(probs_actual.begin(), probs_actual.end(), 0.0); //probs_actual = 0-vector
     probs_scaled = probs_optimal;
+    std::fill(map_divided.data.begin(), map_divided.data.end(), 255);
 }
 
 void MapDivider::updateProbsScaled() {
