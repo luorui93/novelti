@@ -85,7 +85,7 @@ namespace lthmi_nav {
             case NEARCOG_OBST:
                 findCogOnPdf(pdf);              PUB_DEBUG_POSE(pt.x,pt.y, true);
                 moveToClosestOnMap(pdf);        PUB_DEBUG_POSE(pt.x,pt.y, true);
-                moveToClosestInReachAreaEuc();
+                moveToClosestInReachAreaObst();
                 break;
         }
     }

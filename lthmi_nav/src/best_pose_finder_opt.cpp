@@ -78,22 +78,22 @@ public:
         return min_dist;
     }
     
-    void findLocalOptPose() {
+    double findNearCog2LocalOptPose() {
         findCogOnPdf(pdf);              PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestOnMap(pdf);        PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
-        slideToLocalMin();
+        return slideToLocalMin();
     }
     
-    void findRaMaxprob2localOptPose() {
+    double findRaMaxprob2localOptPose() {
         findMaxprobInReachArea(pdf);    PUB_DEBUG_POSE(pt.x,pt.y, false);
-        slideToLocalMin();
+        return slideToLocalMin();
     }
             
-    void findMaxprob2localOptPose() {
+    double findMaxprob2localOptPose() {
         findMaxprobInPdf(pdf);          PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
-        slideToLocalMin();
+        return slideToLocalMin();
     }
     
     void genStartVertex() {
@@ -113,6 +113,23 @@ public:
     void findGlobalOptPose() {
         double dist, min_dist = std::numeric_limits<double>::max();
         Point opt_pt;
+        
+        dist = findNearCog2LocalOptPose();
+        if (dist<min_dist) {
+            min_dist = dist;
+            opt_pt = pt;
+        }
+        dist = findRaMaxprob2localOptPose();
+        if (dist<min_dist) {
+            min_dist = dist;
+            opt_pt = pt;
+        }
+        dist = findMaxprob2localOptPose();
+        if (dist<min_dist) {
+            min_dist = dist;
+            opt_pt = pt;
+        }
+        
         for (int k=0; k<glob_max_attempts; k++) {
             genStartVertex();
             dist = slideToLocalMin(); // wrt reach area frame
@@ -121,6 +138,7 @@ public:
                 opt_pt = pt;
             }
         }
+
         pt = opt_pt;
     }
     
@@ -128,7 +146,7 @@ public:
         pdf = pdf1; //COG2LOPT, RAMAXPROB2LOPT, MAXPROB2LOPT, GOPT
         switch (method_) {
             case COG2LOPT: 
-                findLocalOptPose(); break;
+                findNearCog2LocalOptPose(); break;
             case MAXPROB2LOPT:
                 findMaxprob2localOptPose(); break;
             case RAMAXPROB2LOPT:
