@@ -13,9 +13,13 @@ cmds = [("roslaunch lthmi_nav exp.launch  "
         ,
         "rm %(dir)s/bag/%(bagid)s.bag.success"
         ,
-        "roslaunch lthmi_nav bag_processor.launch bag:=%(dir)s/bag/%(bagid)s.bag out:=%(dir)s/stats/%(bagid)s.bag.txt"
+        "./rosbag_order_by_stamp.py %(dir)s/bag/%(bagid)s.bag %(dir)s/bag/%(bagid)s_sorted_by_stamp.bag"
         ,
-        "rm  %(dir)s/bag/%(bagid)s.bag.stats.success"
+        "roslaunch lthmi_nav bag_processor.launch bag:=%(dir)s/bag/%(bagid)s_sorted_by_stamp.bag out:=%(dir)s/stats/%(bagid)s.bag.txt"
+        ,
+        "rm  %(dir)s/bag/%(bagid)s_sorted_by_stamp.bag"
+        ,
+        "rm  %(dir)s/bag/%(bagid)s_sorted_by_stamp.bag.stats.success"
         ,
         "tar -czf %(dir)s/tar/%(bagid)s.bag.tar.gz -C %(dir)s/bag  %(bagid)s.bag"
         ,
@@ -38,7 +42,7 @@ varprms = {
     'plow': 0.6,
     'peps': 1.0e-12,
     
-    'pos': ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt", "gopt"],
+    'pos': ["gopt", "no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt"],
     'ksafe': 0.90,
     
     'div': ["vtile", "htile", "altertile", "equidist", "extremal", "extredist"],
@@ -104,10 +108,10 @@ prmsets = {
         'period': 0.25
     },
     'test_all' : {
-        'tries': 3,
+        'tries': 2,
         'mx' : ['mx70', 'mx91', 'mx100', 'mx79'],
-        'path': [100,103,116,110],
-        'vel': 1.0,
+        'path': [100,103,110],
+        'vel': 3.0,
         'period': 1.0
     }
 }
