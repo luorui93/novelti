@@ -2,10 +2,10 @@
 <launch>
     <arg name="bag" /> <!-- path to input bag-file-->
     <arg name="out" default="/tmp/1" /> <!-- path to output stats-file-->
-    <arg name="debug" default="0" />
+    <arg name="verb" default="info" />
     <arg name="gdb" default="0" />
     
-    <env if="$(arg debug)" name="ROSCONSOLE_CONFIG_FILE" value="$(find lthmi_nav)/debug/debug_rosconsole.conf"/>
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find lthmi_nav)/debug/rosconsole_conf_verb_$(arg verb).conf"/>
     
     <arg     if="$(arg gdb)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_bag_processor - -args" />
     <arg unless="$(arg gdb)" name="prefix" default="" />
