@@ -125,7 +125,18 @@ class GridMap:
             path.append(v)
         return path
         
-
+    def inflate(self, radius):
+        gridInflated = self.__class__(self.width, self.height, [self.__class__.FREE]*(self.width*self.height))
+        r = int(radius+1)
+        for cy in range(self.height):
+            for cx in range(self.width):
+                if not self.isFree(cx,cy):
+                    for x in range(max(0,cx-r-1), min(self.width,cx+r+1)):
+                        for y in range(max(0,cy-r-1), min(self.height,cy+r+1)):
+                            if (x-cx)*(x-cx)+(y-cy)*(y-cy) <= radius*radius:
+                                gridInflated.put(x,y, self.OCCUPIED)
+        return gridInflated
+        
     def findDiagObst(self, stopOnFirst=True):
         diags = []
         for x in range(self.width-1):
@@ -177,6 +188,9 @@ import sys
 import StringIO
 doc="""
 USAGE:
+    Inflate obstacles by radius {radius}
+        ./MapTools.py inflate {radius} <input.map >output.map
+    
     Calculate map stsistics (number of free cells, number of unblocked vertices, etc):
         ./MapTools.py stats <input.bmp
 
@@ -284,6 +298,15 @@ if __name__=="__main__":
             map_file = StringIO.StringIO(sys.stdin.read())
             grid = GridMap.fromText(map_file)
             grid.genScene(sys.stdout, n_blocks, block_size, path_to_show)
+        elif action=="inflate":
+            if len(sys.argv)<3:
+                sys.stderr.write("ERROR: 'inflate' requires minimum 1 additional parameters. Run './MapTools.py help'\n\n")
+                exit(1)
+            radius = float(sys.argv[2])
+            mapFile = StringIO.StringIO(sys.stdin.read())
+            grid = GridMap.fromText(mapFile)
+            gridInflated = grid.inflate(radius)
+            gridInflated.printAsText(sys.stdout)
         else:
             sys.stderr.write(doc)
             exit(1)
