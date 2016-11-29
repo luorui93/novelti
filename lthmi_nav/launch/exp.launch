@@ -48,6 +48,7 @@
         <param name="rviz" value="$(arg rviz)" />
         <param name="commit"     command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log --format='%H' -n 1" />
         <param name="commit_log" command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log -n 1" />
+        <param name="comp_id" command="cat /var/lib/dbus/machine-id" /> <!-- http://0pointer.de/blog/projects/ids.html -->
     </node>
     
     <!--predefined selectable parameters -->

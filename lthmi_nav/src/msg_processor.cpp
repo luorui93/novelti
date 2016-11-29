@@ -172,6 +172,7 @@ public:
     void paramCb(std_msgs::StringConstPtr msg) {
         YAML::Node prms = YAML::Load(msg->data.c_str());
         prms_.commit  = prms["node_param_publisher"]["commit"].as<string>().substr(0,7); 
+        prms_.comp_id = prms["node_param_publisher"]["comp_id"].as<string>().substr(0,6); 
         prms_.bag     = boost::lexical_cast<bool>(prms["node_param_publisher"]["bag"].as<string>());
         prms_.mx      = prms["node_param_publisher"]["mx"].as<string>();
         prms_.map     = prms["node_param_publisher"]["map"].as<string>();

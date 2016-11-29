@@ -26,6 +26,7 @@ public:
     int         tryidx; //static doc doc_tryidx   = "Try's index";
     timestamp   start;  //static doc doc_start    = "Timestamp from the /pose_intended message in each run";
     string      commit; //static doc doc_commit   = "git commit id of the code that was used to create the rosbag";
+    string      comp_id;//static doc doc_commit   = "machine id";
 
     string      map;    //static doc doc_map      = "Name of the map (without .map extension)";
     int         path;   //static doc doc_path     = "Integer ID of the path from YOUR_MAP.paths file";
