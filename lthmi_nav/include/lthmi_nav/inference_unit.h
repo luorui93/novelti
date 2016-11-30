@@ -58,6 +58,8 @@ public:
     int n_cmds;
     float thresh_high;
     float thresh_low;
+    float uniform_prob_;
+    bool uniform_pdf_on_new_;
     double eps;
     double max_prob;
     int max_prob_k;
@@ -66,6 +68,7 @@ public:
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
     void stop();
     void start(lthmi_nav::StartExperiment::Request& req);
+    void setUniformPdf();
     void mapDivCallback(lthmi_nav::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
     void updatePdfAndPublish();

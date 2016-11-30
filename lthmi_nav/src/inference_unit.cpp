@@ -38,6 +38,7 @@ InferenceUnit::InferenceUnit() :
     node.param<float>("thresh_high", thresh_high, 0.98);
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
+    node.param<bool>("uniform_pdf_on_new", uniform_pdf_on_new_, false);
     
     node.getParam("interface_matrix", interface_matrix);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
@@ -56,7 +57,10 @@ InferenceUnit::InferenceUnit() :
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
     state = INFERRING_NEW;
         ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
-    denullifyPdf();//??
+    if (uniform_pdf_on_new_)
+        setUniformPdf();
+    else
+        denullifyPdf();//??
     pubPdf();
     return true;
 }
@@ -95,14 +99,18 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     }
 
     //set uniform pdf over reachable vertices
-    float vx_prob = 1.0/total_vx;
-    for (int k=pdf.data.size()-1;k>=0; k--)
-        if (pdf.data[k] != PDF_UNREACHABLE)
-            pdf.data[k] = vx_prob;
+    uniform_prob_ = 1.0/total_vx;
+    setUniformPdf();
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
     sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
     sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
+}
+
+void InferenceUnit::setUniformPdf() {
+    for (int k=pdf.data.size()-1;k>=0; k--)
+        if (pdf.data[k] != PDF_UNREACHABLE)
+            pdf.data[k] = uniform_prob_;
 }
 
 void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes
