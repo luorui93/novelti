@@ -140,15 +140,17 @@ class DataTable:
                 return val==self.filt[key]
         return True
     
-    def addDataRow(self, keys, data_row):
+    def addDataRow(self, keys, data_row, calculated_values):
         for k, val in enumerate(data_row):
             if not self.isValidValue(keys[k], val):
                 return False
         for k, val in enumerate(data_row):
             self.data[keys[k]].append(val)
+        for key, valFunc in calculated_values.iteritems():
+            self.data[key].append(valFunc(dict(zip(keys, data_row))))
         return True
     
-    def addRow(self, keys, row):
+    def addRow(self, keys, row, calculated_values):
         """
         returns True if row added
         """
@@ -160,11 +162,16 @@ class DataTable:
                     row[k] = float(val)
                 except ValueError: #if fails, keep as string
                     pass
-        return self.addDataRow(keys,row)
+        return self.addDataRow(keys,row, calculated_values)
     
-    def addFromCsvFile(self, fname):
+    def addFromCsvFile(self, fname, calculated_values):
         """
         add data from a CSV-file named fname
+        
+        "new_value": lambda line
+        
+        
+        
         """
         with open(fname) as f:
             # reader header
@@ -174,22 +181,28 @@ class DataTable:
                 if key not in self.data:
                     self.data[key] = [None]*self.nrows
             self.missingKeys = set(self.data.keys()) - set(cur_keys)
+            for key in calculated_values:
+                self.data[key] = []
             
             #read data
             for line in f:
-                if self.addRow(cur_keys, line.split()):
+                if self.addRow(cur_keys, line.split(), calculated_values):
                     self.nrows += 1
                     for key in self.missingKeys:
                         self.data[key].append(None)
 
     @classmethod
-    def fromCsvFiles(cls, fnames, filter_dict={}):
+    def fromCsvFiles(cls, fnames, filter_dict={}, calculated_values={}):
         """
         list of CSV-file names
+            calculated_values = {
+                extra_key1: lambda d : d["existing_key1"] / d["existing_key2"],
+                extra_key2: lambda d : d["existing_key1"] + d["existing_key3"]
+            }
         """
         self = cls(filter_dict)
         for fname in fnames:
-            self.addFromCsvFile(fname)
+            self.addFromCsvFile(fname, calculated_values)
         return self
     
     

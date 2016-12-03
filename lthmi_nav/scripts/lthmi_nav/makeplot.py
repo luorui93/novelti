@@ -17,10 +17,17 @@ if __name__=="__main__":
         
     files = sys.argv[1:]
     #print files
-    dt = DataTable.fromCsvFiles(files, filter_dict={'pos': lambda method: method in ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt"]})
+    dt = DataTable.fromCsvFiles(files, 
+        filter_dict = {
+            'pos': lambda method: method in ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt"]
+        },
+        calculated_values = {
+            't_div_': lambda d: d['t_nav']/d['t_div']
+        }
+    )
     
     dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
-    vals = ('t_pdf', 't_pos', 't_div')#, 'over_len', 'sep2nav', 'over_time')
+    vals = ('t_pdf', 't_pos', 't_div', 't_div_')#, 'over_len', 'sep2nav', 'over_time')
     #vals = ('sep2nav',)
     v = Table2NDimVector(dt, dims, vals)
     v.display4dPage('mx70')
