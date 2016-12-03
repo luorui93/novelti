@@ -71,11 +71,44 @@ def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_name
             if page_col==0:
                 ax.set_ylabel(page_row_names[page_row])
     f.suptitle(title, fontsize=14, fontweight='bold')
+    setSameYScale(axarr, n_rows, n_cols)
     plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
     plt.show()
+    return axarr
 
 
-
+def setSameYScale(axarr, n_rows, n_cols):
+    for page_row in range(n_rows):
+        best_ylim = [None, None]
+        for page_col in range(n_cols):
+            if n_rows==1:
+                if n_cols==1:
+                    ax = axarr
+                else:
+                    ax = axarr[page_col]
+            elif n_cols==1:
+                ax = axarr[page_row]
+            else:
+                ax = axarr[page_row, page_col]
+            ylim = ax.get_ylim()
+            if best_ylim[0] is None or ylim[0]<best_ylim[0]:
+                best_ylim[0] = ylim[0]
+            if best_ylim[1] is None or ylim[1]>best_ylim[1]:
+                best_ylim[1] = ylim[1]    
+        for page_col in range(n_cols):
+            if n_rows==1:
+                if n_cols==1:
+                    ax = axarr
+                else:
+                    ax = axarr[page_col]
+            elif n_cols==1:
+                ax = axarr[page_row]
+            else:
+                ax = axarr[page_row, page_col]
+            ax.set_ylim(best_ylim) 
+            
+            
+                
 class DataTable:
     """
     Represents the data in the follwoing  format
@@ -231,7 +264,7 @@ class Table2NDimVector:
                 #print ix
                 self.nums[ix] += 1
                 x = dtable.data[res_name][row_k]
-                print "%s=%s" % (res_name, str(x))
+                #print "%s=%s" % (res_name, str(x))
                 delta = x - self.means[ix]
                 self.means[ix] += delta / self.nums[ix]
                 self.m2s[ix] = delta * (x - self.means[ix])
@@ -240,7 +273,7 @@ class Table2NDimVector:
             if self.nums[it.multi_index]>=2:
                 self.stds[it.multi_index] = np.sqrt(self.m2s[it.multi_index] / (self.nums[it.multi_index]-1))
             it.iternext()
-        print self.means
+        #print self.means
 
     def display4dPage(self, firstDimValue, title=None):
         varIdx = self.val2idx[0][firstDimValue]
