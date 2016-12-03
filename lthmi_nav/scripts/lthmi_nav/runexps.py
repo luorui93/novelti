@@ -113,6 +113,14 @@ prmsets = {
         'path': [100,103,110],
         'vel': 3.0,
         'period': 1.0
+    },
+    'test_all_but_gopt' : {
+        'tries': 2,
+        'mx' : ['mx70', 'mx91', 'mx100', 'mx79'],
+        'path': [100,103,110],
+        'pos': ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt"],
+        'vel': 3.0,
+        'period': 1.0
     }
 }
 
