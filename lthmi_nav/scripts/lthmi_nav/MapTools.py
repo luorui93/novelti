@@ -69,7 +69,7 @@ class GridMap:
 
 
     @classmethod
-    def fromImage(cls, imgFile, freeIntensity=100):
+    def fromImage(cls, imgFile, freeIntensity=250):
         """
             imgFile: file name or file-lie object
         """
@@ -80,7 +80,7 @@ class GridMap:
         data = [cls.FREE]*(width*height)
         for y in range(height):
             for x in range(width):
-                data[y*width+x] = cls.FREE if px[x,y]>=freeIntensity else cls.OCCUPIED
+                data[(height-y-1)*width+x] = cls.FREE if px[x,y]>=freeIntensity else cls.OCCUPIED
         return cls(width, height, data)
 
     def get(self, x, y):
@@ -191,7 +191,7 @@ USAGE:
     Inflate obstacles by radius {radius}
         ./MapTools.py inflate {radius} <input.map >output.map
     
-    Calculate map stsistics (number of free cells, number of unblocked vertices, etc):
+    Calculate map statistics (number of free cells, number of unblocked vertices, etc):
         ./MapTools.py stats <input.bmp
 
     Convert image file into map file:
