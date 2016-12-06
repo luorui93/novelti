@@ -60,11 +60,12 @@ class GridMap:
             raise Exception("Failed to parse map file: couldn't read width or height")
         else:
             data = [cls.FREE]*(width*height)
-
             for y in range(height-1,-1,-1):
                 line = mapFile.readline().rstrip()
                 #rospy.loginfo("experimentator: map line (y=%d, length=%d) read= %s", y, len(line), y*width, (y+1)*width-1, str([(-1 if c=="." else -2) for c in line]))
                 data[y*width:(y+1)*width] = [(cls.FREE if c=="." else cls.OCCUPIED) for c in line]
+            if len(data) != width*height:
+                raise Exception("Error in the source map: the number of characters in the map is not equal to width*height")
         return cls(width, height, data)
 
 
