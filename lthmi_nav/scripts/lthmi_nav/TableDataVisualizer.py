@@ -141,13 +141,18 @@ class DataTable:
         return True
     
     def addDataRow(self, keys, data_row, calculated_values):
+        #print "---------------------"
         for k, val in enumerate(data_row):
             if not self.isValidValue(keys[k], val):
                 return False
         for k, val in enumerate(data_row):
             self.data[keys[k]].append(val)
+            #print len(self.data[keys[k]])
         for key, valFunc in calculated_values.iteritems():
-            self.data[key].append(valFunc(dict(zip(keys, data_row))))
+            #print key
+            #print dict(zip(keys, data_row))
+            self.data[key].append(valFunc(self, dict(zip(keys, data_row))))
+            #print len(self.data[key])
         return True
     
     def addRow(self, keys, row, calculated_values):
@@ -175,14 +180,16 @@ class DataTable:
         """
         with open(fname) as f:
             # reader header
+            self.cur_file = fname
             header = f.next()
             cur_keys = header.split()
             for key in cur_keys:
                 if key not in self.data:
                     self.data[key] = [None]*self.nrows
-            self.missingKeys = set(self.data.keys()) - set(cur_keys)
+            self.missingKeys = set(self.data.keys()) - set(cur_keys) - set(calculated_values.keys())
             for key in calculated_values:
-                self.data[key] = []
+                if key not in self.data:
+                    self.data[key] = []
             
             #read data
             for line in f:
@@ -276,6 +283,7 @@ class Table2NDimVector:
                 ix = tuple(index)
                 #print ix
                 self.nums[ix] += 1
+                #print res_name
                 x = dtable.data[res_name][row_k]
                 #print "%s=%s" % (res_name, str(x))
                 delta = x - self.means[ix]
