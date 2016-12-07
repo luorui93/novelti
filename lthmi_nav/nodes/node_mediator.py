@@ -40,12 +40,16 @@ ToDo:
 """
 
 import math
+import actionlib
+from actionlib_msgs.msg import *
 import rospy
 
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import OccupancyGrid
 from lthmi_nav.SyncingNode import SyncingNode
 
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 class Mediator (SyncingNode):
     def __init__(self):
@@ -55,37 +59,38 @@ class Mediator (SyncingNode):
             'map_file':     rospy.get_param('~map'),
             'resolution':   rospy.get_param('~resolution', 0.1),
         })
-        self.action_client = actionlib.SimpleActionClient('/move_base', move_base_msgs/MoveBaseGoal)
+        self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
         self.action_client.wait_for_server()
         
         self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
         self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
-        self.sub_pose_amcl     = rospy.Subscriber('/pose_amcl', PoseStamped, self.poseAmclCallback)
+        self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
         
         self.pub_pose_arrived = rospy.Publisher('/pose_arrived', PoseStamped, queue_size=1, latch=True)
         #self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
     
     def startLthmiNav(self, init_pose):
-        self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose)
+        rospy.loginfo("Starting lthmi_nav")
+        self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
         
     def setNewGoal(self, msg):
         self.action_client.cancel_all_goals()
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = "base_link"
+        goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
 
         goal.target_pose.pose = msg.pose
 
         rospy.loginfo("Sending destination goal to move_base")
-        self.action_client.sendGoal(goal, feedback_cb=self.actionFeedbackCallback)
-        self.action_client.waitForResult()
-
-        if self.action_client.getState() == SUCCEEDED:
+        self.action_client.send_goal(goal, feedback_cb=self.actionFeedbackCallback)
+        self.action_client.wait_for_result()
+        #rospy.logerr(self.action_client.get_state())
+        if self.action_client.get_state() == GoalStatus.SUCCEEDED:
             rospy.loginfo("Arrived to the destination")
         else:
             rospy.loginfo("Failed to arrive to destination")
 
-    def poseCurrentCallback(self, msg):
+    def poseAmclCallback(self, msg):
         if self.state == "WAIT4START":
             self.state = "RUNNING"
             self.startLthmiNav(msg)
