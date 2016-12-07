@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="verb" default="info" />
+    
+    <!-- Check ROSCONSOLE_MIN_SEVERITY value in CMakeList.txt for given node. More on that in http://wiki.ros.org/rosconsole -->
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find lthmi_nav)/debug/rosconsole_conf_verb_$(arg verb).conf"/> 
+    
+    <node pkg="lthmi_nav" type="node_mediator.py" name="node_mediator" 
+            output="screen" required="true">
+        <param name="map" value="$(find ak_labs)/map/AK3_10cm_inf4.map" />
+        <param name="resolution" value="0.1" />
+        <remap from="/map" to="/map_inflated" />
+        <rosparam>
+            synced_nodes: []
+            waited_srvs:  ['/rviz_set_goal/reload_shaders']
+        </rosparam>
+    </node>
+
+    <node name="rviz_set_goal" pkg="rviz" type="rviz"  output="screen" 
+            args="-d $(find lthmi_nav)/test/rviz/test_mediator.rviz" >
+        <remap from="/move_base_simple/goal" to="/pose_desired" />
+    </node>
+    
+    <include file="$(find anna)/launch/main.launch">
+        <arg name="assist" value="0" />
+        <arg name="auto" value="1" />
+        <arg name="cliff" value="0" />
+        <arg name="map_file" value="$(find ak_labs)/pgm/AK3.yaml" />
+    </include>
+    
+</launch>
