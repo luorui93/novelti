@@ -267,7 +267,7 @@ add_dependencies(lthmi_nav_rviz_plugin ${PROJECT_NAME}_generate_messages_cpp)
 
 ######################### TOOLS ##################################
 add_executable(bag_processor src/node_bag_processor.cpp)
-target_compile_definitions(bag_processor PRIVATE     CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)    #add to remove loggin at compile time: ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO
+target_compile_definitions(bag_processor PRIVATE  ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO  CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)    #add to remove loggin at compile time: ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO
 target_link_libraries(bag_processor
    ${catkin_LIBRARIES}
    ${CWAVE_LIB_DIR}/libcwaveproc.a
