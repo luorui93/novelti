@@ -63,6 +63,7 @@ public:
         sout(outs)
     {
         state = WAIT4POI;
+        ROS_DEBUG("state: ->WAIT4POI");
         prms_.run = ros::Time(0);
         prms_.tryidx = 0;
         pois_.push_back(Point());
@@ -232,6 +233,7 @@ public:
             ROS_DEBUG("Added POI=(%d,%d)", pt.x, pt.y);
             stats_.poi_total++;
             state = INFERENCE;
+            ROS_DEBUG("state: WAIT4POI->INFERENCE");
         }
     }
     
@@ -279,6 +281,7 @@ public:
 
     void onPoiReached() {
         state = WAIT4POI;
+        ROS_DEBUG("state: ->WAIT4POI");
 
         ROS_DEBUG("Real path to POI: ");
         printPath(waypoints_);
@@ -351,6 +354,7 @@ public:
         ROS_DEBUG("= got pose_inferred =");
         if (state==INFERENCE) {
             state = DRIVING;
+            ROS_DEBUG("state: INFERENCE->DRIVING");
             stamp_pose_inferred_ = msg->header.stamp;
             Point wp;
             updateVertex(msg->pose, wp.x, wp.y);
