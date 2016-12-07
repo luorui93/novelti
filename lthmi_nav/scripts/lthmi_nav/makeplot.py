@@ -10,6 +10,15 @@ usage = """ USAGE:
 
 """
 
+def fff(self, d):
+    print d['t_div']
+    print d['t_nav']
+    print d['pos']
+    print d['div']
+    print self.cur_file
+    print d['t_div']/d['t_nav']
+    return d['t_nav'] #1 if d['t_nav']==0.0 else 0
+
 if __name__=="__main__":
     if len(sys.argv)<2:
         print usage
@@ -22,10 +31,12 @@ if __name__=="__main__":
             'pos': lambda method: method in ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt"]
         },
         calculated_values = {
-            't_div_': lambda d: d['t_nav']/d['t_div']
+            't_div_': fff #lambda self, d: d['t_div']/d['t_nav']
         }
     )
-    
+    #print "======================================================"
+    #print dt.data['t_pos
+    #print "-------------------------------------------------"
     dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
     vals = ('t_pdf', 't_pos', 't_div', 't_div_')#, 'over_len', 'sep2nav', 'over_time')
     #vals = ('sep2nav',)
