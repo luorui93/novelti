@@ -31,14 +31,15 @@ if __name__=="__main__":
             'pos': lambda method: method in ["no_move", "ra_maxprob", "maxprob_obst", "nearcog_obst", "cog2lopt", "ramaxprob2lopt", "maxprob2lopt"]
         },
         calculated_values = {
-            't_div_': fff #lambda self, d: d['t_div']/d['t_nav']
+            't_div_': lambda self, d: d['t_div']/d['t_nav'],
+            't_pos_': lambda self, d: d['t_pos']/d['t_nav']
         }
     )
     #print "======================================================"
     #print dt.data['t_pos
     #print "-------------------------------------------------"
     dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
-    vals = ('t_pdf', 't_pos', 't_div', 't_div_')#, 'over_len', 'sep2nav', 'over_time')
+    vals = ('t_pdf', 't_pos_', 't_div', 't_div_')#, 'over_len', 'sep2nav', 'over_time')
     #vals = ('sep2nav',)
     v = Table2NDimVector(dt, dims, vals)
     v.display4dPage('mx70')
