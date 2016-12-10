@@ -32,15 +32,17 @@ if __name__=="__main__":
         },
         calculated_values = {
             't_div_': lambda self, d: d['t_div']/d['t_nav'],
-            't_pos_': lambda self, d: d['t_pos']/d['t_nav']
+            't_pos_': lambda self, d: d['t_pos']/d['t_nav'],
+            't_pdf_': lambda self, d: d['t_pdf']/d['t_nav'],
+            't_nav_corr': lambda self, d: d['t_nav']-d['t_pos']-d['t_div'],
         }
     )
     #print "======================================================"
     #print dt.data['t_pos
     #print "-------------------------------------------------"
     dims = ('mx', '_res_', 'pos','div','path') # 5 dimensions
-    vals = ('t_pdf', 't_pos_', 't_div', 't_div_')#, 'over_len', 'sep2nav', 'over_time')
+    vals = ('t_pdf_', 't_pos_', 't_div_', 't_nav_corr')#, 'over_len', 'sep2nav', 'over_time')
     #vals = ('sep2nav',)
     v = Table2NDimVector(dt, dims, vals)
-    v.display4dPage('mx70')
+    v.display4dPage('mx91')
 
