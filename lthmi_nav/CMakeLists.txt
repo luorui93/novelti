@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosbag
   geometry_msgs
   message_generation
+  tf
 )
 
 ## System dependencies are found with CMake's conventions

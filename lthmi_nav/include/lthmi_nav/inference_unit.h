@@ -63,6 +63,7 @@ public:
     double eps;
     double max_prob;
     int max_prob_k;
+    float interest_area_thresh_;
     
     InferenceUnit();
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
@@ -72,6 +73,7 @@ public:
     void mapDivCallback(lthmi_nav::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
     void updatePdfAndPublish();
+    void publishViewTf();
     void calcPriors();
     void pubPdf();
     void pubPoseInferred(int k);

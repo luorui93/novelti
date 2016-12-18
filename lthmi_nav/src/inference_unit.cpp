@@ -28,7 +28,8 @@
 */
 
 #include <lthmi_nav/inference_unit.h>
-
+#include <limits>
+#include <tf/transform_broadcaster.h>
 
 using namespace lthmi_nav;
 
@@ -39,6 +40,8 @@ InferenceUnit::InferenceUnit() :
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
     node.param<bool>("uniform_pdf_on_new", uniform_pdf_on_new_, false);
+    node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
+    
     
     node.getParam("interface_matrix", interface_matrix);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
@@ -100,6 +103,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
 
     //set uniform pdf over reachable vertices
     uniform_prob_ = 1.0/total_vx;
+    interest_area_thresh_ *= uniform_prob_;
     setUniformPdf();
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
@@ -214,6 +218,49 @@ void InferenceUnit::updatePdf() {
     //ROS_INFO("%s: total prob=%f", getName().c_str(), total_prob);
 }
 
+void InferenceUnit::publishViewTf() {
+    // find rectangle that encompasses all vertices with probability >= interest_area_thresh
+    int xmin=std::numeric_limits<int>::max(), xmax=std::numeric_limits<int>::min();
+    int ymin=std::numeric_limits<int>::max(), ymax=std::numeric_limits<int>::min();
+    for (int y=0, k=0; y<pdf.info.height-1; y++) {
+        for (int x=0; x<pdf.info.width-1; x++, k++) {
+            if (pdf.data[k] >= interest_area_thresh_) {
+                if (x<xmin) 
+                    xmin = x;
+                if (y<ymin)
+                    ymin = y;
+                if (x>xmax)
+                    xmax = x;
+                if (y>ymax)
+                    ymax = y;
+            }
+        }
+        k++;
+    }
+    
+    //calculate TF from where the interest area will be completely visible
+    double w = pdf.info.resolution*pdf.info.width;
+    double h = pdf.info.resolution*pdf.info.height;
+    ///#limits=(w/2, w, h/2, h)
+    ///#c = ((limits[0]+limits[1])*pdf.info.resolution/2, (limits[2]+limits[3])*pdf.info.resolution/2)
+    const int min_number_of_vertices_in_interest_area = 20;
+    double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
+    double cam_distance = 2+2*(int(max_area_size*0.2)/2);
+    double cam_x = (xmin+xmax)*pdf.info.resolution/2;
+    double cam_y = (ymin+ymax)*pdf.info.resolution/2;
+    if (cam_distance==8) {
+        cam_x = w/2;
+        cam_y = h/2;
+    }
+    static tf::TransformBroadcaster view_tf;
+    tf::Transform transform;
+    transform.setOrigin( tf::Vector3(cam_x,cam_y, cam_distance) );
+    tf::Quaternion q;
+    q.setRPY(0.0, M_PI/2, M_PI/2);
+    transform.setRotation(q);
+    view_tf.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/autoview", "/map"));
+}
+
 void InferenceUnit::updatePdfAndPublish() {
     if (state==INFERRED || pdf.header.seq-1 != cmd_detected->header.seq-1 || pdf.header.seq-1 != map_divided->header.seq) {
         ROS_FATAL("%s: SYNCHRONIZATION BROKEN! state%s=INFERRED (must not be equal to INFERRED), pdf.seq==%d, cmd_detected.seq==%d, map_divided.seq==%d.",
@@ -223,8 +270,10 @@ void InferenceUnit::updatePdfAndPublish() {
     }
     updatePdf();
     denullifyPdf();
+    if (interest_area_thresh_ > 0.0)
+        publishViewTf();
     if (state==INFERRING) {
-        //ROS_INFO("%s: state INFERRING, thresh_high=%f", getName().c_str(), thresh_high);
+        ROS_DEBUG("%s: state INFERRING, thresh_high=%f", getName().c_str(), thresh_high);
         if (max_prob >= thresh_high) {
             state = INFERRED;
             pubPoseInferred(max_prob_k);
@@ -232,7 +281,7 @@ void InferenceUnit::updatePdfAndPublish() {
             return;
         }
     } else { //state == INFERRING_NEW:
-        //ROS_INFO("%s: state INFERRING_NEW", getName().c_str());
+        ROS_DEBUG("%s: state INFERRING_NEW", getName().c_str());
         if (max_prob <= thresh_low) {
             state = INFERRING;
             ROS_INFO("%s: state INFERRING_NEW -> INFERRING, max_prob=%f", getName().c_str(), max_prob);
