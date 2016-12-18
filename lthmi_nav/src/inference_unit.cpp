@@ -39,10 +39,10 @@ InferenceUnit::InferenceUnit() :
     node.param<float>("thresh_high", thresh_high, 0.98);
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
-    node.param<bool>("uniform_pdf_on_new", uniform_pdf_on_new_, false);
+    node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
     node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
     
-    
+    node.getParam("pois", pois_);
     node.getParam("interface_matrix", interface_matrix);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
     if (interface_matrix.size()==0 && n_cmds*n_cmds==interface_matrix.size())
@@ -60,8 +60,8 @@ InferenceUnit::InferenceUnit() :
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
     state = INFERRING_NEW;
         ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
-    if (uniform_pdf_on_new_)
-        setUniformPdf();
+    if (reset_pdf_on_new_)
+        resetPdf();
     else
         denullifyPdf();//??
     pubPdf();
@@ -95,7 +95,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
         for (int y=0; y<req.map.info.height-1; y++) {
             k = x + y*req.map.info.width;
             if (req.map.data[k]==0 || req.map.data[k+1]==0 || req.map.data[k+req.map.info.width]==0 || req.map.data[k+1+req.map.info.width]==0) {
-                pdf.data[x+1 + (y+1)*pdf.info.width] = 0.0;
+                pdf.data[x+1 + (y+1)*pdf.info.width] = 1.0;
                 total_vx++;
             }
         }
@@ -104,17 +104,49 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     //set uniform pdf over reachable vertices
     uniform_prob_ = 1.0/total_vx;
     interest_area_thresh_ *= uniform_prob_;
-    setUniformPdf();
+    resetPdf();
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
     sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
     sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
 }
 
+void InferenceUnit::resetPdf() {
+    if (pois_.size()==0)
+        setUniformPdf();
+    else
+        setHardcodedPredictedPdf();
+}
+
 void InferenceUnit::setUniformPdf() {
     for (int k=pdf.data.size()-1;k>=0; k--)
         if (pdf.data[k] != PDF_UNREACHABLE)
             pdf.data[k] = uniform_prob_;
+}
+
+void InferenceUnit::setHardcodedPredictedPdf() {
+    double total = 0.0;
+    float p, d;
+    for (int y=0, k=0; y<pdf.info.height-1; y++) {
+        for (int x=0; x<pdf.info.width-1; x++, k++) {
+            if (pdf.data[k]!=PDF_UNREACHABLE) {
+                p = 0.0;
+                //pois_: x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...
+                for (int i=0; i<pois_.size(); i+=4) {
+                    d = (x-pois_[i])*(x-pois_[i]) + (y-pois_[i+1])*(y-pois_[i+1]);
+                    p += pois_[i+3]*exp(-d/(2*pois_[i+2]*pois_[i+2]));
+                }
+                pdf.data[k] = p;
+                total += p;
+            }
+        }
+    }
+    
+    for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
+        if (p != PDF_UNREACHABLE) {
+            pdf.data[k] /= total;
+        }
+    }
 }
 
 void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes

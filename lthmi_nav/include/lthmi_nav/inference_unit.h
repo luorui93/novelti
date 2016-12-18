@@ -51,6 +51,7 @@ public:
     CommandConstPtr cmd_detected;
     
     std::vector<double> interface_matrix;
+    std::vector<float> pois_;
     std::vector<double> priors;
     std::vector<double> posteriors;
     std::vector<double> coefs;
@@ -59,7 +60,7 @@ public:
     float thresh_high;
     float thresh_low;
     float uniform_prob_;
-    bool uniform_pdf_on_new_;
+    bool reset_pdf_on_new_;
     double eps;
     double max_prob;
     int max_prob_k;
@@ -69,7 +70,9 @@ public:
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
     void stop();
     void start(lthmi_nav::StartExperiment::Request& req);
+    void resetPdf();
     void setUniformPdf();
+    void setHardcodedPredictedPdf();
     void mapDivCallback(lthmi_nav::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
     void updatePdfAndPublish();
@@ -80,6 +83,7 @@ public:
     
     void updatePdf();
     void denullifyPdf();
+
     
     void calcUpdCoefs();
 };
