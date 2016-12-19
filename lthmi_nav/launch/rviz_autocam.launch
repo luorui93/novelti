@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <launch>
     <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
-        args="-d $(find lthmi_nav)/rviz/experimentator_autocam.rviz" />
+        args="-d $(find lthmi_nav)/rviz/run_autocam.rviz" />
 </launch>

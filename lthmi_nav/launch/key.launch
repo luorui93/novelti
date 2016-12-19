@@ -22,7 +22,7 @@
     
     <arg name="bag" default="0" />
     <arg name="by_key" default="0" />
-    <arg name="rviz" default="static" /> <!-- none, autocam or static -->
+    <arg name="rviz" default="autocam" /> <!-- none, autocam or static -->
     
     <arg name="verb" default="info" />
 
@@ -130,6 +130,7 @@
         <param name="eps"         value="$(arg prob_eps)" />
         <param name="check_sync"  value="false" />
         <param name="reset_pdf_on_new"  value="true" />
+        <param name="interest_area_coef" value="0.9" />
     </node>
     <node pkg="lthmi_nav" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
         <param name="method"      value="$(arg pos)" />

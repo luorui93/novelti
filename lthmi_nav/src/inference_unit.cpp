@@ -36,14 +36,17 @@ using namespace lthmi_nav;
 InferenceUnit::InferenceUnit() :
         SynchronizableNode()
 {
+    ///float qqq;
+    node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
     node.param<float>("thresh_high", thresh_high, 0.98);
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
     node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
-    node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
+    
+    //node.getParam("iii", qqq);
     //if (reset_pdf_on_new_)
     //if (check_sync_)
-    //    ROS_INFO("%s: ---------------------------------------------------------------------- thresh_high=%f", getName().c_str(),thresh_high);
+        ROS_INFO("%s: ---------------------------------------------------------------------- interest_area_thresh_=%f", getName().c_str(),interest_area_thresh_);
     
     node.getParam("pois", pois_);
     node.getParam("interface_matrix", interface_matrix);
@@ -274,6 +277,7 @@ void InferenceUnit::publishViewTf() {
         }
         k++;
     }
+    ROS_INFO("%s:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> [xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d]", getName().c_str(), xmin,xmax,ymin,ymax);
     
     //calculate TF from where the interest area will be completely visible
     double w = pdf.info.resolution*pdf.info.width;
@@ -295,7 +299,7 @@ void InferenceUnit::publishViewTf() {
     tf::Quaternion q;
     q.setRPY(0.0, M_PI/2, M_PI/2);
     transform.setRotation(q);
-    view_tf.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/autoview", "/map"));
+    view_tf.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/map", "/autocam"));
 }
 
 void InferenceUnit::updatePdfAndPublish() {
@@ -307,8 +311,6 @@ void InferenceUnit::updatePdfAndPublish() {
     }
     updatePdf();
     denullifyPdf();
-    if (interest_area_thresh_ > 0.0)
-        publishViewTf();
     if (state==INFERRING) {
         ROS_DEBUG("%s: state INFERRING, thresh_high=%f", getName().c_str(), thresh_high);
         if (max_prob >= thresh_high) {
@@ -328,6 +330,8 @@ void InferenceUnit::updatePdfAndPublish() {
 }
 
 void InferenceUnit::pubPdf() {
+    if (interest_area_thresh_ > 0.0)
+        publishViewTf();
     pdf.header.stamp = ros::Time::now();
     //pdf.info.origin.position.z = 0.5;
     //ROS_INFO("%s: before published pdf (SEQ=%d)", getName().c_str(), pdf.header.seq);
