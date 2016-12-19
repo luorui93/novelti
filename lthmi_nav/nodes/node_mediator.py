@@ -58,16 +58,23 @@ class Mediator (SyncingNode):
         self.cfg.update({
             'map_file':     rospy.get_param('~map'),
             'resolution':   rospy.get_param('~resolution', 0.1),
+            'real_robot':   rospy.get_param('~real_robot', True),
         })
-        self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
-        self.action_client.wait_for_server()
         
-        self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
-        self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
-        self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
-        
-        self.pub_pose_arrived = rospy.Publisher('/pose_arrived', PoseStamped, queue_size=1, latch=True)
-        #self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
+        if self.cfg['real_robot']:
+            rospy.loginfo("Starting lthmi_nav with a real robot")
+            self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
+            self.action_client.wait_for_server()
+            
+            self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
+            self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
+            self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
+            
+            self.pub_pose_arrived = rospy.Publisher('/pose_arrived', PoseStamped, queue_size=1, latch=True)
+            self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
+        else:
+            rospy.loginfo("Starting lthmi_nav without a real robot")
+            self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
     
     def startLthmiNav(self, init_pose):
         rospy.loginfo("Starting lthmi_nav")
@@ -91,6 +98,10 @@ class Mediator (SyncingNode):
             rospy.loginfo("Failed to arrive to destination")
 
     def poseAmclCallback(self, msg):
+        p = PoseStampled()
+        p.header = msg.header
+        p.pose = msg.pose.pose
+        self.pub_pose_current.publish(p)
         if self.state == "WAIT4START":
             self.state = "RUNNING"
             self.startLthmiNav(msg)
