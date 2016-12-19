@@ -2,56 +2,39 @@
 <launch>
     <arg name="bagpath" default="/tmp/tmp.bag" />
     
-    <arg name="div"   default="vtile" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
-    <arg name="pos"   default="maxprob_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
-    <arg name="vel"   default="8.0" />       <!-- robot velocity in m/s -->
-    <arg name="period" default="0.25" />        <!-- interface period -->
+    <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
+    <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="vel"   default="0.5" />       <!-- robot velocity in m/s -->
+    <arg name="period" default="2.0" />        <!-- interface period -->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
     <arg name="prob_thresh_high" default="0.99" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
     <arg name="prob_eps"         default="1.0e-8" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
-    <arg name="ksafe" default="0.9" />
-    <arg name="trobot" default="0.025" />
+    <arg name="ksafe"  default="0.9" />
+    <arg name="trobot"  default="0.025" />
     
-    <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
-    <arg name="path"  default="2" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
+    <arg name="map"   default="AK3" /> <!-- base name of the map from the map directory (without extension .map) -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
-    <arg name="tries" default="2" />
     
-
-    <arg name="bag" default="1" />
+    <arg name="real_robot" default="0" />
+    
+    <arg name="bag" default="0" />
     <arg name="by_key" default="0" />
     <arg name="rviz" default="static" /> <!-- none, autocam or static -->
     
+    <arg name="verb" default="info" />
 
     <!--arg name="monitor" default="1" /- ->
     <!- -arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
     
     
-    <!-- Recording -->
-    <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args="-O $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
-    </node>
-    <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
-    <node if="$(arg bag)"  pkg="lthmi_nav" type="node_param_publisher.py" name="node_param_publisher">
-        <param name="rosbag_node_name" value="rosbag_record" />
-        <!-- remapped parameters (by default not save on param server-->
-        <param name="map" value="$(arg map)" />
-        <param name="mx" value="$(arg mx)" />
-        <param name="path" value="$(arg path)" />
-        <param name="popt" value="$(arg popt)" />
-        <param name="bag" value="$(arg bag)" />
-        <param name="bag" value="$(arg bag)" />
-        <param name="waited_srvs_name" value="$(arg waited_srvs_name)" />
-        <param name="rviz" value="$(arg rviz)" />
-        <param name="commit"     command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log --format='%H' -n 1" />
-        <param name="commit_log" command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log -n 1" />
-    </node>
+    <arg name="robot_map_file" value="$(find ak_labs)/pgm/$(arg map).yaml" />
+    <arg name="lthmi_map_file" value="$(find ak_labs)/map/$(arg map)_10cm_inf4.map" />
+    
     
     <!--predefined selectable parameters -->
-    <rosparam command="load" file="$(find lthmi_nav)/map/$(arg map).paths"/>
     <rosparam>
         probs_optimal: 
             equal:  [0.25, 0.25, 0.25, 0.25]
@@ -73,18 +56,51 @@
             mode0: ['/rviz/reload_shaders']
             mode1: ['/rosbag_record/get_loggers', '/rviz/reload_shaders']
     </rosparam>
-
     
-    <node pkg="lthmi_nav" type="node_experimentator.py" name="experimentator" output="screen" required="true" >
-        <param name="map" value="$(find lthmi_nav)/map/$(arg map).map" />
-        <remap from="~poses" to="/paths/$(arg path)"/>
-        <param name="resol" value="$(arg resol)" />
-        <param name="n_runs" value="$(arg tries)" />
-        <param name="success_file" value="$(arg bagpath).success" />
-        <remap from="~waited_srvs" to="$(arg waited_srvs_name)"/>
+    
+    <!-- Recording -->
+    <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
+            args="-O $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
+    </node>
+    <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
+    <node if="$(arg bag)"  pkg="lthmi_nav" type="node_param_publisher.py" name="node_param_publisher">
+        <param name="rosbag_node_name" value="rosbag_record" />
+        <!-- remapped parameters (by default not save on param server-->
+        <param name="map" value="$(arg map)" />
+        <param name="mx" value="$(arg mx)" />
+        <param name="path" value="$(arg path)" />
+        <param name="popt" value="$(arg popt)" />
+        <param name="bag" value="$(arg bag)" />
+        <param name="waited_srvs_name" value="$(arg waited_srvs_name)" />
+        <param name="rviz" value="$(arg rviz)" />
+        <param name="commit"     command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log --format='%H' -n 1" />
+        <param name="commit_log" command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log -n 1" />
+    </node>
+    
+    
+    <!-- ROBOT real or model -->
+    <node pkg="lthmi_nav" type="node_mediator.py" name="node_mediator" 
+            output="screen" required="true">
+        <param name="map" value="$(arg lthmi_map_file)" />
+        <param name="resolution" value="0.1" />
+        <param name="real_robot" value="$(arg real_robot)" />
+        <remap from="/map" to="/map_inflated" />
         <rosparam>
-            synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
+            synced_nodes: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model', 'robot_model', ]
+            waited_srvs:  ['/rviz/reload_shaders']
         </rosparam>
+    </node>
+    <include if="$(arg real_robot)" file="$(find anna)/launch/main.launch">
+        <arg name="assist" value="0" />
+        <arg name="auto" value="1" />
+        <arg name="cliff" value="0" />
+        <arg name="map_file" value="$(arg robot_map_file)" />
+    </include>
+    
+    <node unless="$(arg real_robot)" pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" required="true">
+        <remap from="/pose_desired" to="/pose_best" />
+        <param name="max_vel"     value="$(arg vel)" />
+        <param name="pub_period"  value="$(arg trobot)" />
     </node>
     
     
@@ -94,7 +110,11 @@
         <param if="$(arg by_key)"     name="delay" value="0.0"/>
         <param unless="$(arg by_key)" name="delay" value="$(arg period)"/>
     </node>
-    <node pkg="lthmi_nav" type="keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
+    <node pkg="lthmi_nav" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
+        <rosparam>
+            key_mappings: ['y','b','o','t']
+            new_goal_key: 'r'
+        </rosparam>
     </node>
     
     

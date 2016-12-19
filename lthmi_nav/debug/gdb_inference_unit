@@ -1,3 +1,4 @@
 #b lthmi_nav::InferenceUnit::stop
 b lthmi_nav::SynchronizableNode::srvStop
+b lthmi_nav::InferenceUnit::srvNewGoal
 r

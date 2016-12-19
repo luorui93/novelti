@@ -148,10 +148,10 @@ Visualization Manager:
       Class: lthmi_nav/IntMap
       Color Scheme: regions
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: /map
       Topic: /map
-      Value: false
+      Value: true
     - Alpha: 0.7
       Class: lthmi_nav/IntMap
       Color Scheme: regions
