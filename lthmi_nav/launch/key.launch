@@ -52,9 +52,9 @@
         mx31:   [0.31, 0.23, 0.23, 0.23,    0.23, 0.31, 0.23, 0.23,     0.23, 0.23, 0.31, 0.23,     0.23, 0.23, 0.23, 0.31,]
     </rosparam>
     <rosparam>
-        waited_srvs: 
-            mode0: ['/rviz/reload_shaders']
-            mode1: ['/rosbag_record/get_loggers', '/rviz/reload_shaders']
+        synced_nodes: 
+            real_robot0: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model', 'robot_model', ]
+            real_robot1: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model',  ]
     </rosparam>
     
     
@@ -85,8 +85,8 @@
         <param name="resolution" value="0.1" />
         <param name="real_robot" value="$(arg real_robot)" />
         <remap from="/map" to="/map_inflated" />
+        <remap from="~synced_nodes" to="/synced_nodes/real_robot$(arg real_robot)"/>
         <rosparam>
-            synced_nodes: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model', 'robot_model', ]
             waited_srvs:  ['/rviz/reload_shaders']
         </rosparam>
     </node>
@@ -128,6 +128,8 @@
         <param name="thresh_high" value="$(arg prob_thresh_high)" />
         <param name="thresh_low"  value="$(arg prob_thresh_low)" />
         <param name="eps"         value="$(arg prob_eps)" />
+        <param name="check_sync"  value="false" />
+        <param name="reset_pdf_on_new"  value="true" />
     </node>
     <node pkg="lthmi_nav" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
         <param name="method"      value="$(arg pos)" />

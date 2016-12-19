@@ -18,12 +18,15 @@ public:
     ros::ServiceServer start_service;
     ros::ServiceServer stop_service;
     double resolution;
+    bool check_sync_;
     
     SynchronizableNode() :
         node("~"),
         start_service(node.advertiseService("start", &SynchronizableNode::srvStart, this)),
         stop_service(node.advertiseService("stop", &SynchronizableNode::srvStop, this))
-    {}
+    {
+        node.param<bool>("check_sync", check_sync_, true);
+    }
     
     bool srvStart(lthmi_nav::StartExperiment::Request& req, lthmi_nav::StartExperiment::Response& resp) {
         resolution = req.map.info.resolution;

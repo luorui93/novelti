@@ -41,6 +41,9 @@ InferenceUnit::InferenceUnit() :
     node.param<double>("eps", eps, 1.0e-12);
     node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
     node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
+    //if (reset_pdf_on_new_)
+    //if (check_sync_)
+    //    ROS_INFO("%s: ---------------------------------------------------------------------- thresh_high=%f", getName().c_str(),thresh_high);
     
     node.getParam("pois", pois_);
     node.getParam("interface_matrix", interface_matrix);
@@ -59,11 +62,12 @@ InferenceUnit::InferenceUnit() :
 
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
     state = INFERRING_NEW;
-        ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
-    if (reset_pdf_on_new_)
+    ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
+    if (reset_pdf_on_new_) {
         resetPdf();
-    else
+    } else {
         denullifyPdf();//??
+    }
     pubPdf();
     return true;
 }
@@ -112,6 +116,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
 }
 
 void InferenceUnit::resetPdf() {
+    ROS_INFO("%s: resetting pdf", getName().c_str());
     if (pois_.size()==0)
         setUniformPdf();
     else
@@ -294,7 +299,7 @@ void InferenceUnit::publishViewTf() {
 }
 
 void InferenceUnit::updatePdfAndPublish() {
-    if (state==INFERRED || pdf.header.seq-1 != cmd_detected->header.seq-1 || pdf.header.seq-1 != map_divided->header.seq) {
+    if (check_sync_ && (state==INFERRED || pdf.header.seq-1 != cmd_detected->header.seq-1 || pdf.header.seq-1 != map_divided->header.seq)) {
         ROS_FATAL("%s: SYNCHRONIZATION BROKEN! state%s=INFERRED (must not be equal to INFERRED), pdf.seq==%d, cmd_detected.seq==%d, map_divided.seq==%d.",
                  getName().c_str(), (state==INFERRED ? "=" : "!"), pdf.header.seq, cmd_detected->header.seq, map_divided->header.seq);
         ros::shutdown();
