@@ -88,4 +88,28 @@ sudo sshfs -o allow_other,reconnect -p 2222 git@zzzzzz.no-ip.org:/home/git/lthmi
         
         
         
-        
+Converting map image constructed with SLAM into inflated .map-file:
+    obtain a pgm-image file with map
+    scale to desired size using GIMP:
+        open
+        scale
+            Menu > Image > Scale Image... > Images size
+                set dimension to percent (%)
+                set correct % 
+                Quality > interpolation: Cubic
+                click Scale
+        remove noise
+            Menu > Colors > Threshold... 
+            set desired threshold
+        export as new pgm (Raw)
+    inflate
+        $ cd $lthmi_nav_package/scripts/lthmi_nav
+        $ ./MapTools img2map < $SOME_PATH/scaledMap.pgm > $SOME_PATH/scaledMap.map
+        $ ./MapTools inflate 7 < $SOME_PATH/scaledMap.map > $SOME_PATH/scaledAndInflatedMap.map
+        replace 7 with desired radius of inflation as measured in cells 
+    remove diagonal obstacles
+        $ ./MapTools find_diags < $SOME_PATH/scaledAndInflatedMap.map
+        this will display coordinates of diagonally positioned occupied cells which sometimes cannot be processed by CWave
+        in a text editor remove those cells
+        repeat until all diags are removed
+        save as $SOME_PATH/scaledAndInflatedMapWithoutDiags.map
