@@ -98,7 +98,7 @@ class Mediator (SyncingNode):
             rospy.loginfo("Failed to arrive to destination")
 
     def poseAmclCallback(self, msg):
-        p = PoseStampled()
+        p = PoseStamped()
         p.header = msg.header
         p.pose = msg.pose.pose
         self.pub_pose_current.publish(p)

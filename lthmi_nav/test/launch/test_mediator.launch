@@ -7,7 +7,7 @@
     
     <node pkg="lthmi_nav" type="node_mediator.py" name="node_mediator" 
             output="screen" required="true">
-        <param name="map" value="$(find ak_labs)/map/AK3_10cm_inf4.map" />
+        <param name="map" value="$(find ak_labs)/map/AH_10cm_inf7.map" />
         <param name="resolution" value="0.1" />
         <remap from="/map" to="/map_inflated" />
         <rosparam>
@@ -22,10 +22,14 @@
     </node>
     
     <include file="$(find anna)/launch/main.launch">
+        <arg name="init_x" default="11.78" />
+        <arg name="init_y" default="1.85" />
+        <arg name="init_yaw" default="1.57079" />
+        
         <arg name="assist" value="0" />
         <arg name="auto" value="1" />
         <arg name="cliff" value="0" />
-        <arg name="map_file" value="$(find ak_labs)/pgm/AK3.yaml" />
+        <arg name="map_file" value="$(find ak_labs)/pgm/AH.yaml" />
     </include>
     
 </launch>
