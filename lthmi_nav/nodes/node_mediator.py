@@ -81,6 +81,7 @@ class Mediator (SyncingNode):
         self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
         
     def setNewGoal(self, msg):
+        rospy.loginfo(">>>>>>>>>>> New goal received, cancelling all previous goals")
         self.action_client.cancel_all_goals()
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
