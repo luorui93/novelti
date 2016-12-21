@@ -66,13 +66,15 @@ class Mediator (SyncingNode):
             self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
             self.action_client.wait_for_server()
             
+            self.pub_pose_arrived = rospy.Publisher('/pose_arrived', PoseStamped, queue_size=1, latch=True)
+            self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
+            #self.pub_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1, latch=True)
+            
             self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
             self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
             self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
             
-            self.pub_pose_arrived = rospy.Publisher('/pose_arrived', PoseStamped, queue_size=1, latch=True)
-            self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
-            #self.pub_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1, latch=True)
+
         else:
             rospy.loginfo("Starting lthmi_nav without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
@@ -98,6 +100,7 @@ class Mediator (SyncingNode):
         goal.target_pose.header.stamp = rospy.Time.now()
 
         goal.target_pose.pose = msg.pose
+        goal.target_pose.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, 0.0))
 
         rospy.loginfo("Sending destination goal to move_base")
         self.action_client.send_goal(goal, feedback_cb=self.actionFeedbackCallback, done_cb=self.actionDoneCallback)

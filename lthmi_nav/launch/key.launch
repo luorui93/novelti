@@ -81,6 +81,7 @@
     <!-- ROBOT real or model -->
     <node pkg="lthmi_nav" type="node_mediator.py" name="node_mediator" 
             output="screen" required="true">
+        <remap from="/pose_desired" to="/pose_best" />
         <param name="map" value="$(arg lthmi_map_file)" />
         <param name="resolution" value="0.1" />
         <param name="real_robot" value="$(arg real_robot)" />
@@ -91,9 +92,13 @@
         </rosparam>
     </node>
     <include if="$(arg real_robot)" file="$(find anna)/launch/main.launch">
-        <arg name="init_x" default="11.78" />
-        <arg name="init_y" default="1.85" />
-        <arg name="init_yaw" default="1.57079" />
+        <arg name="ui1" value="none" />
+        <arg name="ui2" value="none" />
+        <arg name="ui3" value="none" />
+        
+        <arg name="init_x" value="11.78" />
+        <arg name="init_y" value="1.85" />
+        <arg name="init_yaw" value="1.57079" />
         
         <arg name="assist" value="0" />
         <arg name="auto" value="1" />
@@ -134,7 +139,7 @@
         <param name="eps"         value="$(arg prob_eps)" />
         <param name="check_sync"  value="false" />
         <param name="reset_pdf_on_new"  value="true" />
-        <param name="interest_area_coef" value="0.2" />
+        <param name="interest_area_coef" value="0.05" />
     </node>
     <node pkg="lthmi_nav" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
         <param name="method"      value="$(arg pos)" />
