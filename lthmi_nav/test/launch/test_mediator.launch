@@ -7,7 +7,7 @@
     
     <node pkg="lthmi_nav" type="node_mediator.py" name="node_mediator" 
             output="screen" required="true">
-        <param name="map" value="$(find ak_labs)/map/AH_10cm_inf7.map" />
+        <param name="map" value="$(find ak_labs)/map/AH_10cm_inf8.map" />
         <param name="resolution" value="0.1" />
         <param name="real_robot" value="true" />
         <remap from="/map" to="/map_inflated" />
