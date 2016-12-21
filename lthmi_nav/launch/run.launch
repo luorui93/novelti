@@ -79,7 +79,7 @@
         <param name="n_runs" value="$(arg tries)" />
         <rosparam>
             synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
-            waited_srvs: ['/rviz/reload_shaders', '/rosbag_record/get_loggers']
+            waited_srvs: ['/lthmi_rviz/reload_shaders', '/rosbag_record/get_loggers']
         </rosparam> <!--  '/rosbag_record/get_loggers' -->
     </node>
     

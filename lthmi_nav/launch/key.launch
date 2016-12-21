@@ -18,7 +18,7 @@
     <arg name="map"   default="AH" /> <!-- base name of the map from the map directory (without extension .map) -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
     
-    <arg name="real_robot" default="0" />
+    <arg name="real_robot" default="1" />
     
     <arg name="bag" default="0" />
     <arg name="by_key" default="0" />
@@ -87,7 +87,7 @@
         <remap from="/map" to="/map_inflated" />
         <remap from="~synced_nodes" to="/synced_nodes/real_robot$(arg real_robot)"/>
         <rosparam>
-            waited_srvs:  ['/rviz/reload_shaders']
+            waited_srvs:  ['/lthmi_rviz/reload_shaders']
         </rosparam>
     </node>
     <include if="$(arg real_robot)" file="$(find anna)/launch/main.launch">

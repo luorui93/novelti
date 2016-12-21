@@ -71,7 +71,7 @@
     </rosparam>
     <rosparam>
         waited_srvs: 
-            mode0: ['/rviz/reload_shaders']
+            mode0: ['/lthmi_rviz/reload_shaders']
             mode1: ['/rosbag_record/get_loggers', '/rviz/reload_shaders']
     </rosparam>
 
