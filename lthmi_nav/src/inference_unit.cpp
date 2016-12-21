@@ -286,13 +286,14 @@ void InferenceUnit::publishViewTf() {
     ///#c = ((limits[0]+limits[1])*pdf.info.resolution/2, (limits[2]+limits[3])*pdf.info.resolution/2)
     const int min_number_of_vertices_in_interest_area = 20;
     double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
-    double cam_distance = 2+2*(int(max_area_size*0.2)/2);
+    ROS_INFO("%s: max_area_size=%f", getName().c_str(), max_area_size);
+    double cam_distance = 1.2*max_area_size;//2+2*(int(max_area_size*0.2)/2);
     double cam_x = (xmin+xmax)*pdf.info.resolution/2;
     double cam_y = (ymin+ymax)*pdf.info.resolution/2;
-    if (cam_distance==8) {
+    /*if (true || cam_distance==8) {
         cam_x = w/2;
         cam_y = h/2;
-    }
+    }*/
     static tf::TransformBroadcaster view_tf;
     tf::Transform transform;
     transform.setOrigin( tf::Vector3(cam_x,cam_y, cam_distance) );
