@@ -15,7 +15,7 @@
     <arg name="ksafe"  default="0.9" />
     <arg name="trobot"  default="0.025" />
     
-    <arg name="map"   default="AK3" /> <!-- base name of the map from the map directory (without extension .map) -->
+    <arg name="map"   default="AH" /> <!-- base name of the map from the map directory (without extension .map) -->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
     
     <arg name="real_robot" default="0" />
@@ -31,7 +31,7 @@
     
     
     <arg name="robot_map_file" value="$(find ak_labs)/pgm/$(arg map).yaml" />
-    <arg name="lthmi_map_file" value="$(find ak_labs)/map/$(arg map)_10cm_inf4.map" />
+    <arg name="lthmi_map_file" value="$(find ak_labs)/map/$(arg map)_10cm_inf8.map" />
     
     
     <!--predefined selectable parameters -->
@@ -91,10 +91,14 @@
         </rosparam>
     </node>
     <include if="$(arg real_robot)" file="$(find anna)/launch/main.launch">
+        <arg name="init_x" default="11.78" />
+        <arg name="init_y" default="1.85" />
+        <arg name="init_yaw" default="1.57079" />
+        
         <arg name="assist" value="0" />
         <arg name="auto" value="1" />
         <arg name="cliff" value="0" />
-        <arg name="map_file" value="$(arg robot_map_file)" />
+        <arg name="map_file" value="$(find ak_labs)/pgm/AH.yaml" />
     </include>
     
     <node unless="$(arg real_robot)" pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" required="true">
@@ -130,7 +134,7 @@
         <param name="eps"         value="$(arg prob_eps)" />
         <param name="check_sync"  value="false" />
         <param name="reset_pdf_on_new"  value="true" />
-        <param name="interest_area_coef" value="0.9" />
+        <param name="interest_area_coef" value="0.2" />
     </node>
     <node pkg="lthmi_nav" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
         <param name="method"      value="$(arg pos)" />
