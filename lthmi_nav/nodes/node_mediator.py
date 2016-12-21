@@ -44,8 +44,8 @@ import actionlib
 from actionlib_msgs.msg import *
 import rospy
 
-from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import PoseWithCovarianceStamped
+import tf_conversions
+from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
 from nav_msgs.msg import OccupancyGrid
 from lthmi_nav.SyncingNode import SyncingNode
 
@@ -72,6 +72,7 @@ class Mediator (SyncingNode):
             
             self.pub_pose_arrived = rospy.Publisher('/pose_arrived', PoseStamped, queue_size=1, latch=True)
             self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
+            #self.pub_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1, latch=True)
         else:
             rospy.loginfo("Starting lthmi_nav without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
@@ -80,9 +81,18 @@ class Mediator (SyncingNode):
         rospy.loginfo("Starting lthmi_nav")
         self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
         
+    def cancelAllGoals(self):
+        self.action_client.cancel_all_goals() # don't know why this does not work 
+        #g = GoalID()
+        #self.pub_cancel.publish(g)
+        
     def setNewGoal(self, msg):
-        rospy.loginfo(">>>>>>>>>>> New goal received, cancelling all previous goals")
-        self.action_client.cancel_all_goals()
+        self.setNewGoalInAnotherThread(msg)
+        #Thread(target=setNewGoalInAnotherThread, args=[self, msg]).start()
+        
+    def setNewGoalInAnotherThread(self, msg):
+        rospy.loginfo(">>>>>>>>>>> New goal received, canceling all previous goals")
+        self.cancelAllGoals()
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
@@ -90,18 +100,25 @@ class Mediator (SyncingNode):
         goal.target_pose.pose = msg.pose
 
         rospy.loginfo("Sending destination goal to move_base")
-        self.action_client.send_goal(goal, feedback_cb=self.actionFeedbackCallback)
-        self.action_client.wait_for_result()
+        self.action_client.send_goal(goal, feedback_cb=self.actionFeedbackCallback, done_cb=self.actionDoneCallback)
+        #self.action_client.wait_for_result()
         #rospy.logerr(self.action_client.get_state())
+        #if self.action_client.get_state() == GoalStatus.SUCCEEDED:
+            #rospy.loginfo("Arrived to the destination")
+        #else:
+            #rospy.loginfo("Failed to arrive to destination")
+
+    def actionDoneCallback(self, p1, p2):
         if self.action_client.get_state() == GoalStatus.SUCCEEDED:
             rospy.loginfo("Arrived to the destination")
         else:
             rospy.loginfo("Failed to arrive to destination")
-
+        
     def poseAmclCallback(self, msg):
         p = PoseStamped()
         p.header = msg.header
         p.pose = msg.pose.pose
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
         self.pub_pose_current.publish(p)
         if self.state == "WAIT4START":
             self.state = "RUNNING"
