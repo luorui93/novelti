@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="bagpath" default="/tmp/tmp.bag" />
-    
     <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
-    <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euc  maxprob_obst  cog_euc  nearcog_euc  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="start" default="door1" />
+    <arg name="dst" default="livroom1" />
+    <arg name="period" default="3.0" />        <!-- interface period -->
+    <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)--> 
+    
+    
     <arg name="vel"   default="0.5" />       <!-- robot velocity in m/s -->
-    <arg name="period" default="2.0" />        <!-- interface period -->
-    <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     
     <arg name="prob_thresh_high" default="0.99" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
@@ -20,9 +22,12 @@
     
     <arg name="real_robot" default="1" />
     
-    <arg name="bag" default="0" />
+    <arg name="bag" default="1" />
+    <!--arg name="bagpath" default="/tmp/tmp.bag" /-->
     <arg name="by_key" default="0" />
-    <arg name="rviz" default="autocam" /> <!-- none, autocam or static -->
+    <arg name="rviz" default="robot_autocam" /> <!-- none, autocam or static -->
+
+    <arg name="record_video" default="1" />
     
     <arg name="verb" default="info" />
 
@@ -57,10 +62,32 @@
             real_robot1: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model',  ]
     </rosparam>
     
+    <rosparam>
+        predefined_poses: 
+            door1:      
+                x: 11.78
+                y: 1.85
+                yaw: 1.57079
+            livroom1:   
+                x: 8.7
+                y: 20.0
+                yaw: 3.14159
+    </rosparam>
+    
+    
+    <arg name="init_x" value="11.78" />
+    <arg name="init_y" value="1.85" />
+    <arg name="init_yaw" value="1.57079" />
+    
+    <node if="$(arg record_video)" name="vlc_recorded" pkg="lthmi_nav" type="record_screen.sh" />
+    
+    <node if="$(arg real_robot)" name="robot_rviz" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find lthmi_nav)/rviz/robot.rviz" />
     
     <!-- Recording -->
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args="-O $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
+            args=" /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /amcl_pose /map_inflated     /lidar_battery_sym/scan /lidar_footplate/scan /odom /tf /move_base/local_costmap/footprint /pose_intended_goal">
+        <!-- -O $(arg bagpath)                polygon, local costmap,  /odom /lidar1 /lidar2 -->
     </node>
     <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
     <node if="$(arg bag)"  pkg="lthmi_nav" type="node_param_publisher.py" name="node_param_publisher">
@@ -68,7 +95,7 @@
         <!-- remapped parameters (by default not save on param server-->
         <param name="map" value="$(arg map)" />
         <param name="mx" value="$(arg mx)" />
-        <param name="path" value="$(arg path)" />
+        <!--param name="path" value="$(arg path)" /-->
         <param name="popt" value="$(arg popt)" />
         <param name="bag" value="$(arg bag)" />
         <param name="waited_srvs_name" value="$(arg waited_srvs_name)" />
@@ -82,6 +109,9 @@
     <node pkg="lthmi_nav" type="node_mediator.py" name="node_mediator" 
             output="screen" required="true">
         <remap from="/pose_desired" to="/pose_best" />
+        <remap from="~goal_x" to="/predefined_poses/$(arg dst)/x" />
+        <remap from="~goal_y" to="/predefined_poses/$(arg dst)/y" />
+        <remap from="~goal_yaw" to="/predefined_poses/$(arg dst)yaw" />
         <param name="map" value="$(arg lthmi_map_file)" />
         <param name="resolution" value="0.1" />
         <param name="real_robot" value="$(arg real_robot)" />
@@ -91,20 +121,32 @@
             waited_srvs:  ['/lthmi_rviz/reload_shaders']
         </rosparam>
     </node>
+    
+    <remap from="/amcl/init_x" to="/predefined_poses/$(arg start)/x" />
+    <remap from="/amcl/init_y" to="/predefined_poses/$(arg start)/y" />
+    <remap from="/amcl/init_yaw" to="/predefined_poses/$(arg start)/yaw" />
+    
     <include if="$(arg real_robot)" file="$(find anna)/launch/main.launch">
         <arg name="ui1" value="none" />
         <arg name="ui2" value="none" />
         <arg name="ui3" value="none" />
+        <arg name="rviz" value="0" />
         
-        <arg name="init_x" value="11.78" />
-        <arg name="init_y" value="1.85" />
-        <arg name="init_yaw" value="1.57079" />
+        <!--arg name="init_x" value="none" />
+        <arg name="init_y" value="none" />
+        <arg name="init_z" value="none" /-->
+
+        <!--remap from="~init_x" to="/predefined_poses/$(arg start)/x" />
+        <remap from="~init_y" to="/predefined_poses/$(arg start)/y" />
+        <remap from="~init_yaw" to="/predefined_poses/$(arg start)/yaw" /-->
         
         <arg name="assist" value="0" />
         <arg name="auto" value="1" />
         <arg name="cliff" value="0" />
         <arg name="map_file" value="$(find ak_labs)/pgm/AH.yaml" />
     </include>
+    
+    
     
     <node unless="$(arg real_robot)" pkg="lthmi_nav" type="robot_model" name="robot_model" output="screen" required="true">
         <remap from="/pose_desired" to="/pose_best" />
@@ -116,13 +158,13 @@
     <!-- Environment -->
     <node pkg="lthmi_nav" type="node_lthmi_model.py" name="lthmi_model" output="screen" required="true">
         <remap from="~interface_matrix" to="/$(arg mx)"/>
-        <param if="$(arg by_key)"     name="delay" value="0.0"/>
-        <param unless="$(arg by_key)" name="delay" value="$(arg period)"/>
+        <param name="period" value="$(arg period)"/>
+        <param unless="$(arg by_key)" name="random_if_missed" value="true"/>
     </node>
     <node pkg="lthmi_nav" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
         <rosparam>
             key_mappings: ['y','b','o','t']
-            new_goal_key: 'r'
+            new_goal_key: '`'
         </rosparam>
     </node>
     
