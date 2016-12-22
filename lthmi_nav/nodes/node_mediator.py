@@ -70,6 +70,8 @@ class Mediator (SyncingNode):
             self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
             #self.pub_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1, latch=True)
             
+            self.pub_pose_goal = rospy.Publisher('/pose_intended_goal', PoseStamped, queue_size=1, latch=True)
+            
             self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
             self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
             self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
@@ -79,9 +81,20 @@ class Mediator (SyncingNode):
             rospy.loginfo("Starting lthmi_nav without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
     
+    def publishGoal(self):
+        p = PoseStamped()
+        p.header.stamp = rospy.Time.now()
+        p.header.frame_id = "/map"
+        p.pose.position.x = rospy.get_param('~goal_x', 0.0)
+        p.pose.position.y = rospy.get_param('~goal_y', 0.0)
+        rospy.get_param('~goal_y', 0.0),
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
+        self.pub_pose_goal.publish(p)
+    
     def startLthmiNav(self, init_pose):
         rospy.loginfo("Starting lthmi_nav")
         self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
+        self.publishGoal()
         
     def cancelAllGoals(self):
         self.action_client.cancel_all_goals() # don't know why this does not work 
