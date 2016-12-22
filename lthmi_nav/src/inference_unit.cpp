@@ -116,6 +116,8 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
     sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
     sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
+    if (interest_area_thresh_ > 0.0)
+        publishViewTf();
 }
 
 void InferenceUnit::resetPdf() {
@@ -287,7 +289,7 @@ void InferenceUnit::publishViewTf() {
     const int min_number_of_vertices_in_interest_area = 20;
     double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
     ROS_INFO("%s: max_area_size=%f", getName().c_str(), max_area_size);
-    double cam_distance = 1.2*max_area_size;//2+2*(int(max_area_size*0.2)/2);
+    double cam_distance = (1.5  -  0.35*(max_area_size/pdf.info.resolution-20)/250.0)*max_area_size;//2+2*(int(max_area_size*0.2)/2);
     double cam_x = (xmin+xmax)*pdf.info.resolution/2;
     double cam_y = (ymin+ymax)*pdf.info.resolution/2;
     /*if (true || cam_distance==8) {
