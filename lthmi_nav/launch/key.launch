@@ -2,8 +2,8 @@
 <launch>
     <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  equidist  extremal -->
     <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euc  maxprob_obst  cog_euc  nearcog_euc  nearcog_obst  cog2lopt  cog2gopt -->
-    <arg name="start" default="door1" />
-    <arg name="dst" default="livroom1" />
+    <arg name="start" default="bathroom1" />
+    <arg name="dst" default="door1" />
     <arg name="period" default="3.0" />        <!-- interface period -->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)--> 
     
@@ -22,12 +22,12 @@
     
     <arg name="real_robot" default="1" />
     
-    <arg name="bag" default="1" />
+    <arg name="bag" default="0" />
     <!--arg name="bagpath" default="/tmp/tmp.bag" /-->
     <arg name="by_key" default="0" />
     <arg name="rviz" default="robot_autocam" /> <!-- none, autocam or static -->
 
-    <arg name="record_video" default="1" />
+    <arg name="record_video" default="0" />
     
     <arg name="verb" default="info" />
 
@@ -139,10 +139,10 @@
         </rosparam>
     </node>
     
-    <remap from="/amcl/init_x" to="/predefined_poses/$(arg start)/x" />
-    <remap from="/amcl/init_y" to="/predefined_poses/$(arg start)/y" />
-    <remap from="/amcl/init_yaw" to="/predefined_poses/$(arg start)/yaw" />
-    
+    <remap from="/amcl/initial_pose_x" to="/predefined_poses/$(arg start)/x" />
+    <remap from="/amcl/initial_pose_y" to="/predefined_poses/$(arg start)/y" />
+    <remap from="/amcl/initial_pose_a" to="/predefined_poses/$(arg start)/yaw" />
+
     <include if="$(arg real_robot)" file="$(find anna)/launch/main.launch">
         <arg name="ui1" value="none" />
         <arg name="ui2" value="none" />
