@@ -60,7 +60,6 @@ InferenceUnit::InferenceUnit() :
     priors     = std::vector<double>(n_cmds, 0.0);
     posteriors = std::vector<double>(n_cmds, 0.0);
     coefs      = std::vector<double>(n_cmds, 0.0);
-    srv_new_goal = node.advertiseService("new_goal", &InferenceUnit::srvNewGoal, this);
 }
 
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
@@ -118,6 +117,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
     sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
     if (interest_area_thresh_ > 0.0)
         publishViewTf();
+    srv_new_goal = node.advertiseService("new_goal", &InferenceUnit::srvNewGoal, this);
 }
 
 void InferenceUnit::resetPdf() {
@@ -135,22 +135,49 @@ void InferenceUnit::setUniformPdf() {
 }
 
 void InferenceUnit::setHardcodedPredictedPdf() {
+    int k;
     double total = 0.0;
-    float p, d;
-    for (int y=0, k=0; y<pdf.info.height-1; y++) {
-        for (int x=0; x<pdf.info.width-1; x++, k++) {
-            if (pdf.data[k]!=PDF_UNREACHABLE) {
+    float p, d, poi_x, poi_y, poi_sigma, poi_k;
+    for (int x=0; x<pdf.info.width-2; x++) {
+        for (int y=0; y<pdf.info.height-2; y++) {
+            k = x+1 + (y+1)*pdf.info.width;
+            //k = x + y*(pdf.info.width-1);
+            if (pdf.data[k]>=0) {
                 p = 0.0;
                 //pois_: x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...
                 for (int i=0; i<pois_.size(); i+=4) {
-                    d = (x-pois_[i])*(x-pois_[i]) + (y-pois_[i+1])*(y-pois_[i+1]);
-                    p += pois_[i+3]*exp(-d/(2*pois_[i+2]*pois_[i+2]));
+                    poi_x = pois_[i];
+                    poi_y = pois_[i+1];
+                    poi_sigma = pois_[i+2];
+                    poi_k = pois_[i+3];
+                    d = (x-poi_x)*(x-poi_x) + (y-poi_y)*(y-poi_y);
+                    p += poi_k * exp(-d/(2*poi_sigma*poi_sigma));
                 }
                 pdf.data[k] = p;
                 total += p;
             }
         }
     }
+    
+//     for (int y=0, k=0; y<pdf.info.height-1; y++) {
+//         for (int x=0; x<pdf.info.width-1; x++, k++) {
+//             if (pdf.data[k]>=0) {
+//                 p = 0.0;
+//                 //pois_: x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...
+//                 for (int i=0; i<pois_.size(); i+=4) {
+//                     poi_x = pois_[i];
+//                     poi_y = pois_[i+1];
+//                     poi_sigma = pois_[i+2];
+//                     poi_k = pois_[i+3];
+//                     d = (x-poi_x)*(x-poi_x) + (y-poi_y)*(y-poi_y);
+//                     p += poi_k * exp(-d/(2*poi_sigma*poi_sigma));
+//                 }
+//                 pdf.data[k] = p;
+//                 total += p;
+//             }
+//         }
+//         k++;
+//     }
     
     for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
         if (p != PDF_UNREACHABLE) {
