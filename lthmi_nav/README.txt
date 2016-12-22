@@ -123,4 +123,4 @@ improve
     move from the same point
     soft borders
     script to run (save date) 
-    save commit
+    save commit, machine

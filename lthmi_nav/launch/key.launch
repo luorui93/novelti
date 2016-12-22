@@ -71,7 +71,23 @@
             livroom1:   
                 x: 8.7
                 y: 20.0
-                yaw: 3.14159
+                yaw: 1.57079
+            office1:   
+                x: 17.1
+                y: 15.5
+                yaw: 0.0
+            bathroom1:   
+                x: 3.4
+                y: 1.9
+                yaw: 1.57079
+            music1:   
+                x: 13.8
+                y: 23.4
+                yaw: 0.0
+            bedroom1:   
+                x: 14.5
+                y: 19.4
+                yaw: -1.5709
     </rosparam>
     
     
