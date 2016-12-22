@@ -121,7 +121,8 @@ export start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`; roslaunch lthmi_nav key.launch; (
 
 
 improve
-    move from the same point
     soft borders
     script to run (save date) 
-    save commit, machine
+    fix the /pose_current marker overlaps cells
+    fix bugs
+    add check for inaccessible areas on the maps 

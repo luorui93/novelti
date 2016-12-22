@@ -22,12 +22,12 @@
     
     <arg name="real_robot" default="1" />
     
-    <arg name="bag" default="0" />
+    <arg name="bag" default="1" />
     <!--arg name="bagpath" default="/tmp/tmp.bag" /-->
     <arg name="by_key" default="0" />
     <arg name="rviz" default="robot_autocam" /> <!-- none, autocam or static -->
 
-    <arg name="record_video" default="0" />
+    <arg name="record_video" default="1" />
     
     <arg name="verb" default="info" />
 
