@@ -16,14 +16,15 @@ class StochHmiModel (SynchronizableNode):
         interface_matrix = rospy.get_param('~interface_matrix', [])
         rospy.loginfo("\n=========INTERFACE MATRIX:====== \n" + str(interface_matrix))
         self.period = rospy.get_param('~period', 0.0)
+        self.random_if_missed = rospy.get_param('~random_if_missed', False)
         self.delay  = rospy.get_param('~delay', 0.0)
-        n = int(sqrt(len(interface_matrix)))
+        self.n = int(sqrt(len(interface_matrix)))
 
         k=0
         self.interface_matrix_thresholds = []
-        for r in range(n):
+        for r in range(self.n):
             self.interface_matrix_thresholds.append([])
-            for c in range(n):
+            for c in range(self.n):
                 self.interface_matrix_thresholds[r].append(interface_matrix[k])
                 k += 1
         #rospy.loginfo("\n=========INTERFACE TTHR:====== \n" + str(self.interface_matrix_thresholds))
@@ -31,7 +32,7 @@ class StochHmiModel (SynchronizableNode):
         for row in self.interface_matrix_thresholds:
             #rospy.loginfo("======= %s====%d\n" % (str(row), len(row)))
             thresh = 0.0
-            for k in xrange(n):
+            for k in xrange(self.n):
                 row[k] = thresh+row[k]
                 thresh = row[k]
         SynchronizableNode.__init__(self)
@@ -61,9 +62,12 @@ class StochHmiModel (SynchronizableNode):
             rospy.sleep(self.period) 
             self.cmd_detected.header.stamp = rospy.Time.now()
             self.cmd_detected.cmd = self.randomize(self.cmd_intended)
-            rospy.loginfo("%s: number of connections=%d" % (rospy.get_name(), self.pub.get_num_connections()))
+            #rospy.loginfo("%s: number of connections=%d" % (rospy.get_name(), self.pub.get_num_connections()))
             self.pub.publish(self.cmd_detected)
             rospy.loginfo("%s: published detected command, intended=%d, detected=%d (SEQ==%d)", rospy.get_name(), self.cmd_intended, self.cmd_detected.cmd, self.cmd_detected.header.seq)
+            if self.random_if_missed:
+                self.cmd_intended = random.randint(0,self.n)
+                
     
     def cmdIntendedCallback(self, msg):
         is_fisrt_msg = (self.cmd_intended is None)
