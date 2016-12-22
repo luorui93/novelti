@@ -113,3 +113,14 @@ Converting map image constructed with SLAM into inflated .map-file:
         in a text editor remove those cells
         repeat until all diags are removed
         save as $SOME_PATH/scaledAndInflatedMapWithoutDiags.map
+        
+        
+        
+export start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`; roslaunch lthmi_nav key.launch; (end=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`; echo -e "\n\n\ntime_start: '$start'\ntime_end: '$end'") >> ~/Desktop/cps/alden-hall-protocol.txt
+
+
+improve
+    move from the same point
+    soft borders
+    script to run (save date) 
+    save commit
