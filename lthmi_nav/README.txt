@@ -86,7 +86,8 @@ TODO:
         
 sudo sshfs -o allow_other,reconnect -p 2222 git@zzzzzz.no-ip.org:/home/git/lthmi_nav_data/tar /home/sd/Desktop/lthmi_nav_data/tar
 sudo sshfs -o allow_other,reconnect -p 2222 git@zzzzzz.no-ip.org:/home/git/ah_data /home/sd/Desktop/ah_data
-        
+sudo killall -9 sshfs
+sudo fusermount -u /home/sd/Desktop/ah_data
         
 Converting map image constructed with SLAM into inflated .map-file:
     obtain a pgm-image file with map
