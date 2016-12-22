@@ -132,7 +132,8 @@ class Mediator (SyncingNode):
         
     def poseAmclCallback(self, msg):
         p = PoseStamped()
-        p.header = msg.header
+        p.header.stamp = msg.header.stamp
+        p.header.frame_id = msg.header.frame_id
         p.pose = msg.pose.pose
         p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
         self.pub_pose_current.publish(p)
@@ -141,9 +142,11 @@ class Mediator (SyncingNode):
             self.startLthmiNav(msg)
     
     def poseDesiredCallback(self, msg):
+        rospy.loginfo("Received pose desired")
         self.setNewGoal(msg)
 
     def poseInferredCallback(self, msg):
+        rospy.loginfo("Received pose inferred")
         self.setNewGoal(msg)
     
     def actionFeedbackCallback(self, msg):
