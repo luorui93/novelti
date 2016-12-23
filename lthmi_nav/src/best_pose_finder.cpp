@@ -27,6 +27,7 @@ BestPoseFinder::BestPoseFinder() :
     node.param<double>("max_vel", max_vel, 0.0);
     node.param<double>("safety_coef", safety_coef, 0.0);
     node.param<double>("period", period, 0.0);
+    node.param<int>("pose_to_vertex_tolerance", pose_to_vertex_tolerance, 2);
     max_dist_float = max_vel*safety_coef*period;
     if (max_dist_float==0.0)
         throw ros::Exception("ERROR: At least one of the following node parameters (max_vel, period, safety_coef) is not specified or 0.0. All must be greater than zero.");
@@ -54,13 +55,21 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     reach_area.info.resolution = resolution;
     reach_area.data = vector<float>(reach_area.info.width*reach_area.info.height, REACH_AREA_UNREACHABLE);
     
-    updateVertex(req.init_pose, cur_vertex.x, cur_vertex.y);
-    r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
+
+    
     new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
     for (int x=0; x<req.map.info.width; x++)
         for (int y=0; y<req.map.info.height; y++)
             if (req.map.data[x + y*req.map.info.width]==0)
                 cmap.setPixel(x,y, FREED); //free
+    //updateVertex(req.init_pose, cur_vertex.x, cur_vertex.y);
+    pose_current_lock_.lock();
+        pose_current = req.init_pose;
+    pose_current_lock_.unlock();
+    Point cur_vertex;
+    if (!getCurVertex(cur_vertex.x, cur_vertex.y))
+        ROS_ERROR("%s: failed to find an accessible vertex for the initial pose", getName().c_str());
+    r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
     
     pub_pose_best = node.advertise<geometry_msgs::PoseStamped>("/pose_best", 1, true); //not latched
     sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
@@ -71,30 +80,71 @@ void BestPoseFinder::start(lthmi_nav::StartExperiment::Request& req) {
     #endif
 }
 
-void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStampedConstPtr pose) {
+void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStamped pose) {
     //ROS_INFO("%s: received /pose_current", getName().c_str());
-    cur_vertex_lock_.lock();
-        updateVertex(pose->pose, cur_vertex.x, cur_vertex.y);
-    cur_vertex_lock_.unlock();
+    pose_current_lock_.lock();
+        pose_current = pose.pose;
+    pose_current_lock_.unlock();
+//     cur_vertex_lock_.lock();
+//         updateVertex(pose->pose, cur_vertex.x, cur_vertex.y);
+//     cur_vertex_lock_.unlock();
 }
 
 void BestPoseFinder::pdfCallback(lthmi_nav::FloatMapConstPtr pdf){
     ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
-    calcReachArea();
+    if (!calcReachArea()) //if we failed to calculate reachability area
+        return;
     //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
-    updatePose(pose_best, pt.x+r2a.x, pt.y+r2a.y);
+    pt.x+=r2a.x; pt.y+=r2a.y;
+    updatePose(pose_best, pt.x, pt.y);
     pub_pose_best.publish(pose_best);
     ros::spinOnce();
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
     pose_best.header.seq++;
 }
 
-void BestPoseFinder::calcReachArea() {
-    cur_vertex_lock_.lock();
-        r2a = Point(cur_vertex.x-max_dist-1, cur_vertex.y-max_dist-1);
-        Point center(cur_vertex.x, cur_vertex.y);
-    cur_vertex_lock_.unlock();
+bool BestPoseFinder::getCurVertex(int& cx, int& cy) {
+    /* it may happen (and does happen sometimes) that due to math rounding and localization error,
+     * the pose real values (x,y) would fall on an inaccessible vertex on the grid. 
+     * In this case, we just need to find the nearest accessible vertex.*/
+    double px, py;
+    pose_current_lock_.lock();
+        updateVertex(pose_current, cx, cy);
+        px = pose_current.position.x;
+        py = pose_current.position.y;
+    pose_current_lock_.unlock();
+    double dx, dy, d, dmin = std::numeric_limits<double>::max();
+    if (cmap.isSurroundedByObstacles(cx,cy)) {
+        for (int x=max(0,x-pose_to_vertex_tolerance); x<=min(cmap.width()-1, x+pose_to_vertex_tolerance); x++) {
+            for (int y=max(0,y-pose_to_vertex_tolerance); y<=min(cmap.height()-1, x+pose_to_vertex_tolerance); y++) {
+                ROS_WARN("SEARCH for accessible vertex, try: (%d,%d)", x,y);
+                if (!cmap.isSurroundedByObstacles(x,y)) {
+                    dx = px - resolution*x;
+                    dy = py - resolution*y;
+                    d = dx*dx + dy*dy;
+                    ROS_WARN("accessible! d=%f, dmin=%f", d, dmin);
+                    if (d<dmin) {
+                        dmin = d;
+                        cx = x;
+                        cy = y;
+                    }
+                }
+            }
+        }
+        if (dmin == std::numeric_limits<double>::max()){ 
+            ROS_WARN("%s: could not find an accessible vertex nearby current pose (x,y)=(%f,%f), checked %d vertices in all directions", getName().c_str(), px, py, pose_to_vertex_tolerance);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool BestPoseFinder::calcReachArea() {
+    Point center;
+    if (!getCurVertex(center.x, center.y))
+        return false;
+    r2a = Point(center.x-max_dist-1, center.y-max_dist-1);
     //ROS_INFO("%s: --------------------- center =(%d,%d)", getName().c_str(), center.x, center.y);
     CWave2 cw(cmap);
     CWave2Processor dummy;
@@ -133,6 +183,7 @@ void BestPoseFinder::calcReachArea() {
         pub_reach_area.publish(reach_area);
         ros::spinOnce();
     #endif
+    return true;
 }
 
 void BestPoseFinder::moveToClosestInReachAreaEuc() {
@@ -204,9 +255,19 @@ void BestPoseFinder::moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf) {
     pt = out;
 }
 
+// void BestPoseFinder::makeWrtMap() {
+//     
+// }
+// 
+// void BestPoseFinder::makeWrtReachArea() {
+// }
+
+
 void BestPoseFinder::findBestPose(lthmi_nav::FloatMapConstPtr pdf1) { //no move
-    pt.x = cur_vertex.x - r2a.x;
-    pt.y = cur_vertex.y - r2a.y;
+    if (!getCurVertex(pt.x, pt.y))
+        return;
+    pt.x -= r2a.x;
+    pt.y -= r2a.y;
 }
 
 #ifdef DEBUG_POSE_FINDER

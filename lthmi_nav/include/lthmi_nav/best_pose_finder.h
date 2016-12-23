@@ -9,6 +9,7 @@
     #define DEBUG_POSE_FINDER 1
 #endif
 
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 
 #include <CompoundMap.h>
@@ -38,6 +39,7 @@ public:
     double max_dist_float;
     int max_dist;
     double resolution;
+    int pose_to_vertex_tolerance;
     Point r2a;
     Point ra_min;
     Point ra_max;
@@ -55,17 +57,19 @@ public:
         void pubDebugPose(int x, int y, bool wrtMap);
     #endif
     
-    Point cur_vertex;
-    std::mutex cur_vertex_lock_;
+    //Point cur_vertex;
+    geometry_msgs::Pose pose_current;
+    std::mutex pose_current_lock_;
     geometry_msgs::PoseStamped pose_best;
     lthmi_nav::FloatMap reach_area;
      
     BestPoseFinder();
     void start(lthmi_nav::StartExperiment::Request& req);
     void stop();
-    void poseCurCallback(geometry_msgs::PoseStampedConstPtr pose);
+    void poseCurCallback(geometry_msgs::PoseStamped pose);
     void pdfCallback(lthmi_nav::FloatMapConstPtr pdf);
-    void calcReachArea();
+    bool getCurVertex(int& cx, int& cy);
+    bool calcReachArea();
     void moveToClosestInReachAreaEuc();
     void moveToClosestInReachAreaObst();
     void moveToClosestOnMap(lthmi_nav::FloatMapConstPtr pdf);
