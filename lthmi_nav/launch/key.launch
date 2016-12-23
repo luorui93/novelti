@@ -87,7 +87,7 @@
             bedroom1:   
                 x: 14.5
                 y: 19.4
-                yaw: -1.5709
+                yaw: 3.14159
     </rosparam>
     
     
@@ -116,6 +116,8 @@
         <param name="bag" value="$(arg bag)" />
         <param name="waited_srvs_name" value="$(arg waited_srvs_name)" />
         <param name="rviz" value="$(arg rviz)" />
+        <param name="start_pose_name" value="$(arg start)" />
+        <param name="destination_pose_name" value="$(arg dst)" />
         <param name="commit"     command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log --format='%H' -n 1" />
         <param name="commit_log" command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log -n 1" />
         <param name="comp_id" command="cat /var/lib/dbus/machine-id" /> <!-- http://0pointer.de/blog/projects/ids.html -->
