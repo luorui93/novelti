@@ -106,7 +106,7 @@ class Mediator (SyncingNode):
         #Thread(target=setNewGoalInAnotherThread, args=[self, msg]).start()
         
     def setNewGoalInAnotherThread(self, msg):
-        rospy.loginfo(">>>>>>>>>>> New goal received, canceling all previous goals")
+        rospy.loginfo("New goal received, canceling all previous goals")
         self.cancelAllGoals()
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
@@ -124,11 +124,11 @@ class Mediator (SyncingNode):
         #else:
             #rospy.loginfo("Failed to arrive to destination")
 
-    def actionDoneCallback(self, p1, p2):
-        if self.action_client.get_state() == GoalStatus.SUCCEEDED:
+    def actionDoneCallback(self, status, result):
+        if status == GoalStatus.SUCCEEDED:
             rospy.loginfo("Arrived to the destination")
         else:
-            rospy.loginfo("Failed to arrive to destination")
+            rospy.loginfo("Failed to arrive to destination, goal status=%d" % status)
         
     def poseAmclCallback(self, msg):
         p = PoseStamped()
@@ -142,11 +142,11 @@ class Mediator (SyncingNode):
             self.startLthmiNav(msg)
     
     def poseDesiredCallback(self, msg):
-        rospy.loginfo("Received pose desired")
+        rospy.loginfo("Received pose desired: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
         self.setNewGoal(msg)
 
     def poseInferredCallback(self, msg):
-        rospy.loginfo("Received pose inferred")
+        rospy.loginfo("Received pose inferred: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
         self.setNewGoal(msg)
     
     def actionFeedbackCallback(self, msg):
