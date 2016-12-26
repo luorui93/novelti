@@ -116,9 +116,10 @@ bool BestPoseFinder::getCurVertex(int& cx, int& cy) {
     pose_current_lock_.unlock();
     double dx, dy, d, dmin = std::numeric_limits<double>::max();
     if (cmap.isSurroundedByObstacles(cx,cy)) {
-        for (int x=max(0,x-pose_to_vertex_tolerance); x<=min(cmap.width()-1, x+pose_to_vertex_tolerance); x++) {
-            for (int y=max(0,y-pose_to_vertex_tolerance); y<=min(cmap.height()-1, x+pose_to_vertex_tolerance); y++) {
-                ROS_WARN("SEARCH for accessible vertex, try: (%d,%d)", x,y);
+        ROS_WARN("SEARCH for accessible vertex center=(%d,%d)", cx,cy);
+        for (int x=max(0,cx-pose_to_vertex_tolerance); x<=min(cmap.width()-1, cx+pose_to_vertex_tolerance); x++) {
+            for (int y=max(0,cy-pose_to_vertex_tolerance); y<=min(cmap.height()-1, cy+pose_to_vertex_tolerance); y++) {
+                ROS_WARN("try: (%d,%d)", x,y);
                 if (!cmap.isSurroundedByObstacles(x,y)) {
                     dx = px - resolution*x;
                     dy = py - resolution*y;
