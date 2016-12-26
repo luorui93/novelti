@@ -65,6 +65,7 @@ public:
     double max_prob;
     int max_prob_k;
     float interest_area_thresh_;
+    bool smoothen_;
     
     InferenceUnit();
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
@@ -76,6 +77,8 @@ public:
     void mapDivCallback(lthmi_nav::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
     void updatePdfAndPublish();
+    bool doesNeedSmoothing(int cx, int cy, int smooth_rad);
+    void smoothenPdf();
     void publishViewTf();
     void calcPriors();
     void pubPdf();

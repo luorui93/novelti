@@ -42,6 +42,7 @@ InferenceUnit::InferenceUnit() :
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
     node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
+    node.param<bool>("smoothen", smoothen_, false);
     
     //node.getParam("iii", qqq);
     //if (reset_pdf_on_new_)
@@ -284,7 +285,54 @@ void InferenceUnit::updatePdf() {
             }
         }
     }
+    if (smoothen_)
+        smoothenPdf();
     //ROS_INFO("%s: total prob=%f", getName().c_str(), total_prob);
+}
+
+
+bool InferenceUnit::doesNeedSmoothing(int cx, int cy, int smooth_rad) {
+    /* vertex needs smoothing if it's located close (compared to smooth_rad)
+     *      to the boundary between regions */
+    int k = cx + cy*map_divided->info.width;
+    int cur_region = map_divided->data[k];
+    for (int x=std::max(0,cx-smooth_rad); x<=std::min((int)(map_divided->info.width-1), cx+smooth_rad); x++) {
+        for (int y=std::max(0,cy-smooth_rad); y<=std::min((int)(map_divided->info.height-1), cy+smooth_rad); y++) {
+            k = x + y*map_divided->info.width;
+            if (map_divided->data[k] != 255 && map_divided->data[k] != cur_region)
+                return true;
+        }
+    }
+    return false;
+}
+
+void InferenceUnit::smoothenPdf() {
+    FloatMap pdf_copy = pdf;
+    int smooth_rad = 2;
+    int i,n;
+    float p, p_avg;
+    for (int cy=0, k=0; cy<pdf_copy.info.height-1; cy++) {
+        for (int cx=0; cx<pdf_copy.info.width-1; cx++, k++) {
+            if (pdf_copy.data[k] >= 0) {
+                if (doesNeedSmoothing(cx,cy,smooth_rad)) {
+                    //calculate smoothed valued
+                    n = 0;
+                    p_avg = 0.0;
+                    for (int x=std::max(0,cx-smooth_rad); x<=std::min((int)(pdf_copy.info.width-1), cx+smooth_rad); x++) {
+                        for (int y=std::max(0,cy-smooth_rad); y<=std::min((int)(pdf_copy.info.height-1), cy+smooth_rad); y++) {
+                            p = pdf_copy.data[x + y*pdf.info.width];
+                            if (p>=0) {
+                                n++;
+                                p_avg += p;
+                            }
+                        }
+                    }
+                    pdf.data[k] = p_avg/n;
+                }
+            }
+        }
+        k++;
+    }
 }
 
 void InferenceUnit::publishViewTf() {
@@ -306,7 +354,7 @@ void InferenceUnit::publishViewTf() {
         }
         k++;
     }
-    ROS_INFO("%s:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> [xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d]", getName().c_str(), xmin,xmax,ymin,ymax);
+    ROS_INFO("%s:[xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d]", getName().c_str(), xmin,xmax,ymin,ymax);
     
     //calculate TF from where the interest area will be completely visible
     double w = pdf.info.resolution*pdf.info.width;
