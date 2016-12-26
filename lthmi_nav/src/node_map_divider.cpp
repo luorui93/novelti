@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
     else if (p=="extremal")     mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREMAL);
     else if (p=="extredist")    mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREDIST);
     else if (p=="vchess")       mdiv = new VertChessMapDivider();
+    else if (p=="nearcog_extremal") mdiv = new CWaveMapDivider(CWaveMapDivider::NEARCOG_EXTREMAL);
 //     else if (p=="mixed1")      mdiv = Mixed1MapDividerNode();
 //     else if (p=="mixed2")      mdiv = Mixed2MapDividerNode();
      else { 

@@ -60,7 +60,7 @@ class CWaveProcPassTwo;
 
 class CWaveMapDivider :  public MapDivider, public CWave2Processor {
 public:
-    enum DivMethod {EQUIDIST, EXTREMAL, EXTREDIST};
+    enum DivMethod {EQUIDIST, EXTREMAL, EXTREDIST, NEARCOG_EXTREMAL};
     
     DivMethod method_;
     bool even_;
@@ -74,10 +74,14 @@ public:
     void start(lthmi_nav::StartExperiment::Request& req);
     void divide();
     void preprocessOverlappingStars(CWaveProcPassOne& procOne, CWaveProcPassTwo& procTwo);
+    void divideNearCogByExtremals();
     void divideByExtremals();
     void divideByEquidists();
     void iterateStarRegion(CWaveProcPassTwo& procTwo, int s);
     bool isChildFirst(int base_star_id, int star_k, int child_k, int next_k);
+    
+    Point findCogOnPdf();
+    Point moveToClosestOnMap(Point pt);
 };
     
 
@@ -283,6 +287,8 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method) :
                 else
                     divideByEquidists();
                 even_ = !even_;
+            case NEARCOG_EXTREMAL:
+                divideNearCogByExtremals(); break;
         }
         
     }
@@ -334,6 +340,73 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method) :
         iterateStarRegion(procTwo, 0);
         cmap_.clearDist();
     }
+    
+    void CWaveMapDivider::divideNearCogByExtremals() {
+        Point pt_cog = findCogOnPdf();
+        Point pt_nearcog = moveToClosestOnMap(pt_cog);
+        
+        CWave2 cw(cmap_);
+        CWaveProcPassOne procOne(cmap_, *this);
+        cw.setProcessor(&procOne);
+        cw.calc(pt_nearcog);
+        #ifdef DEBUG_DIVIDER
+            IntMap track_map_msg = map_divided;
+            track_map_msg.data = cmap_.track_map;
+            pub_debug_track_map.publish(track_map_msg);
+        #endif
+        vector<int> track_map = cmap_.track_map;
+        procOne.updateStarMap();
+        
+        cmap_.clearDist();
+            
+        CWave2 cw2(cmap_);
+        CWaveProcPassTwo procTwo(cmap_, procOne, track_map);
+        cw2.setProcessor(&procTwo);
+        cw2.calc(pt_nearcog);
+        
+        preprocessOverlappingStars(procOne,procTwo);
+        
+        procTwo.sortRegions();
+        markVertex(pt_nearcog.x, pt_nearcog.y);
+        iterateStarRegion(procTwo, 0);
+        cmap_.clearDist();
+    }
+    
+    Point CWaveMapDivider::findCogOnPdf() { 
+        //returns wrt to map
+        float p, xsum=0.0, ysum=0.0, psum=0.0;
+        for (int x=0; x<pdf->info.width; x++) {
+            for (int y=0; y<pdf->info.height; y++) {
+                p = pdf->data[x + y*pdf->info.width];
+                if (p>0.0) {
+                    xsum += p*x;
+                    ysum += p*y;
+                    psum += p;
+                }
+            }
+        }
+        return Point(int(round(xsum/psum)), int(round(ysum/psum))); //wrt to map
+    }
+    
+    Point CWaveMapDivider::moveToClosestOnMap(Point pt) {
+        //input (pt)  wrt to map
+        //output (pt) wrt to reach_area    
+        Point out;
+        double d, dmin = std::numeric_limits<double>::max();
+        for (int x=0; x<pdf->info.width; x++) {
+            for (int y=0; y<pdf->info.height; y++) {
+                if (pdf->data[x+y*pdf->info.width] >= 0.0) {
+                    d = sqrt((x-pt.x)*(x-pt.x)+(y-pt.y)*(y-pt.y));
+                    if (d < dmin) {
+                        out.x=x; out.y=y;
+                        dmin = d;
+                    }
+                }
+            }
+        }
+        return out;
+    }
+    
     
     bool CWaveMapDivider::isChildFirst(int base_star_id, int star_k, int child_k, int next_k) {
         TrackStar base_star = cmap_.getTrackStar(base_star_id);
