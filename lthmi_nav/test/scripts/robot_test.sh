@@ -2,7 +2,7 @@
 
 intent=debugging    #experiment
 start=music1
-dst=door1
+dst=bathroom1
 pos=nearcog_obst
 div=extredist
 mx=mx85
