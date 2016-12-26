@@ -1,10 +1,10 @@
 #!/bin/bash
 
 intent=debugging    #experiment
-start=music1
-dst=bathroom1
+start=door1
+dst=music1
 pos=nearcog_obst
-div=extredist
+div=nearcog_extremal
 mx=mx85
 use_pois=0
 ksafe=1.3
