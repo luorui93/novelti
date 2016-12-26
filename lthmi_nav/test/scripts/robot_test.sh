@@ -1,8 +1,8 @@
 #!/bin/bash
 
 intent=debugging    #experiment
-start=office1
-dst=bathroom1
+start=music1
+dst=door1
 pos=nearcog_obst
 div=extredist
 mx=mx85
@@ -10,8 +10,8 @@ use_pois=0
 ksafe=1.3
 time_start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
-cmd="echo Echoing start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois"
-#cmd="roslaunch lthmi_nav key.launch start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois ksafe:=$ksafe"
+#cmd="echo Echoing start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois"
+cmd="roslaunch lthmi_nav key.launch start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois ksafe:=$ksafe mx:=$mx"
 
 time_end=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
@@ -32,6 +32,7 @@ fi
     echo "start_loc:    $start"
     echo "dest_loc:     $dst"
     echo "pos:          $pos"
+    echo "div:          $div"
     echo "mx            $mx"
     echo "use_pois:     $use_pois"
     echo "ksafe:        $ksafe"
