@@ -8,10 +8,12 @@ div=nearcog_extremal
 mx=mx85
 use_pois=0
 ksafe=1.3
+smoothen=true
+iarea_k=0.9
 time_start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
 #cmd="echo Echoing start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois"
-cmd="roslaunch lthmi_nav key.launch start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois ksafe:=$ksafe mx:=$mx"
+cmd="roslaunch lthmi_nav key.launch start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois ksafe:=$ksafe mx:=$mx smoothen:=$smoothen iarea_k:=$iarea_k"
 
 time_end=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
@@ -36,6 +38,7 @@ fi
     echo "mx            $mx"
     echo "use_pois:     $use_pois"
     echo "ksafe:        $ksafe"
+    echo "intrstarea_k: $iarea_k"
     echo "machine:      $machine"
     echo "time_start:   '$time_start'"
     echo "time_end      '$time_end'"
