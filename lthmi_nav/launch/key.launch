@@ -6,9 +6,10 @@
     <arg name="dst" default="music1" />
     <arg name="period" default="3.0" />        <!-- interface period -->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)--> 
-    <arg name="smoothen" default="1" />
     <arg name="use_pois" default="0" />
     <arg name="iarea_k" default="0.5" />
+    <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
+    <arg name="smooth_rads" default="[]" />
     
     <arg name="vel"   default="0.5" />       <!-- robot velocity in m/s -->
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
@@ -104,7 +105,7 @@
     
     <!-- Recording -->
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args=" /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /amcl_pose /map_inflated     /lidar_battery_sym/scan /lidar_footplate/scan /odom /tf /move_base/local_costmap/footprint /pose_intended_goal">
+            args=" /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /amcl_pose /map_inflated     /lidar_battery_sym/scan /lidar_footplate/scan /odom /tf /move_base/local_costmap/footprint /pose_intended_goal /cmd_vel">
         <!-- -O $(arg bagpath)                polygon, local costmap,  /odom /lidar1 /lidar2 -->
     </node>
     <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
@@ -202,11 +203,12 @@
         <param name="eps"         value="$(arg prob_eps)" />
         <param name="check_sync"  value="false" />
         <param name="reset_pdf_on_new"  value="true" />
-        <param name="smoothen"  value="$(arg smoothen)" />
         <param name="interest_area_coef" value="$(arg iarea_k)" /> <!-- bigger coef, smaller interest area -->
-        <rosparam if="$(arg use_pois)"> <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
-                pois: [87,200, 4.0, 2.0,      118,19, 5.0, 1.0,    171,155, 3.5, 2.5,     34,19, 4.3, 1.5,     138,234, 2.9, 1.0,     145,194, 3.2, 1.2,]
+        <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
+            [87,200, 4.0, 2.0,      118,19, 5.0, 1.0,    171,155, 3.5, 2.5,     34,19, 4.3, 1.5,     138,234, 2.9, 1.0,     145,194, 3.2, 1.2,]
         </rosparam>
+        <rosparam param="view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
+        <rosparam param="smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
     </node>
     <node pkg="lthmi_nav" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
         <param name="method"      value="$(arg pos)" />
