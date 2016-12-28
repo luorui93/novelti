@@ -52,6 +52,17 @@ from lthmi_nav.SyncingNode import SyncingNode
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 class Mediator (SyncingNode):
+    GOAL_STATUSES = ["PENDING         = 0   # The goal has yet to be processed by the action server",
+                     "ACTIVE          = 1   # The goal is currently being processed by the action server",
+                     "PREEMPTED       = 2   # The goal received a cancel request after it started executing and has since completed its execution (Terminal State)",
+                     "SUCCEEDED       = 3   # The goal was achieved successfully by the action server (Terminal State)",
+                     "ABORTED         = 4   # The goal was aborted during execution by the action server due to some failure (Terminal State)",
+                    "REJECTED        = 5   # The goal was rejected by the action server without being processed, because the goal was unattainable or invalid (Terminal State)",
+                    "PREEMPTING      = 6   # The goal received a cancel request after it started executing and has not yet completed execution",
+                    "RECALLING       = 7   # The goal received a cancel request before it started executing, but the action server has not yet confirmed that the goal is canceled",
+                    "RECALLED        = 8   # The goal received a cancel request before it started executing and was successfully cancelled (Terminal State)",
+                    "LOST            = 9   # An action client can determine that a goal is LOST. This should not be sent over the wire by an action server"]
+    
     def __init__(self):
         self.state = "WAIT4START"
         SyncingNode.__init__(self, publishMap=True)
@@ -97,7 +108,7 @@ class Mediator (SyncingNode):
         self.publishGoal()
         
     def cancelAllGoals(self):
-        self.action_client.cancel_all_goals() # don't know why this does not work 
+        self.action_client.cancel_goals_at_and_before_time(rospy.Time.now()) # don't know why this does not work 
         #g = GoalID()
         #self.pub_cancel.publish(g)
         
@@ -128,7 +139,7 @@ class Mediator (SyncingNode):
         if status == GoalStatus.SUCCEEDED:
             rospy.loginfo("Arrived to the destination")
         else:
-            rospy.loginfo("Failed to arrive to destination, goal status=%d" % status)
+            rospy.loginfo("Didn't arrive to destination, goal status=%d: '%s'" % (status, self.GOAL_STATUSES[status]))
         
     def poseAmclCallback(self, msg):
         p = PoseStamped()
