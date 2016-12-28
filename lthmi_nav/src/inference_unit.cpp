@@ -47,7 +47,7 @@ InferenceUnit::InferenceUnit() :
     //node.getParam("iii", qqq);
     //if (reset_pdf_on_new_)
     //if (check_sync_)
-        ROS_INFO("%s: ---------------------------------------------------------------------- interest_area_thresh_=%f", getName().c_str(),interest_area_thresh_);
+        ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
     
     node.getParam("pois", pois_);
     node.getParam("interface_matrix", interface_matrix);
@@ -308,7 +308,22 @@ bool InferenceUnit::doesNeedSmoothing(int cx, int cy, int smooth_rad) {
 
 void InferenceUnit::smoothenPdf() {
     FloatMap pdf_copy = pdf;
-    int smooth_rad = 2;
+    //int smooth_rad = (int)(round(6.464102 + (-0.4641016 - 6.464102)/(1 + pow((view_size_/64.0),1.899969))));
+    //int smooth_rad = (int)(round(220.8386 + (-203.4252 - 220.8386)/(1 + pow((view_size_/79986.57),0.009532408))));
+    //int smooth_rad = (int)(round(3.523462 + (-0.1923772 - 3.523462)/(1 + pow((view_size_/102.2199),1.923313))));
+    int smooth_rad = 0;
+    switch (view_size_) {
+        case  16: smooth_rad=0; break;
+        case  32: smooth_rad=0; break;
+        case  64: smooth_rad=1; break;
+        case 128: smooth_rad=1; break;
+        case 256: smooth_rad=1; break;
+    }
+    //int smooth_rad = (int)(round(168894.6 + (-0.7231753 - 168894.6)/(1 + pow((view_size_/426557900.0),0.7082083))));
+    //(int)round(0.02*view_size_ + 0.6); // 256->6, 16->1  
+    ROS_WARN("Smoothening pdf, view_size=%d, smooth_rad = %d", view_size_, smooth_rad);    
+    if (smooth_rad==0)
+        return;
     int i,n;
     float p, p_avg;
     for (int cy=0, k=0; cy<pdf_copy.info.height-1; cy++) {
@@ -354,19 +369,68 @@ void InferenceUnit::publishViewTf() {
         }
         k++;
     }
-    ROS_INFO("%s:[xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d]", getName().c_str(), xmin,xmax,ymin,ymax);
+    
     
     //calculate TF from where the interest area will be completely visible
-    double w = pdf.info.resolution*pdf.info.width;
-    double h = pdf.info.resolution*pdf.info.height;
-    ///#limits=(w/2, w, h/2, h)
-    ///#c = ((limits[0]+limits[1])*pdf.info.resolution/2, (limits[2]+limits[3])*pdf.info.resolution/2)
-    const int min_number_of_vertices_in_interest_area = 20;
-    double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
-    ROS_INFO("%s: max_area_size=%f", getName().c_str(), max_area_size);
-    double cam_distance = (1.5  -  0.35*(max_area_size/pdf.info.resolution-20)/250.0)*max_area_size;//2+2*(int(max_area_size*0.2)/2);
-    double cam_x = (xmin+xmax)*pdf.info.resolution/2;
-    double cam_y = (ymin+ymax)*pdf.info.resolution/2;
+    int d = std::max({xmax-xmin, ymax-ymin});
+    int x=(xmin+xmax)/2;
+    int y=(ymin+ymax)/2;
+    std::vector<int> allowed_sizes = {16, 32, 64, 128, 256};
+    int sid;
+    for (sid=0; sid<allowed_sizes.size(); sid++)
+        if (allowed_sizes[sid]>=d)
+            break;
+    int cr = allowed_sizes[sid]/2;
+    //printf("x=%d, y=%d, init cr=%d\n", x,y,cr);
+    
+    int view_x = (int)(round(x/cr)*cr);
+    int view_y = (int)(round(y/cr)*cr);
+    if (view_x==0) 
+        view_x=cr;
+    if (view_y==0) 
+        view_y=cr;
+
+    
+    if ((xmin < view_x-cr || ymax> view_x+cr || ymin <view_y-cr || ymax>view_y+cr) && sid < allowed_sizes.size()-1) {
+        //printf("qqqqqqqqqqqq\n");
+        cr = allowed_sizes[sid+1]/2;
+    }
+    view_x = (int)(round(x/cr)*cr);
+    view_y = (int)(round(y/cr)*cr);
+    if (view_x==0) 
+        view_x=cr;
+    if (view_y==0) 
+        view_y=cr;
+
+
+    /*int cd = allowed_sizes[sid];
+    int left   = ((x-cd/2)/(cd/2))*(cd/2);
+    int right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
+    int bottom = ((y-cd/2)/(cd/2))*(cd/2);
+    int top    = ((y+cd/2)/(cd/2) +1)*(cd/2);
+    if ( ((top-bottom)>cd || (right-left)>cd) && sid < allowed_sizes.size()-1) {
+        cd = allowed_sizes[sid+1];
+        left   = ((x-cd/2)/(cd/2))*(cd/2);
+        right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
+        bottom = ((y-cd/2)/(cd/2))*(cd/2);
+        top    = ((y+cd/2)/(cd/2) +1)*(cd/2);
+    }
+    int view_x = (left+right)/2;
+    int view_y = (bottom+top)/2;
+    view_size_ = cd;*/
+    view_size_ = cr*2;
+    ROS_INFO("%s:[xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d], view_x=%d, view_y=%d, view_size=%d", getName().c_str(), xmin,xmax,ymin,ymax, view_x,view_y,view_size_);
+    
+//     double w = pdf.info.resolution*pdf.info.width;
+//     double h = pdf.info.resolution*pdf.info.height;
+//     ///#limits=(w/2, w, h/2, h)
+//     ///#c = ((limits[0]+limits[1])*pdf.info.resolution/2, (limits[2]+limits[3])*pdf.info.resolution/2)
+//     const int min_number_of_vertices_in_interest_area = 20;
+//     double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
+//     ROS_INFO("%s: max_area_size=%f", getName().c_str(), max_area_size);
+    double cam_distance = (1.5  -  0.35*(view_size_-20)/250.0)*view_size_*pdf.info.resolution;//2+2*(int(max_area_size*0.2)/2);
+    double cam_x = pdf.info.resolution*view_x;
+    double cam_y = pdf.info.resolution*view_y;
     /*if (true || cam_distance==8) {
         cam_x = w/2;
         cam_y = h/2;

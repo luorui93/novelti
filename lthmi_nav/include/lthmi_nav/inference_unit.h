@@ -66,6 +66,7 @@ public:
     int max_prob_k;
     float interest_area_thresh_;
     bool smoothen_;
+    int view_size_;
     
     InferenceUnit();
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
