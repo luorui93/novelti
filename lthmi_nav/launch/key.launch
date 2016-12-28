@@ -93,6 +93,10 @@
                 x: 14.5
                 y: 19.4
                 yaw: 3.14159
+            door2:
+                x: 9.0
+                y: 3.4
+                yaw: 1.57079
     </rosparam>
     
     
@@ -207,7 +211,7 @@
         <param name="reset_pdf_on_new"  value="true" />
         <param name="interest_area_coef" value="$(arg iarea_k)" /> <!-- bigger coef, smaller interest area -->
         <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
-            [87,200, 4.0, 2.0,      118,19, 5.0, 1.0,    171,155, 3.5, 2.5,     34,19, 4.3, 1.5,     138,234, 2.9, 1.0,     145,194, 3.2, 1.2,]
+            [87,200, 2.0, 2.0,      118,19, 1.0, 1.2,    171,155, 2.5, 2.4,     34,19, 1.5, 2.1,     138,234, 1.0, 1.9,     145,194, 1.2, 1.7,     900,341, 2.3, 1.5]
         </rosparam>
         <rosparam param="view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
         <rosparam param="smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>

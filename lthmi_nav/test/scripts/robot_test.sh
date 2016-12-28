@@ -1,7 +1,7 @@
 #!/bin/bash
 
 intent="test before recording"    #experiment
-start=door1     #door1   livroom1   office1   bathroom1  music1   bedroom1   door2
+start=door1     #door1   livroom1   office1   bathroom1   music1   bedroom1   door2
 dst=livroom1
 pos=nearcog_obst
 div=nearcog_extremal
@@ -11,6 +11,7 @@ ksafe=1.1
 smooth_rads="[]"
 view_sizes="[16,32,64,128,256]"
 iarea_k=0.9
+
 
 
 time_start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
