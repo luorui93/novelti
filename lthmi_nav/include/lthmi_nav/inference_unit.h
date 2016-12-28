@@ -56,6 +56,10 @@ public:
     std::vector<double> posteriors;
     std::vector<double> coefs;
 
+    std::vector<int> view_sizes_;
+    int view_size_id_;
+    std::vector<int> smooth_rads_;
+    
     int n_cmds;
     float thresh_high;
     float thresh_low;
@@ -65,8 +69,6 @@ public:
     double max_prob;
     int max_prob_k;
     float interest_area_thresh_;
-    bool smoothen_;
-    int view_size_;
     
     InferenceUnit();
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);

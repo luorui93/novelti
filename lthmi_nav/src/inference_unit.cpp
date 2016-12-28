@@ -36,28 +36,44 @@ using namespace lthmi_nav;
 InferenceUnit::InferenceUnit() :
         SynchronizableNode()
 {
-    ///float qqq;
+
     node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
     node.param<float>("thresh_high", thresh_high, 0.98);
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
     node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
-    node.param<bool>("smoothen", smoothen_, false);
     
-    //node.getParam("iii", qqq);
-    //if (reset_pdf_on_new_)
-    //if (check_sync_)
-        ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
+    //ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
     
+    std::vector<double> view_sizes;
+    node.getParam("view_sizes", view_sizes);
+    if (view_sizes.size()==0) {
+        view_sizes_ = {256};
+    } else {
+        for (int k=0; k<view_sizes.size(); k++)
+            view_sizes_.push_back((int)(view_sizes[k]));
+    }
+        
+    std::vector<double> smooth_rads;
+    node.getParam("smooth_rads", smooth_rads);
+        if (smooth_rads.size() != view_sizes_.size() && smooth_rads.size() != 0) {
+            ROS_ERROR("ERROR: arrays view_sizes and smooth_rads must have the same length unless smooth_rads is empty");
+            throw ros::Exception("Parameter error, see message above");
+        } else {
+            for (int k=0; k<smooth_rads.size(); k++)
+            smooth_rads_.push_back(smooth_rads[k]);
+        }
     node.getParam("pois", pois_);
     node.getParam("interface_matrix", interface_matrix);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
-    if (interface_matrix.size()==0 && n_cmds*n_cmds==interface_matrix.size())
-        throw ros::Exception("ERROR: interface_matrix parameter should be specified, have length>0, and its length has to be a square of an integer number (number of commands)");
+    if (interface_matrix.size()==0 && n_cmds*n_cmds==interface_matrix.size()) {
+        ROS_ERROR("ERROR: interface_matrix parameter should be specified, have length>0, and its length has to be a square of an integer number (number of commands)");
+        throw ros::Exception("Parameter error, see message above");
+    }
 //      for (int x=0; x<4; x++)
 //          for (int y=0; y<4; y++){
 //              double q = interface_matrix[x + n_cmds*y];
-//              ROS_INFO(">>>>>>>>>>>>>>> %f", q);}
+//              ROS_INFO("%f", q);}
     priors     = std::vector<double>(n_cmds, 0.0);
     posteriors = std::vector<double>(n_cmds, 0.0);
     coefs      = std::vector<double>(n_cmds, 0.0);
@@ -285,8 +301,7 @@ void InferenceUnit::updatePdf() {
             }
         }
     }
-    if (smoothen_)
-        smoothenPdf();
+    smoothenPdf();
     //ROS_INFO("%s: total prob=%f", getName().c_str(), total_prob);
 }
 
@@ -307,23 +322,27 @@ bool InferenceUnit::doesNeedSmoothing(int cx, int cy, int smooth_rad) {
 }
 
 void InferenceUnit::smoothenPdf() {
+    if (smooth_rads_.size()==0)
+        return;
+    int smooth_rad = smooth_rads_[view_size_id_];
+    //int smooth_rad = (int)(round(168894.6 + (-0.7231753 - 168894.6)/(1 + pow((view_size_/426557900.0),0.7082083))));
+    //(int)round(0.02*view_size_ + 0.6); // 256->6, 16->1  
+    ROS_WARN("Smoothening pdf, view_size_id=%d, view_size=%d, smooth_rad = %d", view_size_id_, view_sizes_[view_size_id_], smooth_rad);    
+    if (smooth_rad==0)
+        return;
     FloatMap pdf_copy = pdf;
     //int smooth_rad = (int)(round(6.464102 + (-0.4641016 - 6.464102)/(1 + pow((view_size_/64.0),1.899969))));
     //int smooth_rad = (int)(round(220.8386 + (-203.4252 - 220.8386)/(1 + pow((view_size_/79986.57),0.009532408))));
     //int smooth_rad = (int)(round(3.523462 + (-0.1923772 - 3.523462)/(1 + pow((view_size_/102.2199),1.923313))));
-    int smooth_rad = 0;
+    /*int smooth_rad = 0;
     switch (view_size_) {
         case  16: smooth_rad=0; break;
         case  32: smooth_rad=0; break;
         case  64: smooth_rad=1; break;
         case 128: smooth_rad=1; break;
         case 256: smooth_rad=1; break;
-    }
-    //int smooth_rad = (int)(round(168894.6 + (-0.7231753 - 168894.6)/(1 + pow((view_size_/426557900.0),0.7082083))));
-    //(int)round(0.02*view_size_ + 0.6); // 256->6, 16->1  
-    ROS_WARN("Smoothening pdf, view_size=%d, smooth_rad = %d", view_size_, smooth_rad);    
-    if (smooth_rad==0)
-        return;
+    }*/
+    
     int i,n;
     float p, p_avg;
     for (int cy=0, k=0; cy<pdf_copy.info.height-1; cy++) {
@@ -372,15 +391,15 @@ void InferenceUnit::publishViewTf() {
     
     
     //calculate TF from where the interest area will be completely visible
+    int view_size;
     int d = std::max({xmax-xmin, ymax-ymin});
     int x=(xmin+xmax)/2;
     int y=(ymin+ymax)/2;
-    std::vector<int> allowed_sizes = {16, 32, 64, 128, 256};
-    int sid;
-    for (sid=0; sid<allowed_sizes.size(); sid++)
-        if (allowed_sizes[sid]>=d)
+    //std::vector<int> view_sizes_ = {16, 32, 64, 128, 256};
+    for (view_size_id_=0; view_size_id_<view_sizes_.size(); view_size_id_++)
+        if (view_sizes_[view_size_id_]>=d)
             break;
-    int cr = allowed_sizes[sid]/2;
+    int cr = view_sizes_[view_size_id_]/2;
     //printf("x=%d, y=%d, init cr=%d\n", x,y,cr);
     
     int view_x = (int)(round(x/cr)*cr);
@@ -391,9 +410,9 @@ void InferenceUnit::publishViewTf() {
         view_y=cr;
 
     
-    if ((xmin < view_x-cr || ymax> view_x+cr || ymin <view_y-cr || ymax>view_y+cr) && sid < allowed_sizes.size()-1) {
-        //printf("qqqqqqqqqqqq\n");
-        cr = allowed_sizes[sid+1]/2;
+    if ((xmin < view_x-cr || ymax> view_x+cr || ymin <view_y-cr || ymax>view_y+cr) && view_size_id_ < view_sizes_.size()-1) {
+        view_size_id_++;
+        cr = view_sizes_[view_size_id_]/2;
     }
     view_x = (int)(round(x/cr)*cr);
     view_y = (int)(round(y/cr)*cr);
@@ -403,13 +422,13 @@ void InferenceUnit::publishViewTf() {
         view_y=cr;
 
 
-    /*int cd = allowed_sizes[sid];
+    /*int cd = view_sizes_[sid];
     int left   = ((x-cd/2)/(cd/2))*(cd/2);
     int right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
     int bottom = ((y-cd/2)/(cd/2))*(cd/2);
     int top    = ((y+cd/2)/(cd/2) +1)*(cd/2);
-    if ( ((top-bottom)>cd || (right-left)>cd) && sid < allowed_sizes.size()-1) {
-        cd = allowed_sizes[sid+1];
+    if ( ((top-bottom)>cd || (right-left)>cd) && sid < view_sizes_.size()-1) {
+        cd = view_sizes_[sid+1];
         left   = ((x-cd/2)/(cd/2))*(cd/2);
         right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
         bottom = ((y-cd/2)/(cd/2))*(cd/2);
@@ -418,8 +437,8 @@ void InferenceUnit::publishViewTf() {
     int view_x = (left+right)/2;
     int view_y = (bottom+top)/2;
     view_size_ = cd;*/
-    view_size_ = cr*2;
-    ROS_INFO("%s:[xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d], view_x=%d, view_y=%d, view_size=%d", getName().c_str(), xmin,xmax,ymin,ymax, view_x,view_y,view_size_);
+    //view_size_ = cr*2;
+    ROS_INFO("%s:[xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d], view_x=%d, view_y=%d, view_size_id=%d, view_size=%d", getName().c_str(), xmin,xmax,ymin,ymax, view_x,view_y, view_size_id_, view_sizes_[view_size_id_]);
     
 //     double w = pdf.info.resolution*pdf.info.width;
 //     double h = pdf.info.resolution*pdf.info.height;
@@ -428,7 +447,7 @@ void InferenceUnit::publishViewTf() {
 //     const int min_number_of_vertices_in_interest_area = 20;
 //     double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
 //     ROS_INFO("%s: max_area_size=%f", getName().c_str(), max_area_size);
-    double cam_distance = (1.5  -  0.35*(view_size_-20)/250.0)*view_size_*pdf.info.resolution;//2+2*(int(max_area_size*0.2)/2);
+    double cam_distance = (1.5  -  0.35*(view_sizes_[view_size_id_]-20)/250.0)*view_sizes_[view_size_id_]*pdf.info.resolution;//2+2*(int(max_area_size*0.2)/2);
     double cam_x = pdf.info.resolution*view_x;
     double cam_y = pdf.info.resolution*view_y;
     /*if (true || cam_distance==8) {
