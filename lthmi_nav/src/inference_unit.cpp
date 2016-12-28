@@ -47,6 +47,7 @@ InferenceUnit::InferenceUnit() :
     
     std::vector<double> view_sizes;
     node.getParam("view_sizes", view_sizes);
+    ROS_INFO("%s: ---------------------------------------------------------------------- view_sizes.size()==%d", getName().c_str(), (int)view_sizes.size());
     if (view_sizes.size()==0) {
         view_sizes_ = {256};
     } else {
