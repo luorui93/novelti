@@ -10,6 +10,7 @@
     <arg name="iarea_k" default="0.5" />
     <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
     <arg name="smooth_rads" default="[]" />
+    <arg name="show_goal" default="false" />
     
     <arg name="vel"   default="0.5" />       <!-- robot velocity in m/s -->
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
@@ -30,7 +31,8 @@
     
     <!--arg name="bagpath" default="/tmp/tmp.bag" /-->
     <arg name="by_key" default="0" />
-    <arg name="rviz" default="robot_autocam" /> <!-- none, autocam or static -->
+    <arg if="$(arg show_goal)"     name="rviz" default="robot_autocam_w_goal" /> <!-- none, autocam or static -->
+    <arg unless="$(arg show_goal)" name="rviz" default="robot_autocam" /> <!-- none, autocam or static -->
     
     <arg name="verb" default="info" />
 

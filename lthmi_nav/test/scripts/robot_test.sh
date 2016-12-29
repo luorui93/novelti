@@ -6,6 +6,7 @@ dst=livroom1
 pos=nearcog_obst
 div=nearcog_extremal
 mx=mx94
+show_goal=true
 use_pois=0
 ksafe=1.3
 smooth_rads="[]"
@@ -17,7 +18,7 @@ iarea_k=0.9
 time_start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
 #cmd="echo Echoing start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois"
-cmd="roslaunch lthmi_nav key.launch  start:=$start  dst:=$dst  pos:=$pos  div:=$div  use_pois:=$use_pois  ksafe:=$ksafe  mx:=$mx  view_sizes:=$view_sizes  smooth_rads:="$smooth_rads"  iarea_k:=$iarea_k"
+cmd="roslaunch lthmi_nav key.launch  start:=$start  dst:=$dst  pos:=$pos  div:=$div  use_pois:=$use_pois  ksafe:=$ksafe  mx:=$mx  view_sizes:=$view_sizes  smooth_rads:="$smooth_rads"  iarea_k:=$iarea_k  show_goal:=$show_goal"
 
 echo "Running: '$cmd'"
 $cmd
@@ -39,7 +40,8 @@ git_commit=`git log --format='%H' -n 1`
     echo "dest_loc:     $dst"
     echo "pos:          $pos"
     echo "div:          $div"
-    echo "mx            $mx"
+    echo "mx:           $mx"
+    echo "show_goal:    $show_goal"
     echo "use_pois:     $use_pois"
     echo "ksafe:        $ksafe"
     echo "intrstarea_k: $iarea_k"
