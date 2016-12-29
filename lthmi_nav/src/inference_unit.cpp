@@ -47,7 +47,7 @@ InferenceUnit::InferenceUnit() :
     
     std::vector<double> view_sizes;
     node.getParam("view_sizes", view_sizes);
-    ROS_INFO("%s: ---------------------------------------------------------------------- view_sizes.size()==%d", getName().c_str(), (int)view_sizes.size());
+    //ROS_INFO("%s: ---------------------------------------------------------------------- view_sizes.size()==%d", getName().c_str(), (int)view_sizes.size());
     if (view_sizes.size()==0) {
         view_sizes_ = {256};
     } else {
@@ -143,16 +143,16 @@ void InferenceUnit::resetPdf() {
     if (pois_.size()==0)
         setUniformPdf();
     else
-        setHardcodedPredictedPdf();
+        setStaticPredictedPdf();
 }
 
 void InferenceUnit::setUniformPdf() {
     for (int k=pdf.data.size()-1;k>=0; k--)
-        if (pdf.data[k] != PDF_UNREACHABLE)
+        if (pdf.data[k] >=0 )
             pdf.data[k] = uniform_prob_;
 }
 
-void InferenceUnit::setHardcodedPredictedPdf() {
+void InferenceUnit::setStaticPredictedPdf() {
     int k;
     double total = 0.0;
     float p, d, poi_x, poi_y, poi_sigma, poi_k;
@@ -197,11 +197,16 @@ void InferenceUnit::setHardcodedPredictedPdf() {
 //         k++;
 //     }
     
+    //normalize
+    double total2 = 0.0;
     for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
-        if (p != PDF_UNREACHABLE) {
-            pdf.data[k] /= total;
+        p = pdf.data[k];
+        if (p >=0 ) {
+            pdf.data[k] = p/total;
+            total2 += pdf.data[k];
         }
     }
+    ROS_WARN("%s: Accumulated probability of the whole PDF = %f, total before normalization=%f", getName().c_str(), total2, total);
 }
 
 void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes
@@ -209,7 +214,7 @@ void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and
     //ROS_INFO("++++++++++++++++ eps=%f", eps);
     for (int k=pdf.data.size()-1; k>=0; k--) { //replace small probs (<eps) with eps 
         p = pdf.data[k];
-        if (p != PDF_UNREACHABLE && p < eps) {
+        if (p >=0 && p < eps) {
             sc += eps;
             sa += p;
         }
@@ -218,7 +223,7 @@ void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and
     //ROS_INFO("++++++++++++++++ c=%f", c);
     for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
         p = pdf.data[k];
-        if (p != PDF_UNREACHABLE) {
+        if (p >=0) {
             pdf.data[k] = p<eps ? eps : c*p;
         }
     }

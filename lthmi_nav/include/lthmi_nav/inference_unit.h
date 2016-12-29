@@ -76,7 +76,7 @@ public:
     void start(lthmi_nav::StartExperiment::Request& req);
     void resetPdf();
     void setUniformPdf();
-    void setHardcodedPredictedPdf();
+    void setStaticPredictedPdf();
     void mapDivCallback(lthmi_nav::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
     void updatePdfAndPublish();
