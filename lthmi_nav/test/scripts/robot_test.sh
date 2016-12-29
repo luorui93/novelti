@@ -1,13 +1,13 @@
 #!/bin/bash
 
-intent="recording"    #experiment
+intent="trying to record"    # recording experiment
 start=door1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2
 dst=livroom1
 pos=nearcog_obst
 div=nearcog_extremal
 mx=mx94
-show_goal=true
-use_pois=0
+show_goal=false
+use_pois=true
 ksafe=1.3
 smooth_rads="[]"
 view_sizes="[16,32,64,128,256]"
