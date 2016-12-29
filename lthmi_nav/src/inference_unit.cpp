@@ -411,7 +411,7 @@ void InferenceUnit::publishViewTf() {
         view_y=cr;
 
     
-    if ((xmin < view_x-cr || ymax> view_x+cr || ymin <view_y-cr || ymax>view_y+cr) && view_size_id_ < view_sizes_.size()-1) {
+    if ((xmin < view_x-cr || xmax> view_x+cr || ymin <view_y-cr || ymax>view_y+cr) && view_size_id_ < view_sizes_.size()-1) {
         view_size_id_++;
         cr = view_sizes_[view_size_id_]/2;
     }
@@ -423,7 +423,9 @@ void InferenceUnit::publishViewTf() {
         view_y=cr;
 
 
-    /*int cd = view_sizes_[sid];
+    /*
+     * //[xmin, xmax]=[158,173], [ymin,ymax]=[152,158], view_x=160, view_y=152, view_size_id=0, view_size=16
+     * int cd = view_sizes_[sid];
     int left   = ((x-cd/2)/(cd/2))*(cd/2);
     int right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
     int bottom = ((y-cd/2)/(cd/2))*(cd/2);

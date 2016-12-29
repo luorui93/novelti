@@ -1,8 +1,8 @@
 #!/bin/bash
 
 intent="recording"    #experiment
-start=door1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2
-dst=livroom1
+start=livroom1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2
+dst=office1
 pos=nearcog_obst
 div=nearcog_extremal
 mx=mx94
