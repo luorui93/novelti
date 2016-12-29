@@ -72,6 +72,7 @@ class Mediator (SyncingNode):
             'real_robot':   rospy.get_param('~real_robot', True),
         })
         
+        
         if self.cfg['real_robot']:
             rospy.loginfo("Starting lthmi_nav with a real robot")
             self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
@@ -81,16 +82,14 @@ class Mediator (SyncingNode):
             self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
             #self.pub_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1, latch=True)
             
-            self.pub_pose_goal = rospy.Publisher('/pose_intended_goal', PoseStamped, queue_size=1, latch=True)
-            
             self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
             self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
             self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
-            
-
         else:
             rospy.loginfo("Starting lthmi_nav without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
+        self.pub_pose_goal = rospy.Publisher('/pose_intended_goal', PoseStamped, queue_size=1, latch=True)
+        self.publishGoal()
     
     def publishGoal(self):
         p = PoseStamped()
