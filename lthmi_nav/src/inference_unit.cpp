@@ -158,7 +158,7 @@ void InferenceUnit::setStaticPredictedPdf() {
     float p, d, poi_x, poi_y, poi_sigma, poi_k;
     for (int x=0; x<pdf.info.width-2; x++) {
         for (int y=0; y<pdf.info.height-2; y++) {
-            k = x+1 + (y+1)*pdf.info.width;
+            k = x + y*pdf.info.width;
             //k = x + y*(pdf.info.width-1);
             if (pdf.data[k]>=0) {
                 p = 0.0;
