@@ -89,7 +89,9 @@ class Mediator (SyncingNode):
             rospy.loginfo("Starting lthmi_nav without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
         self.pub_pose_goal = rospy.Publisher('/pose_intended_goal', PoseStamped, queue_size=1, latch=True)
+        self.pub_pose_goal2 = rospy.Publisher('/pose_intended_goal2', PoseStamped, queue_size=1, latch=True)
         self.publishGoal()
+        self.publishGoal2()
     
     def publishGoal(self):
         p = PoseStamped()
@@ -100,6 +102,16 @@ class Mediator (SyncingNode):
         rospy.get_param('~goal_y', 0.0),
         p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
         self.pub_pose_goal.publish(p)
+    
+    def publishGoal2(self):
+        p = PoseStamped()
+        p.header.stamp = rospy.Time.now()
+        p.header.frame_id = "/map"
+        p.pose.position.x = rospy.get_param('~goal2_x', 0.0)
+        p.pose.position.y = rospy.get_param('~goal2_y', 0.0)
+        rospy.get_param('~goal2_y', 0.0),
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
+        self.pub_pose_goal2.publish(p)
     
     def startLthmiNav(self, init_pose):
         rospy.loginfo("Starting lthmi_nav")
