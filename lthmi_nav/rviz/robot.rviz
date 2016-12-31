@@ -5,8 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /global_plan1
-        - /Polygon1
       Splitter Ratio: 0.647222
     Tree Height: 666
   - Class: rviz/Selection
@@ -27,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: /lidar_battery_sym/scan
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -408,6 +406,21 @@ Visualization Manager:
       Shaft Radius: 0.3
       Shape: Arrow
       Topic: /pose_intended_goal
+      Unreliable: false
+      Value: true
+    - Alpha: 0.7
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 255; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: /pose_intended_goal2
+      Shaft Length: 1
+      Shaft Radius: 0.3
+      Shape: Arrow
+      Topic: /pose_intended_goal2
       Unreliable: false
       Value: true
     - Alpha: 1
