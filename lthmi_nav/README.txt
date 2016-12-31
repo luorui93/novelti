@@ -126,3 +126,6 @@ improve
     fix the /pose_current marker overlaps cells
     fix bugs
     add check for inaccessible areas on the maps 
+    
+ideas for experiments:
+    pursue random destinations

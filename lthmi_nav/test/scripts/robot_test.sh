@@ -1,9 +1,12 @@
 #!/bin/bash
 
-intent="pre-recording (keep if good)"    # recording experiment
+intent="recording"    # recording experiment
 start=kitchen1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
 dst=livroom1
 dst2=storage1
+# start=storage1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
+# dst=storage2
+# dst2=storage3
 pos=nearcog_obst
 div=nearcog_extremal
 mx=mx85
