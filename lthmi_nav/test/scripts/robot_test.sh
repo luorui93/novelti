@@ -1,13 +1,14 @@
 #!/bin/bash
 
-intent="trying to record"    # recording experiment
-start=door1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2
+intent="pre-recording (keep if good)"    # recording experiment
+start=kitchen1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
 dst=livroom1
+dst2=storage1
 pos=nearcog_obst
 div=nearcog_extremal
-mx=mx94
+mx=mx85
 show_goal=false
-use_pois=true
+use_pois=false
 ksafe=1.3
 smooth_rads="[]"
 view_sizes="[16,32,64,128,256]"
@@ -18,7 +19,7 @@ iarea_k=0.9
 time_start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
 #cmd="echo Echoing start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois"
-cmd="roslaunch lthmi_nav key.launch  start:=$start  dst:=$dst  pos:=$pos  div:=$div  use_pois:=$use_pois  ksafe:=$ksafe  mx:=$mx  view_sizes:=$view_sizes  smooth_rads:="$smooth_rads"  iarea_k:=$iarea_k  show_goal:=$show_goal"
+cmd="roslaunch lthmi_nav key.launch  start:=$start  dst:=$dst  pos:=$pos  div:=$div  use_pois:=$use_pois  ksafe:=$ksafe  mx:=$mx  view_sizes:=$view_sizes  smooth_rads:="$smooth_rads"  iarea_k:=$iarea_k  show_goal:=$show_goal dst2:=$dst2"
 
 echo "Running: '$cmd'"
 $cmd
@@ -38,6 +39,7 @@ git_commit=`git log --format='%H' -n 1`
     echo "run_intent:   $intent"
     echo "start_loc:    $start"
     echo "dest_loc:     $dst"
+    echo "dest_loc2:    $dst2"
     echo "pos:          $pos"
     echo "div:          $div"
     echo "mx:           $mx"
