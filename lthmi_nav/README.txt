@@ -129,3 +129,5 @@ improve
     
 ideas for experiments:
     pursue random destinations
+    different mx for lthemi_model and inference unit
+    arrive to a new destination when POIs are defined
