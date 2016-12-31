@@ -1,17 +1,17 @@
 #!/bin/bash
 
-intent="recording"    # recording experiment
-start=kitchen1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
-dst=livroom1
-dst2=storage1
+intent="pre-recording (keep if good)"    # recording experiment
+start=bathroom1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
+dst=music1
+dst2=out
 # start=storage1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
 # dst=storage2
 # dst2=storage3
 pos=nearcog_obst
 div=nearcog_extremal
-mx=mx85
+mx=mx70
 show_goal=false
-use_pois=false
+use_pois=true
 ksafe=1.3
 smooth_rads="[]"
 view_sizes="[16,32,64,128,256]"
