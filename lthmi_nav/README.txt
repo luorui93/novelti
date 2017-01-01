@@ -130,4 +130,7 @@ improve
 ideas for experiments:
     pursue random destinations
     different mx for lthemi_model and inference unit
-    arrive to a new destination when POIs are defined
+    +arrive to a non-POI destination
+    disable /pose_inferred, random poses
+    navigation with 
+    various pos and div methods

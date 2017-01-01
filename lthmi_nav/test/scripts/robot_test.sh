@@ -1,8 +1,8 @@
 #!/bin/bash
 
 intent="recording"    # recording experiment
-start=kitchen1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
-dst=office1
+start=door1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
+dst=livroom1
 dst2=out
 # start=storage1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
 # dst=storage2
@@ -10,8 +10,9 @@ dst2=out
 pos=nearcog_obst
 div=nearcog_extremal
 mx=mx94
+inference_mx=mx70
 show_goal=false #this is about showing a goal marker on the colored (segmented) map
-use_pois=true
+use_pois=false
 ksafe=1.3
 smooth_rads="[]"
 view_sizes="[16,32,64,128,256]"
@@ -22,7 +23,7 @@ iarea_k=0.9
 time_start=`date +"%Y-%m-%d_%H-%M-%S_%Z%z"`
 
 #cmd="echo Echoing start:=$start dst:=$dst pos:=$pos div:=$div use_pois:=$use_pois"
-cmd="roslaunch lthmi_nav key.launch  start:=$start  dst:=$dst  pos:=$pos  div:=$div  use_pois:=$use_pois  ksafe:=$ksafe  mx:=$mx  view_sizes:=$view_sizes  smooth_rads:="$smooth_rads"  iarea_k:=$iarea_k  show_goal:=$show_goal dst2:=$dst2"
+cmd="roslaunch lthmi_nav key.launch  start:=$start  dst:=$dst  pos:=$pos  div:=$div  use_pois:=$use_pois  ksafe:=$ksafe  mx:=$mx  view_sizes:=$view_sizes  smooth_rads:="$smooth_rads"  iarea_k:=$iarea_k  show_goal:=$show_goal dst2:=$dst2  inference_mx:=$inference_mx"
 
 echo "Running: '$cmd'"
 $cmd
@@ -46,6 +47,7 @@ git_commit=`git log --format='%H' -n 1`
     echo "pos:          $pos"
     echo "div:          $div"
     echo "mx:           $mx"
+    echo "inference_mx: $inference_mx"
     echo "show_goal:    $show_goal"
     echo "use_pois:     $use_pois"
     echo "ksafe:        $ksafe"

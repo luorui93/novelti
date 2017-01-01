@@ -7,6 +7,8 @@
     <arg name="dst2" default="storage1" />
     <arg name="period" default="3.0" />        <!-- interface period -->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)--> 
+    <arg name="inference_mx"    default="$(arg mx)" /> 
+    
     <arg name="use_pois" default="0" />
     <arg name="iarea_k" default="0.5" />
     <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
@@ -150,6 +152,8 @@
         <param name="rviz" value="$(arg rviz)" />
         <param name="start_pose_name" value="$(arg start)" />
         <param name="destination_pose_name" value="$(arg dst)" />
+        <param name="destination2_pose_name" value="$(arg dst2)" />
+        <param name="show_goal" value="$(arg show_goal)" />
         <param name="commit"     command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log --format='%H' -n 1" />
         <param name="commit_log" command="git --git-dir=$(find lthmi_nav)/../.git --work-tree=$(find lthmi_nav)/..  log -n 1" />
         <param name="comp_id" command="cat /var/lib/dbus/machine-id" /> <!-- http://0pointer.de/blog/projects/ids.html -->
@@ -229,7 +233,7 @@
     <arg     if="$(arg debug_inference)" name="prefix_inference" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find lthmi_nav)/debug/gdb_inference_unit - -args" />
     <arg unless="$(arg debug_inference)" name="prefix_inference" default="" />    
     <node pkg="lthmi_nav" type="inference_unit" name="inference_unit" output="screen" required="true" launch-prefix="$(arg prefix_inference)">
-        <remap from="~interface_matrix" to="/$(arg mx)"/>
+        <remap from="~interface_matrix" to="/$(arg inference_mx)"/>
         <param name="thresh_high" value="$(arg prob_thresh_high)" />
         <param name="thresh_low"  value="$(arg prob_thresh_low)" />
         <param name="eps"         value="$(arg prob_eps)" />
