@@ -145,6 +145,7 @@
         <!-- remapped parameters (by default not save on param server-->
         <param name="map" value="$(arg map)" />
         <param name="mx" value="$(arg mx)" />
+        <param name="inference_mx" value="$(arg inference_mx)" />
         <!--param name="path" value="$(arg path)" /-->
         <param name="popt" value="$(arg popt)" />
         <param name="bag" value="$(arg bag)" />
