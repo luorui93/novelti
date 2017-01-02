@@ -2,13 +2,13 @@
 
 intent="recording"    # recording experiment
 # storage1 -> storage2 -> storage3 -> livroom2 -> livroom1 -> kitchen1
-start=livroom1    # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3   livroom2
-dst=kitchen1
+start=storage1    # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3   livroom2
+dst=storage2
 dst2=out
 # start=storage1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3   livroom2
 # dst=storage2
 # dst2=storage3
-pos=cog2lopt
+pos=nearcog_obst
 div=altertile
 mx=mx91
 inference_mx=mx91
