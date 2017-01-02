@@ -70,9 +70,10 @@ class Mediator (SyncingNode):
             'map_file':     rospy.get_param('~map'),
             'resolution':   rospy.get_param('~resolution', 0.1),
             'real_robot':   rospy.get_param('~real_robot', True),
+            'pub_random_goal':   rospy.get_param('~pub_random_goal', False),
         })
         
-        
+        self.inferenceState="INFERRING"
         if self.cfg['real_robot']:
             rospy.loginfo("Starting lthmi_nav with a real robot")
             self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
@@ -92,6 +93,15 @@ class Mediator (SyncingNode):
         self.pub_pose_goal2 = rospy.Publisher('/pose_intended_goal2', PoseStamped, queue_size=1, latch=True)
         self.publishGoal()
         self.publishGoal2()
+    
+    def publishRandomGoal(self):
+        init_vx = self.grid.genRandUnblockedVertex()
+        init_pose = self.vertex2pose(init_vx)
+        p = PoseStamped()
+        p.header.stamp = rospy.Time.now()
+        p.header.frame_id = "/map"
+        p.pose = init_pose
+        self.pub_pose_goal.publish(p)
     
     def publishGoal(self):
         p = PoseStamped()
@@ -116,7 +126,11 @@ class Mediator (SyncingNode):
     def startLthmiNav(self, init_pose):
         rospy.loginfo("Starting lthmi_nav")
         self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
-        self.publishGoal()
+        if self.cfg['pub_random_goal']:
+            rospy.loginfo("RANDOM GOAL ENABLED")
+            self.publishRandomGoal()
+        else:
+            self.publishGoal()
         
     def cancelAllGoals(self):
         self.action_client.cancel_goals_at_and_before_time(rospy.Time.now()) # don't know why this does not work 
@@ -151,6 +165,10 @@ class Mediator (SyncingNode):
             rospy.loginfo("Arrived to the destination")
         else:
             rospy.loginfo("Didn't arrive to destination, goal status=%d: '%s'" % (status, self.GOAL_STATUSES[status]))
+        if self.inferenceState=="INFERRED" and self.cfg['pub_random_goal']:
+            rospy.logwarn("PUBLISHING A NEW RANDOM GOAL")
+            self.publishRandomGoal()
+            self.inferenceState="INFERRING"
         
     def poseAmclCallback(self, msg):
         p = PoseStamped()
@@ -169,6 +187,7 @@ class Mediator (SyncingNode):
 
     def poseInferredCallback(self, msg):
         rospy.loginfo("Received pose inferred: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
+        self.inferenceState="INFERRED"
         self.setNewGoal(msg)
     
     def actionFeedbackCallback(self, msg):

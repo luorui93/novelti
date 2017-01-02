@@ -8,6 +8,9 @@
     <arg name="period" default="3.0" />        <!-- interface period -->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)--> 
     <arg name="inference_mx"    default="$(arg mx)" /> 
+    <arg name="reset_pdf"    default="true" /> 
+    <arg name="pub_random_goal"    default="true" /> 
+    
     
     <arg name="use_pois" default="0" />
     <arg name="iarea_k" default="0.5" />
@@ -175,6 +178,7 @@
         <remap from="~goal2_x" to="/predefined_poses/$(arg dst2)/x" />
         <remap from="~goal2_y" to="/predefined_poses/$(arg dst2)/y" />
         <remap from="~goal2_yaw" to="/predefined_poses/$(arg dst2)yaw" />
+        <param name="pub_random_goal" value="$(arg pub_random_goal)" />
         <param name="map" value="$(arg lthmi_map_file)" />
         <param name="resolution" value="0.1" />
         <param name="real_robot" value="$(arg real_robot)" />
@@ -243,7 +247,7 @@
         <param name="thresh_low"  value="$(arg prob_thresh_low)" />
         <param name="eps"         value="$(arg prob_eps)" />
         <param name="check_sync"  value="false" />
-        <param name="reset_pdf_on_new"  value="true" />
+        <param name="reset_pdf_on_new"  value="$(arg reset_pdf)" />
         <param name="interest_area_coef" value="$(arg iarea_k)" /> <!-- bigger coef, smaller interest area )-->
         <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
             [   #x1,y1,  sigma1, k1,
