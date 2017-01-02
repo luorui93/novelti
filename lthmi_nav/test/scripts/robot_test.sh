@@ -1,20 +1,20 @@
 #!/bin/bash
 
 intent="recording"    # recording experiment
-start=door1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
-dst=livroom1
+start=bedroom1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3   livroom2
+dst=storage2
 dst2=out
-# start=storage1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3
+# start=storage1     # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3   livroom2
 # dst=storage2
 # dst2=storage3
 pos=nearcog_obst
 div=nearcog_extremal
-mx=mx94
-inference_mx=mx94
+mx=mx91
+inference_mx=mx91
 show_goal=false #this is about showing a goal marker on the colored (segmented) map
 use_pois=false
 ksafe=1.3
-smooth_rads="[0,0,1,2,2]"
+smooth_rads="[]"
 view_sizes="[16,32,64,128,256]"
 iarea_k=1.2
 
