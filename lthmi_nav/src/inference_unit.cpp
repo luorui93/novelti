@@ -88,6 +88,7 @@ bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::R
     } else {
         denullifyPdf();//??
     }
+    //ROS_INFO("%s: new_pdf == %s", getName().c_str(), new_pdf_ ? "True" : "False");
     pubPdf();
     return true;
 }
@@ -140,6 +141,7 @@ void InferenceUnit::start(lthmi_nav::StartExperiment::Request& req) {
 
 void InferenceUnit::resetPdf() {
     ROS_INFO("%s: resetting pdf", getName().c_str());
+    new_pdf_ = true;
     if (pois_.size()==0)
         setUniformPdf();
     else
@@ -351,6 +353,7 @@ void InferenceUnit::smoothenPdf() {
     
     int i,n;
     float p, p_avg;
+    double total = 0.0;
     for (int cy=0, k=0; cy<pdf_copy.info.height-1; cy++) {
         for (int cx=0; cx<pdf_copy.info.width-1; cx++, k++) {
             if (pdf_copy.data[k] >= 0) {
@@ -369,10 +372,23 @@ void InferenceUnit::smoothenPdf() {
                     }
                     pdf.data[k] = p_avg/n;
                 }
+                total += pdf.data[k];
             }
         }
         k++;
     }
+    
+    //normalize
+    double total2 = 0.0;
+    for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
+        p = pdf.data[k];
+        if (p >=0 ) {
+            pdf.data[k] = p/total;
+            total2 += pdf.data[k];
+        }
+    }
+    
+    ROS_WARN("%s: total probability of the PDF after smoothening = %f, and then after normalizarion = %f", getName().c_str(), total, total2);
 }
 
 void InferenceUnit::publishViewTf() {
@@ -394,7 +410,13 @@ void InferenceUnit::publishViewTf() {
         }
         k++;
     }
-    
+    if (new_pdf_) {
+        xmin = 0; 
+        ymin = 0;
+        xmax = pdf.info.width-1;
+        ymax = pdf.info.height-1;
+    }
+        
     
     //calculate TF from where the interest area will be completely visible
     int view_size;
@@ -405,6 +427,8 @@ void InferenceUnit::publishViewTf() {
     for (view_size_id_=0; view_size_id_<view_sizes_.size(); view_size_id_++)
         if (view_sizes_[view_size_id_]>=d)
             break;
+    if (view_size_id_>=view_sizes_.size())
+        view_size_id_--;
     int cr = view_sizes_[view_size_id_]/2;
     //printf("x=%d, y=%d, init cr=%d\n", x,y,cr);
     
@@ -478,6 +502,7 @@ void InferenceUnit::updatePdfAndPublish() {
         ros::shutdown();
         exit(1);
     }
+    new_pdf_ = false;
     updatePdf();
     denullifyPdf();
     if (state==INFERRING) {

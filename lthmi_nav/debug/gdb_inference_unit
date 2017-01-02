@@ -1,4 +1,6 @@
 #b lthmi_nav::InferenceUnit::stop
-b lthmi_nav::SynchronizableNode::srvStop
-b lthmi_nav::InferenceUnit::srvNewGoal
+#b lthmi_nav::SynchronizableNode::srvStop
+#b lthmi_nav::InferenceUnit::srvNewGoal
+#b lthmi_nav::InferenceUnit::publishViewTf
+b inference_unit.cpp:410
 r

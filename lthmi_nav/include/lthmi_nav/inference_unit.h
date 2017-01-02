@@ -65,6 +65,7 @@ public:
     float thresh_low;
     float uniform_prob_;
     bool reset_pdf_on_new_;
+    bool new_pdf_;
     double eps;
     double max_prob;
     int max_prob_k;

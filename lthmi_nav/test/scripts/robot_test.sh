@@ -9,14 +9,14 @@ dst2=out
 # dst2=storage3
 pos=nearcog_obst
 div=nearcog_extremal
-mx=mx70
-inference_mx=mx70
-show_goal=true #this is about showing a goal marker on the colored (segmented) map
+mx=mx94
+inference_mx=mx94
+show_goal=false #this is about showing a goal marker on the colored (segmented) map
 use_pois=false
 ksafe=1.3
-smooth_rads="[]"
+smooth_rads="[0,0,1,2,2]"
 view_sizes="[16,32,64,128,256]"
-iarea_k=0.9
+iarea_k=1.2
 
 
 
