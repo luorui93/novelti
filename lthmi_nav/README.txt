@@ -134,3 +134,12 @@ ideas for experiments:
     disable /pose_inferred, random poses
     navigation with 
     various pos and div methods
+    
+    
+data representation:
+    plots over time
+        entropy
+        distance
+        x
+        y
+    

@@ -77,27 +77,28 @@ class BagRecord:
                     '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
         styles = ['-', '--', '.-', '-.']
         
-        f, axarr = plt.subplots(2, 1, sharex=True, facecolor='white', figsize=(16, 12))
+        fig = plt.figure(facecolor='white')
+        ax_map = plt.subplot(121)
+        ax_dist = plt.subplot(222)
+        ax_entr = plt.subplot(224, sharex=ax_dist)
+        
         
         for k, path in enumerate(bag_paths):
             br = cls(path)
-            ax = axarr[0]
-            ax.plot(br.dist2goal['t'], br.dist2goal['v'], color=colors[k], linestyle=styles[k])
-            ax.grid(True)
-            ax.autoscale(True)
-            ax.set_title("Distance to destination over time", y=1.00)
-            ax.set_ylabel("Distance, m")
+            ax_dist.plot(br.dist2goal['t'], br.dist2goal['v'], color=colors[k], linestyle=styles[k])
+            ax_dist.grid(True)
+            ax_dist.autoscale(True)
+            ax_dist.set_title("Distance to destination over time", y=1.00)
+            ax_dist.set_ylabel("Distance, m")
+
+            ax_entr.plot(br.entropy['t'], br.entropy['v'], color=colors[k], linestyle=styles[k])
+            ax_entr.grid(True)
+            ax_entr.autoscale(True)
+            ax_entr.set_title("PDF entropy evolution over time", y=1.00)
+            ax_entr.set_ylabel("Entropy, bits")
+            ax_entr.set_xlabel("Time, sec")
             
-            ax = axarr[1]
-            ax.plot(br.entropy['t'], br.entropy['v'], color=colors[k], linestyle=styles[k])
-            #ax.plot([1, 2, 3], color=colors[k])
-            ax.grid(True)
-            ax.autoscale(True)
-            ax.set_title("PDF entropy evolution over time", y=1.00)
-            ax.set_ylabel("Entropy, bits")
-            ax.set_xlabel("Time, sec")
-            
-        #plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
+        plt.tight_layout() #pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
         plt.show()
     
 
