@@ -309,6 +309,20 @@ class RecordByStamp:
     
 
 
+class GroupPlot:
+    
+    def __init__(self, bagDir, cacheDir):
+        self.dbase = RecordByStamp(bagDir, cacheDir)
+        self.plot  = LthmiNavExpPlot()
+        
+    def plotArray(self, timeStrs, color):
+        for timeStr in timeStrs:
+            bagRecord = self.dbase.getRecord(timeStr)
+            self.plot.plotBagRecord(bagRecord, color)
+    
+    def show(self):
+        self.plot.show()
+
 doc="""
 USAGE:
     PDF distance and entropy plot:
