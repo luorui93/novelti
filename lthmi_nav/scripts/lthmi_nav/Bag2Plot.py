@@ -4,6 +4,7 @@ import rosbag
 import sys
 import ast
 import os
+import pickle
 
 from math import *
 
@@ -33,8 +34,19 @@ class LthmiNavExpRecord:
         self.bag_path = bag_path
         self.readMetaData(bag_path)
         self.readData(bag_path)
-        self.preparePath()
-        self.prepareDist()
+    
+    def getRecord(self):
+        return {
+            "width"     : self.meta["width"],
+            "height"    : self.meta["height"],
+            "map"       : self.meta["map"],
+            "map_inflated": self.meta["map_inflated"],
+            "poses"     : self.poses,
+            "path"      : self.calcPath(),
+            "dist"      : self.calcDist(),
+            "entropy"   : self.entropy,
+        }
+
 
     def makeMap(self, msg):
         m = np.full((msg.info.height, msg.info.width), 1)
@@ -122,18 +134,19 @@ class LthmiNavExpRecord:
                 (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])
                 self.poses['a'].append(y)
     
-    def prepareDist(self):
-        self.dist = { 't':[], 'v':[] }
+    def calcDist(self):
+        dist = { 't':[], 'v':[] }
         for k in xrange(len(self.poses['x'])):
-            self.dist['t'].append(self.poses['t'][k])
-            self.dist['v'].append(sqrt(  (self.poses['x'][k]-self.meta['goal'].position.x)**2   +   (self.poses['y'][k]-self.meta['goal'].position.y)**2   ))
+            dist['t'].append(self.poses['t'][k])
+            dist['v'].append(sqrt(  (self.poses['x'][k]-self.meta['goal'].position.x)**2   +   (self.poses['y'][k]-self.meta['goal'].position.y)**2   ))
+        return dist
     
-    def preparePath(self):
+    def calcPath(self):
         dt = self.cfg["path_period"]
         next_t  = dt
         i=0
 
-        self.path = { 't':[0.0], 'x':[self.poses['x'][0]], 'y':[self.poses['y'][0]], 'a':[self.poses['a'][0]] }
+        path = { 't':[0.0], 'x':[self.poses['x'][0]], 'y':[self.poses['y'][0]], 'a':[self.poses['a'][0]] }
         for k,t in enumerate(self.poses['t']):
             #print "===== k=%d,   t=%f,   next_t=%f" % (k,t, next_t)
             while t >= next_t:
@@ -152,12 +165,12 @@ class LthmiNavExpRecord:
                         a0 += 2*pi
                 a = a0 + c*(a1-a0)
                 #print "%d: k=%d,  t0=%f, t=%f,      c=%f,     a0=%f, a1=%f,    a=%f" %(i, k, self.poses['t'][k-1], t, c, a0, a1, a)
-                self.path['t'].append(next_t) 
-                self.path['x'].append(x)
-                self.path['y'].append(y)
-                self.path['a'].append(a)
+                path['t'].append(next_t) 
+                path['x'].append(x)
+                path['y'].append(y)
+                path['a'].append(a)
                 next_t += dt
-
+        return path
 
 
 class LthmiNavExpPlot:
@@ -189,14 +202,14 @@ class LthmiNavExpPlot:
     def plotBagRecord(self, bagRecord, color):
         if self.bagsDisplayed == 0:
             self.plotMaps(
-                bagRecord.meta['width'], 
-                bagRecord.meta['height'], 
-                bagRecord.meta['map_inflated'], 
-                bagRecord.meta['map']
+                bagRecord['width'], 
+                bagRecord['height'], 
+                bagRecord['map_inflated'], 
+                bagRecord['map']
             )
-        self.plotDistance(bagRecord.dist, color)
-        self.plotEntropy(bagRecord.entropy, color)
-        self.plotPath(bagRecord.path, color)
+        self.plotDistance(bagRecord["dist"], color)
+        self.plotEntropy(bagRecord["entropy"], color)
+        self.plotPath(bagRecord["path"], color)
         self.bagsDisplayed += 1
     
     def plotMaps(self, width, height, map1, map_inflated):
@@ -261,22 +274,37 @@ class LthmiNavExpPlot:
 
 
 
-class TimeStrToFilepath:
+class RecordByStamp:
     
-    def __init__(self, baseDir=None):
-        self.baseDir = baseDir
+    def __init__(self, bagDir, cacheDir):
+        self.bagDir = bagDir
+        self.cacheDir = cacheDir
         self.time2file = []
-        for filename in os.listdir(self.baseDir):
-            if filename.endswith(".bag") and os.path.isfile(os.path.join(self.baseDir, filename)):
+        for filename in os.listdir(self.bagDir):
+            if filename.endswith(".bag") and os.path.isfile(os.path.join(self.bagDir, filename)):
                 t = datetime.strptime(filename, '%Y-%m-%d-%H-%M-%S.bag')
                 self.time2file.append((t,filename))
         self.time2file.sort(key=lambda tup: tup[0]) 
 
-    def getPath(self, timeStr):
+    def getRecord(self, timeStr):
         t = datetime.strptime(timeStr, '%Y-%m-%d_%H-%M-%S_EST-0500')
         for tup in self.time2file:
             if tup[0]>=t:
-                return os.path.join(self.baseDir, tup[1])
+                bagFileName = tup[1]
+                bagFilePath = os.path.join(self.bagDir, bagFileName)
+                pklFileName = bagFileName+".pkl"
+                pklFilePath = os.path.join(self.cacheDir, pklFileName)
+                if os.path.isfile(pklFilePath):
+                    info("Reading data from cache file %s" % pklFilePath)
+                    with open(pklFilePath, 'rb') as input1:
+                        return pickle.load(input1) 
+                else:
+                    b = LthmiNavExpRecord(bagFilePath)
+                    bagRecord = b.getRecord()
+                    info("Saving data to cache as %s" % pklFilePath)
+                    with open(pklFilePath, 'wb') as output:
+                        pickle.dump(bagRecord, output, pickle.HIGHEST_PROTOCOL)
+                    return bagRecord
         return None
     
 
@@ -314,24 +342,14 @@ if __name__=="__main__":
             for br in bagRecords:
                 p.plotBagRecord(br)
             p.show()
-        elif action=="from_stamps":
-            stamp2color = {}
-            if len(sys.argv)<4:
+        elif action=="make_pickles":
+            if len(sys.argv)<3:
                 usageError("Provide at least one path to a bag file")
-            bag 
             info("Reading bags")
-            for prm in sys.argv[3:]:
-                stamp, color = prm.split("=")[0:2]
-                
-            
-            bagRecords = [LthmiNavExpRecord(filepath) for filepath in sys.argv[2:]]
-            info("Making plots")
-            p = LthmiNavExpPlot()
-            for br in bagRecords:
-                p.plotBagRecord(br)
-            p.show()
-            
-            
-            
+            for bagpath in sys.argv[2:]:
+                br = LthmiNavExpRecord(bagpath)
+                info("Saving data to %s" % bagpath+'.pkl')
+                with open(bagpath+'.pkl', 'wb') as output:
+                    pickle.dump(br, output, pickle.HIGHEST_PROTOCOL)
         else:
             usageError("Incorrect usage")
