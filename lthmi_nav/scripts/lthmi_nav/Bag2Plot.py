@@ -3,11 +3,13 @@
 import rosbag
 import sys
 import ast
+import os
 
 from math import *
 
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime
 
 import tf_conversions
 
@@ -130,13 +132,10 @@ class LthmiNavExpRecord:
         dt = self.cfg["path_period"]
         next_t  = dt
         i=0
-        #self.path = self.poses
-        #return
+
         self.path = { 't':[0.0], 'x':[self.poses['x'][0]], 'y':[self.poses['y'][0]], 'a':[self.poses['a'][0]] }
         for k,t in enumerate(self.poses['t']):
             #print "===== k=%d,   t=%f,   next_t=%f" % (k,t, next_t)
-            #if k==3:
-                #break
             while t >= next_t:
                 c    = (next_t - self.poses['t'][k-1])/(t - self.poses['t'][k-1])
                 i += 1
@@ -158,49 +157,24 @@ class LthmiNavExpRecord:
                 self.path['y'].append(y)
                 self.path['a'].append(a)
                 next_t += dt
-    
 
-    def drawRegularPath(self, axes, color):
-        dt = 3.0
-        next_t  = dt
-        path = self.path
-        i=0
-        print path['t']
-        self.drawArrow(axes, path['x'][0], path['y'][0], path['a'][0], color)
-        self.drawArrow(axes, path['x'][-1], path['y'][-1], path['a'][-1], color)
-        for k,t in enumerate(path['t']):
-            if t >= next_t:
-                c    = (next_t - path['t'][k-1])/(t - path['t'][k-1])
-                i +=1
-                x    = path['x'][k-1] + c*(path['x'][k]-path['x'][k-1])
-                y    = path['y'][k-1] + c*(path['y'][k]-path['y'][k-1])
-                a0 = path['a'][k-1]
-                a1 = path['a'][k]
-                #print "%d: a0=%f, a1=%f" %(i, a0, a1)
-                if (a0>0 and a1<0) or (a1>0 and a0<0):
-                    if a0>0:
-                        a0,a1 = a1,a0
-                    if a1-a0 > pi:
-                        a0 += 2*pi
-                a = a0 + c*(a1-a0)
-                print "%d: k=%d,  t0=%f, t=%f,      c=%f,     a0=%f, a1=%f,    a=%f" %(i, k, path['t'][k-1], t, c, a0, a1, a)
-                self.drawArrow(axes, x,y,a, color)
-                #plt.show()
-                #time.sleep(1.0)
-                next_t += dt
 
 
 class LthmiNavExpPlot:
     """
     Usage pattern:
         p = LthmiNavExpPlot()
-        p.plotBagRecord(bagRecord1)
-        p.plotBagRecord(bagRecord2)
+        p.plotBagRecord(bagRecord1, color1)
+        p.plotBagRecord(bagRecord2, color2)
         ...
         p.show()
     """
     
     def __init__(self):
+        #self.baseDir = baseDir
+        #if baseDir is not None:
+            #self.readListOfAllBagFiles()
+        
         self.colors = [  'blue',  'red', '#5F9ED1', '#ABABAB','#FF800E', '#006B40', 
                     '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
         self.styles = ['-', '--', '.-', '-.']
@@ -210,8 +184,9 @@ class LthmiNavExpPlot:
         self.ax_entr = plt.subplot(224, sharex=self.ax_dist)
         self.firstBagRecord = True
         self.bagsDisplayed = 0
+
     
-    def plotBagRecord(self, bagRecord):
+    def plotBagRecord(self, bagRecord, color):
         if self.bagsDisplayed == 0:
             self.plotMaps(
                 bagRecord.meta['width'], 
@@ -219,9 +194,9 @@ class LthmiNavExpPlot:
                 bagRecord.meta['map_inflated'], 
                 bagRecord.meta['map']
             )
-        self.plotDistance(bagRecord.dist)
-        self.plotEntropy(bagRecord.entropy)
-        self.plotPath(bagRecord.path)
+        self.plotDistance(bagRecord.dist, color)
+        self.plotEntropy(bagRecord.entropy, color)
+        self.plotPath(bagRecord.path, color)
         self.bagsDisplayed += 1
     
     def plotMaps(self, width, height, map1, map_inflated):
@@ -242,10 +217,10 @@ class LthmiNavExpPlot:
                             vmin=0, vmax=1, norm=None,
                             extent=(0,width,0,height))
     
-    def plotEntropy(self, entropy):
+    def plotEntropy(self, entropy, color):
         info("    Drawing entropy plot")
         self.ax_entr.plot(entropy['t'], entropy['v'], 
-                          color=self.colors[self.bagsDisplayed], 
+                          color=color, 
                           linestyle=self.styles[0]
                           )
         self.ax_entr.grid(True)
@@ -254,10 +229,10 @@ class LthmiNavExpPlot:
         self.ax_entr.set_ylabel("Entropy, bits")
         self.ax_entr.set_xlabel("Time, sec")
     
-    def plotDistance(self, dist):
+    def plotDistance(self, dist, color):
         info("    Drawing distance plot")
         self.ax_dist.plot(dist['t'], dist['v'], 
-                          color=self.colors[self.bagsDisplayed], 
+                          color=color, 
                           linestyle=self.styles[0]
                           )
         self.ax_dist.grid(True)
@@ -265,9 +240,9 @@ class LthmiNavExpPlot:
         self.ax_dist.set_title("Distance to destination over time", y=1.00)
         self.ax_dist.set_ylabel("Distance, m")
     
-    def plotPath(self, path):
+    def plotPath(self, path, color):
         for k,t in enumerate(path['t']):
-            self.drawArrow(path['x'][k], path['y'][k], path['a'][k], self.colors[self.bagsDisplayed])
+            self.drawArrow(path['x'][k], path['y'][k], path['a'][k], color)
 
     def drawArrow(self, x,y,a, color):
         arr_length  = 0.2
@@ -285,10 +260,32 @@ class LthmiNavExpPlot:
         plt.show()
 
 
+
+class TimeStrToFilepath:
+    
+    def __init__(self, baseDir=None):
+        self.baseDir = baseDir
+        self.time2file = []
+        for filename in os.listdir(self.baseDir):
+            if filename.endswith(".bag") and os.path.isfile(os.path.join(self.baseDir, filename)):
+                t = datetime.strptime(filename, '%Y-%m-%d-%H-%M-%S.bag')
+                self.time2file.append((t,filename))
+        self.time2file.sort(key=lambda tup: tup[0]) 
+
+    def getPath(self, timeStr):
+        t = datetime.strptime(timeStr, '%Y-%m-%d_%H-%M-%S_EST-0500')
+        for tup in self.time2file:
+            if tup[0]>=t:
+                return os.path.join(self.baseDir, tup[1])
+        return None
+    
+
+
 doc="""
 USAGE:
     PDF distance and entropy plot:
         ./Bag2Plot.py dist_and_entropy 1.bag 2.bag 3.bag ...
+        ./Bag2Plot.py from_stamps  <PATH to DIR WITH BAGS>  2017-01-01_16-13-27_EST-0500=black 
 """
 
 
@@ -317,5 +314,24 @@ if __name__=="__main__":
             for br in bagRecords:
                 p.plotBagRecord(br)
             p.show()
+        elif action=="from_stamps":
+            stamp2color = {}
+            if len(sys.argv)<4:
+                usageError("Provide at least one path to a bag file")
+            bag 
+            info("Reading bags")
+            for prm in sys.argv[3:]:
+                stamp, color = prm.split("=")[0:2]
+                
+            
+            bagRecords = [LthmiNavExpRecord(filepath) for filepath in sys.argv[2:]]
+            info("Making plots")
+            p = LthmiNavExpPlot()
+            for br in bagRecords:
+                p.plotBagRecord(br)
+            p.show()
+            
+            
+            
         else:
             usageError("Incorrect usage")
