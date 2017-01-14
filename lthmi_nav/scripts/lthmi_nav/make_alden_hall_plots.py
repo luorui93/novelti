@@ -205,9 +205,90 @@ if __name__=="__main__":
     gp = GroupPlot(bagDir, cacheDir)
     #gp.plotArray(bags["mx94_no_pois"]["door1tolivroom1"], "blue")
     #gp.plotArray(bags["two_mx_no_pois"]["door1tolivroom1"], "red")
+    gp.plotArray(bags["mx94_no_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["mx94_no_pois"]["livroom1tooffice1"], "blue")
     gp.plotArray(bags["mx94_no_pois"]["office1tobathroom1"], "blue")
-    gp.plotArray(bags["smooth_mx94_no_pois"]["office1tobathroom1"], "red")
+    gp.plotArray(bags["mx94_no_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["mx94_no_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["mx94_no_pois"]["bedroom1todoor2"], "blue")
     
+    
+    gp.plotArray(bags["mx70_no_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["mx70_no_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["mx70_no_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["mx70_no_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["mx70_no_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["mx70_no_pois"]["bedroom1todoor2"], "blue")
+    
+    
+    gp.plotArray(bags["mx94_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["mx94_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["mx94_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["mx94_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["mx94_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["mx94_pois"]["bedroom1todoor2"], "blue")
+    
+    
+    gp.plotArray(bags["mx70_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["mx70_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["mx70_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["mx70_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["mx70_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["mx70_pois"]["bedroom1todoor2"], "blue")
+    
+    
+
+
+    gp.plotArray(bags["two_mx_no_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["two_mx_no_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["two_mx_no_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["two_mx_no_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["two_mx_no_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["two_mx_no_pois"]["bedroom1todoor2"], "blue")
+    
+    
+    gp.plotArray(bags["two_mx_with_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["two_mx_with_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["two_mx_with_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["two_mx_with_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["two_mx_with_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["two_mx_with_pois"]["bedroom1todoor2"], "blue")
+    
+    
+    gp.plotArray(bags["goal_marker_mx94"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["goal_marker_mx94"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["goal_marker_mx94"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["goal_marker_mx94"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["goal_marker_mx94"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["goal_marker_mx94"]["bedroom1todoor2"], "blue")
+    
+    
+    gp.plotArray(bags["goal_marker_mx70"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["goal_marker_mx70"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["goal_marker_mx70"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["goal_marker_mx70"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["goal_marker_mx70"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["goal_marker_mx70"]["bedroom1todoor2"], "blue")
+    
+    
+    
+    
+    
+    gp.plotArray(bags["smooth_mx94_no_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["smooth_mx94_no_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["smooth_mx94_no_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["smooth_mx94_no_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["smooth_mx94_no_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["smooth_mx94_no_pois"]["bedroom1todoor2"], "blue")
+    
+    
+    gp.plotArray(bags["smooth_mx70_no_pois"]["door1tolivroom1"], "blue")
+    gp.plotArray(bags["smooth_mx70_no_pois"]["livroom1tooffice1"], "blue")
+    gp.plotArray(bags["smooth_mx70_no_pois"]["office1tobathroom1"], "blue")
+    gp.plotArray(bags["smooth_mx70_no_pois"]["bathroom1tomusic1"], "blue")
+    gp.plotArray(bags["smooth_mx70_no_pois"]["music1tobedroom1"], "blue")
+    gp.plotArray(bags["smooth_mx70_no_pois"]["bedroom1todoor2"], "blue")
+
     #gp.plotArray(bags["mx94_no_pois"]["door1tolivroom1"], "blue")
     #gp.plotArray(bags["two_mx_no_pois"]["door1tolivroom1"], "red")
     gp.show()

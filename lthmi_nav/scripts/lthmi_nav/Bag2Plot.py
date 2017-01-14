@@ -106,7 +106,7 @@ class LthmiNavExpRecord:
     def calcPdfEntropy(self, pdf):
         e = 0.0
         for p in pdf.data:
-            if p>=0:
+            if p>0: #if p==0,   p*log(p,2) tends to 0
                 e += -p*log(p,2)
         return e
     
