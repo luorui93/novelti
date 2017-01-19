@@ -352,6 +352,78 @@ class RecordByStamp:
         return None
     
 
+class PlottableBagRecord:
+    
+    def __init__(self, bagRecord, color=None):
+        self.bagRecord = bagRecord
+        self.color = color
+
+    def plotMap(self, axes):
+        axes.matshow(self.bagRecord['map'], 
+                            origin="lower", 
+                            alpha=0.3, 
+                            cmap=plt.cm.gray, 
+                            vmin=0, vmax=1, norm=None,
+                            extent=(0, self.bagRecord['width'], 0, self.bagRecord['height']))
+            
+    def plotMapInflated(self, axes):
+        axes.matshow(self.bagRecord['map_inflated'], 
+                            origin="lower", 
+                            cmap=plt.cm.gray, 
+                            vmin=0, vmax=1, norm=None,
+                            extent=(0, self.bagRecord['width'], 0, self.bagRecord['height']))
+        
+    def plotMaps(self, axes):
+        #info("    Drawing maps")
+        self.plotMap(axes)
+        self.plotMapInflated(axes)
+
+    def drawArrow(self, axes, x,y,a, color):
+        arr_length  = 0.2
+        head_length = 0.07
+        head_width  = 0.07
+        axes.arrow(x, y, arr_length*cos(a), arr_length*sin(a), 
+                   length_includes_head = True,
+                   head_width=head_width, 
+                   head_length=head_length, 
+                   fc=color, 
+                   ec=color)
+
+    def plotEntropy(self, axes, color):
+        #info("    Drawing entropy plot")
+        axes.plot(self.bagRecord['entropy']['t'], self.bagRecord['entropy']['v'], 
+                          color=color, 
+                          linestyle='-'
+                          )
+        axes.grid(True)
+        axes.autoscale(True)
+        axes.set_title("PDF entropy evolution over time", y=1.00)
+        axes.set_ylabel("Entropy, bits")
+        axes.set_xlabel("Time, sec")
+    
+    def plotDistance(self, axes, color):
+        #info("    Drawing distance plot")
+        axes.plot(self.bagRecord['dist']['t'], self.bagRecord['dist']['v'], 
+                          color=color, 
+                          linestyle='-'
+                 )
+        axes.grid(True)
+        axes.autoscale(True)
+        axes.set_title("Distance to destination over time", y=1.00)
+        axes.set_ylabel("Distance, m")
+    
+    def plotPath(self, axes, color):
+        for k,t in enumerate(self.bagRecord['path']['t']):
+            self.drawArrow(axes, self.bagRecord['path']['x'][k], self.bagRecord['path']['y'][k], self.bagRecord['path']['a'][k], color)
+
+    def plotPathDistEntropy(self, ax_map, ax_dist, ax_entr, color):
+        self.plotPath(ax_map, color)
+        self.plotDistance(ax_dist, color)
+        self.plotEntropy(ax_entr, color)
+
+    
+    
+    
 
 class GroupPlot:
     
