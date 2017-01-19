@@ -276,6 +276,17 @@ target_link_libraries(bag_processor
 )
 add_dependencies(bag_processor ${PROJECT_NAME}_generate_messages_cpp)
 
+add_executable(cwave_cmdline src/cwave_cmdline.cpp)
+target_compile_definitions(cwave_cmdline PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_link_libraries(cwave_cmdline
+    ${CWAVE_LIB_DIR}/libcwaveproc.a
+#     libSDL2.so
+#     libSDL2_ttf.so
+    )
+add_dependencies(cwave_cmdline 
+    ${CWAVE_LIB_DIR}/libcwaveproc.a
+)
+
 
 #install(TARGETS default_plugin
 #  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
