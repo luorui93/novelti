@@ -88,6 +88,11 @@ sudo sshfs -o allow_other,reconnect -p 2222 git@zzzzzz.no-ip.org:/home/git/lthmi
 sudo sshfs -o allow_other,reconnect -p 2222 git@zzzzzz.no-ip.org:/home/git/ah_data /home/sd/Desktop/ah_data
 sudo killall -9 sshfs
 sudo fusermount -u /home/sd/Desktop/ah_data
+
+
+ffmpeg -i alden_hall_experiment_desktop_2016-12-28_19-04-03_EST-0500.mp4 -filter:v "crop=541:777:86:92" -crf 18 ~/Desktop/cropped-541:777:86:92.mp4
+ffmpeg -i alden_hall_experiment_desktop_2016-12-28_19-04-03_EST-0500.mp4 -filter:v "crop=670:777:824:92" -crf 18 ~/Desktop/cropped-670:777:824:92.mp4
+
         
 Converting map image constructed with SLAM into inflated .map-file:
     obtain a pgm-image file with map
