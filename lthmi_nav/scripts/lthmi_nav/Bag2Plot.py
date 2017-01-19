@@ -7,12 +7,15 @@ import os
 import pickle
 
 from math import *
+from MapTools import GridMap
 
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
-
+import StringIO
 import tf_conversions
+from subprocess import Popen, PIPE, STDOUT
+from exceptions import RuntimeError
 
 def info(msg):
     sys.stdout.write("INFO: %s\n" % msg)
@@ -25,12 +28,13 @@ def err(msg):
 
 class LthmiNavExpRecord:
     
-    def __init__(self, bag_path, **cfg):
+    def __init__(self, bag_path, cwave_cmdline_path, **cfg):
         info("Reading bag from %s" % bag_path)
         self.cfg = {
             "path_period": 1.0,
         }
         self.cfg.update(cfg)
+        self.cwave_cmdline_path = cwave_cmdline_path
         self.bag_path = bag_path
         self.readMetaData(bag_path)
         self.readData(bag_path)
@@ -43,7 +47,8 @@ class LthmiNavExpRecord:
             "map_inflated": self.meta["map_inflated"],
             "poses"     : self.poses,
             "path"      : self.calcPath(),
-            "dist"      : self.calcDist(),
+            #"dist"      : self.calcEucDist(),
+            "dist"      : self.calcObstDist(),
             "entropy"   : self.entropy,
         }
 
@@ -85,6 +90,7 @@ class LthmiNavExpRecord:
             if "map_inflated" not in meta and topic=="/map_inflated":
                 info("        reading map_inflated")
                 meta['map_inflated'] = self.makeMapInflated(msg)
+                meta['map_inflated_resolution'] = msg.info.resolution
             if "firstCmdIntendedStamp" not in meta and topic=="/cmd_intended":
                 meta['firstCmdIntendedStamp'] = msg.header.stamp
             if "firstCmdDetectedStamp" not in meta and topic=="/cmd_detected":
@@ -110,6 +116,43 @@ class LthmiNavExpRecord:
                 e += -p*log(p,2)
         return e
     
+    def pose2vertex(self, x, y):
+        return ( int(round(x / self.meta['map_inflated_resolution'])),  int(round(y / self.meta['map_inflated_resolution']))) 
+    
+    def calcObstDist(self): 
+        #This function is ugly, probably this whole class should be written in C++
+        
+        #prepare command line parameters to calculate CWave distance
+        src = [str(v) for v in self.pose2vertex(self.meta['goal'].position.x, self.meta['goal'].position.y)]
+        pts = [i for sub in   [self.pose2vertex(self.poses['x'][k], self.poses['y'][k])  for k in xrange(len(self.poses['x']))]    for i in sub]
+        popen_cmd = [self.cwave_cmdline_path] + ["one2many"] + list(src) + [str(val) for val in pts]
+        
+        #prepare map
+        map_h,map_w = self.meta['map_inflated'].shape
+        map_data = [GridMap.FREE if cell==1.0 else GridMap.OCCUPIED  for cell in self.meta["map_inflated"].reshape(1, map_w*map_h)[0]]
+        gridMap = GridMap(map_w,map_h,map_data)
+        mapIoObj = StringIO.StringIO()
+        gridMap.printAsText(mapIoObj)
+        mapString = mapIoObj.getvalue()
+        #print mapString
+        
+        #run CWave to calculate distances
+        p = Popen(popen_cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+        #print " ".join(popen_cmd)
+        stdout_data = p.communicate(input=mapString)[0]
+        #print stdout_data
+        if p.returncode != 0:
+            #print "Return code of cwave_cmdline tool call is non-zero. It's %d" %p.returncode
+            raise RuntimeError("Return code of cwave_cmdline tool call is non-zero. It's %d" %p.returncode)
+        
+        # form dist array
+        dist = { 
+            't': self.poses['t'], 
+            'v': [self.meta['map_inflated_resolution']*float(s) for s in stdout_data.split()]
+        }
+        #print dist
+        return dist
+    
     def calcDistToGoal(self, pose):
         return sqrt(  (pose.pose.position.x-self.meta['goal'].position.x)**2   +   (pose.pose.position.y-self.meta['goal'].position.y)**2   )
     
@@ -134,7 +177,7 @@ class LthmiNavExpRecord:
                 (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])
                 self.poses['a'].append(y)
     
-    def calcDist(self):
+    def calcEucDist(self):
         dist = { 't':[], 'v':[] }
         for k in xrange(len(self.poses['x'])):
             dist['t'].append(self.poses['t'][k])
@@ -276,9 +319,10 @@ class LthmiNavExpPlot:
 
 class RecordByStamp:
     
-    def __init__(self, bagDir, cacheDir):
+    def __init__(self, bagDir, cacheDir, cwaveToolPath):
         self.bagDir = bagDir
         self.cacheDir = cacheDir
+        self.cwaveToolPath = cwaveToolPath
         self.time2file = []
         for filename in os.listdir(self.bagDir):
             if filename.endswith(".bag") and os.path.isfile(os.path.join(self.bagDir, filename)):
@@ -299,7 +343,7 @@ class RecordByStamp:
                     with open(pklFilePath, 'rb') as input1:
                         return pickle.load(input1) 
                 else:
-                    b = LthmiNavExpRecord(bagFilePath)
+                    b = LthmiNavExpRecord(bagFilePath, self.cwaveToolPath)
                     bagRecord = b.getRecord()
                     info("Saving data to cache as %s" % pklFilePath)
                     with open(pklFilePath, 'wb') as output:
@@ -311,8 +355,8 @@ class RecordByStamp:
 
 class GroupPlot:
     
-    def __init__(self, bagDir, cacheDir):
-        self.dbase = RecordByStamp(bagDir, cacheDir)
+    def __init__(self, bagDir, cacheDir, cwaveToolPath):
+        self.dbase = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
         self.plot  = LthmiNavExpPlot()
         
     def plotArray(self, timeStrs, color):

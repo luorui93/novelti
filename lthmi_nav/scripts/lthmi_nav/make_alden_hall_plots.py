@@ -13,6 +13,7 @@ usage = """ USAGE:
 if __name__=="__main__":
     bagDir = "/home/sd/Desktop/ah_data/2016-12-experiments-in-alden-hall/bags"
     cacheDir = "/home/sd/Desktop/ah_data_cache"
+    cwaveToolPath = "/home/sd/ws/devel/lib/lthmi_nav/cwave_cmdline"
     
     bags = {
         "mx94_no_pois": {
@@ -103,7 +104,7 @@ if __name__=="__main__":
         "goal_marker_mx94": {
             "door1tolivroom1":      ['2017-01-01_17-46-44_EST-0500', '2017-01-01_18-02-38_EST-0500', '2017-01-01_18-26-09_EST-0500'],
             "livroom1tooffice1":    ['2017-01-01_17-49-28_EST-0500', '2017-01-01_18-04-21_EST-0500', '2017-01-01_18-28-01_EST-0500'],
-            "office1tobathroom1":   ['2017-01-01_17-51-34_EST-0500', '2017-01-01_18-06-15_EST-0500', '2017-01-01_18-29-55_EST-0500'],
+            "office1tobathroom1":   ['2017-01-01_17-51-34_EST-0500', '2017-01-01_18-06-15_EST-0500'], # INCOMPLETE BAG: '2017-01-01_18-29-55_EST-0500'],
             "bathroom1tomusic1":    ['2017-01-01_17-53-59_EST-0500', '2017-01-01_18-08-06_EST-0500', '2017-01-01_18-32-01_EST-0500'],
             "music1tobedroom1":     ['2017-01-01_17-59-08_EST-0500', '2017-01-01_18-20-46_EST-0500', '2017-01-01_18-35-05_EST-0500'],
             "bedroom1todoor2":      ['2017-01-01_18-00-53_EST-0500', '2017-01-01_18-23-39_EST-0500', '2017-01-01_18-36-44_EST-0500'],
@@ -202,9 +203,10 @@ if __name__=="__main__":
     }
 
     
-    gp = GroupPlot(bagDir, cacheDir)
+    gp = GroupPlot(bagDir, cacheDir, cwaveToolPath)
     #gp.plotArray(bags["mx94_no_pois"]["door1tolivroom1"], "blue")
     #gp.plotArray(bags["two_mx_no_pois"]["door1tolivroom1"], "red")
+    
     gp.plotArray(bags["mx94_no_pois"]["door1tolivroom1"], "blue")
     gp.plotArray(bags["mx94_no_pois"]["livroom1tooffice1"], "blue")
     gp.plotArray(bags["mx94_no_pois"]["office1tobathroom1"], "blue")
@@ -263,32 +265,99 @@ if __name__=="__main__":
     gp.plotArray(bags["goal_marker_mx94"]["bedroom1todoor2"], "blue")
     
     
-    gp.plotArray(bags["goal_marker_mx70"]["door1tolivroom1"], "blue")
-    gp.plotArray(bags["goal_marker_mx70"]["livroom1tooffice1"], "blue")
-    gp.plotArray(bags["goal_marker_mx70"]["office1tobathroom1"], "blue")
-    gp.plotArray(bags["goal_marker_mx70"]["bathroom1tomusic1"], "blue")
-    gp.plotArray(bags["goal_marker_mx70"]["music1tobedroom1"], "blue")
-    gp.plotArray(bags["goal_marker_mx70"]["bedroom1todoor2"], "blue")
+    #gp.plotArray(bags["goal_marker_mx70"]["door1tolivroom1"], "blue")
+    #gp.plotArray(bags["goal_marker_mx70"]["livroom1tooffice1"], "blue")
+    #gp.plotArray(bags["goal_marker_mx70"]["office1tobathroom1"], "blue")
+    #gp.plotArray(bags["goal_marker_mx70"]["bathroom1tomusic1"], "blue")
+    #gp.plotArray(bags["goal_marker_mx70"]["music1tobedroom1"], "blue")
+    #gp.plotArray(bags["goal_marker_mx70"]["bedroom1todoor2"], "blue")
     
     
     
     
     
-    gp.plotArray(bags["smooth_mx94_no_pois"]["door1tolivroom1"], "blue")
-    gp.plotArray(bags["smooth_mx94_no_pois"]["livroom1tooffice1"], "blue")
-    gp.plotArray(bags["smooth_mx94_no_pois"]["office1tobathroom1"], "blue")
-    gp.plotArray(bags["smooth_mx94_no_pois"]["bathroom1tomusic1"], "blue")
-    gp.plotArray(bags["smooth_mx94_no_pois"]["music1tobedroom1"], "blue")
-    gp.plotArray(bags["smooth_mx94_no_pois"]["bedroom1todoor2"], "blue")
+    #gp.plotArray(bags["smooth_mx94_no_pois"]["door1tolivroom1"], "blue")
+    #gp.plotArray(bags["smooth_mx94_no_pois"]["livroom1tooffice1"], "blue")
+    #gp.plotArray(bags["smooth_mx94_no_pois"]["office1tobathroom1"], "blue")
+    #gp.plotArray(bags["smooth_mx94_no_pois"]["bathroom1tomusic1"], "blue")
+    #gp.plotArray(bags["smooth_mx94_no_pois"]["music1tobedroom1"], "blue")
+    #gp.plotArray(bags["smooth_mx94_no_pois"]["bedroom1todoor2"], "blue")
     
     
-    gp.plotArray(bags["smooth_mx70_no_pois"]["door1tolivroom1"], "blue")
-    gp.plotArray(bags["smooth_mx70_no_pois"]["livroom1tooffice1"], "blue")
-    gp.plotArray(bags["smooth_mx70_no_pois"]["office1tobathroom1"], "blue")
-    gp.plotArray(bags["smooth_mx70_no_pois"]["bathroom1tomusic1"], "blue")
-    gp.plotArray(bags["smooth_mx70_no_pois"]["music1tobedroom1"], "blue")
-    gp.plotArray(bags["smooth_mx70_no_pois"]["bedroom1todoor2"], "blue")
+    #gp.plotArray(bags["smooth_mx70_no_pois"]["door1tolivroom1"], "blue")
+    #gp.plotArray(bags["smooth_mx70_no_pois"]["livroom1tooffice1"], "blue")
+    #gp.plotArray(bags["smooth_mx70_no_pois"]["office1tobathroom1"], "blue")
+    #gp.plotArray(bags["smooth_mx70_no_pois"]["bathroom1tomusic1"], "blue")
+    #gp.plotArray(bags["smooth_mx70_no_pois"]["music1tobedroom1"], "blue")
+    #gp.plotArray(bags["smooth_mx70_no_pois"]["bedroom1todoor2"], "blue")
 
+
+
+
+    #gp.plotArray(bags["change_of_mind_mx85_no_pois"]["kitchen1storage1"], "blue")
+    #gp.plotArray(bags["change_of_mind_mx85_no_pois"]["storage1tostorage3"], "blue")
+    #gp.plotArray(bags["change_of_mind_mx85_with_pois"]["kitchen1storage1"], "blue")
+    #gp.plotArray(bags["change_of_mind_mx85_with_pois"]["storage1tostorage3"], "blue")
+
+    #gp.plotArray(bags["nav_to_non_poi_mx94"]["kitchen1tooffice1"], "blue")
+    #gp.plotArray(bags["nav_to_non_poi_mx94"]["office1tobedroom1"], "blue")
+    #gp.plotArray(bags["nav_to_non_poi_mx70"]["kitchen1tooffice1"], "blue")
+    #gp.plotArray(bags["nav_to_non_poi_mx70"]["office1tobedroom1"], "blue")
+    
+
+
+
+
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__nearcog_obst"], "blue")
+
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__nearcog_obst"], "blue")
+
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["altertile__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["altertile__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["altertile__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__nearcog_obst"], "blue")
+    
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__nearcog_obst"], "blue")
+
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["altertile__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["altertile__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["altertile__nearcog_obst"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["extredist__no_move"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["extredist__cog2lopt"], "blue")
+    #gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["extredist__nearcog_obst"], "blue")
+    
     #gp.plotArray(bags["mx94_no_pois"]["door1tolivroom1"], "blue")
     #gp.plotArray(bags["two_mx_no_pois"]["door1tolivroom1"], "red")
     gp.show()
