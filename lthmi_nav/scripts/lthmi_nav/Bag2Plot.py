@@ -361,7 +361,6 @@ class PlottableBagRecord:
     def plotMap(self, axes):
         axes.matshow(self.bagRecord['map'], 
                             origin="lower", 
-                            alpha=0.3, 
                             cmap=plt.cm.gray, 
                             vmin=0, vmax=1, norm=None,
                             extent=(0, self.bagRecord['width'], 0, self.bagRecord['height']))
@@ -369,6 +368,7 @@ class PlottableBagRecord:
     def plotMapInflated(self, axes):
         axes.matshow(self.bagRecord['map_inflated'], 
                             origin="lower", 
+                            alpha=0.3,
                             cmap=plt.cm.gray, 
                             vmin=0, vmax=1, norm=None,
                             extent=(0, self.bagRecord['width'], 0, self.bagRecord['height']))
@@ -397,8 +397,8 @@ class PlottableBagRecord:
                           )
         axes.grid(True)
         axes.autoscale(True)
-        axes.set_title("PDF entropy evolution over time", y=1.00)
-        axes.set_ylabel("Entropy, bits")
+        #axes.set_title("PDF entropy evolution over time", y=1.00)
+        axes.set_ylabel("PDF entropy, bits")
         axes.set_xlabel("Time, sec")
     
     def plotDistance(self, axes, color):
@@ -409,8 +409,8 @@ class PlottableBagRecord:
                  )
         axes.grid(True)
         axes.autoscale(True)
-        axes.set_title("Distance to destination over time", y=1.00)
-        axes.set_ylabel("Distance, m")
+        #axes.set_title("Distance to destination over time", y=1.00)
+        axes.set_ylabel("Distance to goal, m")
     
     def plotPath(self, axes, color):
         for k,t in enumerate(self.bagRecord['path']['t']):
