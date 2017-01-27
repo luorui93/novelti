@@ -4,6 +4,10 @@ import sys
 
 
 from Bag2Plot import *
+import matplotlib.gridspec as gridspec
+import matplotlib.lines as mlines
+from subprocess import call
+
 
 usage = """ USAGE:
     TODO
@@ -16,7 +20,23 @@ cwaveToolPath = "/home/sd/ws/devel/lib/lthmi_nav/cwave_cmdline"
 
 DBASE = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
 
-bags = {
+LOCATIONS = {
+    #name          x       y       yaw
+    "door1":      (11.78,  1.85,   1.57079),
+    "livroom1":   (8.7,    20.0,   1.57079),
+    "office1":    (17.1,   15.5,   0.0),
+    "bathroom1":  (3.4,    1.9,    1.57079),
+    "music1":     (13.8,   23.4,   0.0),
+    "bedroom1":   (14.5,   19.4,   3.14159),
+    "door2":      (9.0,    3.4,    1.57079),
+    "kitchen1":   (8.41,   9.13,   -1.57079),
+    "livroom2":   (7.71,   17.15,  -1.57079),
+    "storage1":   (13.01,  9.71,   1.57079),
+    "storage2":   (15.26,  10.26,   0.0),
+    "storage3":   (15.27,  8.66,   -1.57079)
+}
+
+BAG_STAMPS = {
     "mx94_no_pois": {
         "door1tolivroom1":      ['2016-12-28_18-37-51_EST-0500', '2016-12-28_19-22-15_EST-0500', '2016-12-28_19-37-11_EST-0500'],
         "livroom1tooffice1":    ['2016-12-28_19-04-00_EST-0500', '2016-12-28_19-25-33_EST-0500', '2016-12-28_19-39-14_EST-0500'],
@@ -361,150 +381,98 @@ def plot_all():
     gp.show()
 
 
-def plot_mx94_vs_mx70_no_pois2():
-    dbase = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
+#def plot_mx94_vs_mx70_no_pois2():
+    #dbase = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
     
-    fig = plt.figure(facecolor='white')
-    plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    #fig = plt.figure(facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
     
-    #ax_map   = plt.subplot(121)
-    #ax_dist1 = plt.subplot(222)
-    #ax_entr1 = plt.subplot(224, sharex=ax_dist1)
+    ##ax_map   = plt.subplot(121)
+    ##ax_dist1 = plt.subplot(222)
+    ##ax_entr1 = plt.subplot(224, sharex=ax_dist1)
 
-    #ax_map   = plt.subplot(131)
-    #ax_dist1 = plt.subplot(232)
-    #ax_entr1 = plt.subplot(235, sharex=ax_dist1)
-    #ax_dist2 = plt.subplot(233)
-    #ax_entr2 = plt.subplot(236, sharex=ax_dist2)
-    ##ax_dist3 = plt.subplot(244)
-    ##ax_entr3 = plt.subplot(248, sharex=ax_dist3)
+    ##ax_map   = plt.subplot(131)
+    ##ax_dist1 = plt.subplot(232)
+    ##ax_entr1 = plt.subplot(235, sharex=ax_dist1)
+    ##ax_dist2 = plt.subplot(233)
+    ##ax_entr2 = plt.subplot(236, sharex=ax_dist2)
+    ###ax_dist3 = plt.subplot(244)
+    ###ax_entr3 = plt.subplot(248, sharex=ax_dist3)
     
-    ax_map   = plt.subplot(141)
-    ax_dist1 = plt.subplot(242)
-    ax_entr1 = plt.subplot(246, sharex=ax_dist1)
-    ax_dist2 = plt.subplot(243)
-    ax_entr2 = plt.subplot(247, sharex=ax_dist2)
-    ax_dist3 = plt.subplot(244)
-    ax_entr3 = plt.subplot(248, sharex=ax_dist3)
+    #ax_map   = plt.subplot(141)
+    #ax_dist1 = plt.subplot(242)
+    #ax_entr1 = plt.subplot(246, sharex=ax_dist1)
+    #ax_dist2 = plt.subplot(243)
+    #ax_entr2 = plt.subplot(247, sharex=ax_dist2)
+    #ax_dist3 = plt.subplot(244)
+    #ax_entr3 = plt.subplot(248, sharex=ax_dist3)
     
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][0])).plotMaps(ax_map)
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][0])).plotMaps(ax_map)
 
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][0])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#9999FF")
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][1])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#3333FF")
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][2])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#000099")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][0])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#FF9999")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][1])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#FF3333")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][2])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#BB0000")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][0])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#9999FF")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][1])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#3333FF")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][2])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#000099")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][0])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#FF9999")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][1])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#FF3333")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][2])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#BB0000")
     
     
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][0])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#9999FF")
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][1])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#3333FF")
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][2])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#000099")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][0])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#FF9999")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][1])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#FF3333")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][2])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#BB0000")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][0])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#9999FF")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][1])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#3333FF")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][2])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#000099")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][0])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#FF9999")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][1])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#FF3333")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][2])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#BB0000")
     
     
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][0])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#9999FF")
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][1])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#3333FF")
-    PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][2])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#000099")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][0])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#FF9999")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][1])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#FF3333")
-    PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][2])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#BB0000")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][0])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#9999FF")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][1])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#3333FF")
+    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][2])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#000099")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][0])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#FF9999")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][1])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#FF3333")
+    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][2])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#BB0000")
     
-    #plt.tight_layout() 
-    plt.show()()
-
-
-
-def drawFamilyOfBagRecords(ax_map, ax_dist, ax_entr, bag_stamps, colors):
-    for k,stamp in enumerate(bag_stamps):
-        bagRecord = DBASE.getRecord(stamp)
-        pbr = PlottableBagRecord(bagRecord)
-        pbr.plotPathDistEntropy(ax_map, ax_dist, ax_entr, colors[k])
-
-def plot_compare2_6path_2map(stamp_set1, stamp_set2):
-    fig = plt.figure(facecolor='white')
-    plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
-    
-    ax_map1   = plt.subplot(2,4,1)
-    
-    ax_dist1 = plt.subplot(4,4,2)
-    ax_entr1 = plt.subplot(4,4,6, sharex=ax_dist1)
-    ax_dist2 = plt.subplot(4,4,3)
-    ax_entr2 = plt.subplot(4,4,7, sharex=ax_dist2)
-    ax_dist3 = plt.subplot(4,4,4)
-    ax_entr3 = plt.subplot(4,4,8, sharex=ax_dist3)
-    
-    ax_map2   = plt.subplot(2,4,5)
-    
-    ax_dist4 = plt.subplot(4,4,10)
-    ax_entr4 = plt.subplot(4,4,14, sharex=ax_dist4)
-    ax_dist5 = plt.subplot(4,4,11)
-    ax_entr5 = plt.subplot(4,4,15, sharex=ax_dist5)
-    ax_dist6 = plt.subplot(4,4,12)
-    ax_entr6 = plt.subplot(4,4,16, sharex=ax_dist6)
-    
-    color_set1 = ["#9999FF","#3333FF","#000099"]
-    color_set2 = ["#FF9999","#FF3333","#BB0000"]
-    PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map1)
-
-    drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set1["door1tolivroom1"],    color_set1)
-    drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set2["door1tolivroom1"],    color_set2)
-    drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["office1tobathroom1"], color_set1)
-    drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set2["office1tobathroom1"], color_set2)
-    drawFamilyOfBagRecords(ax_map1, ax_dist3, ax_entr3, stamp_set1["music1tobedroom1"],   color_set1)
-    drawFamilyOfBagRecords(ax_map1, ax_dist3, ax_entr3, stamp_set2["music1tobedroom1"],   color_set2)
-    
-    
-    PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map2)
-
-    drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["livroom1tooffice1"], color_set1)
-    drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["livroom1tooffice1"], color_set2)
-    drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set1["bathroom1tomusic1"], color_set1)
-    drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set2["bathroom1tomusic1"], color_set2)
-    drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set1["bedroom1todoor2"],   color_set1)
-    drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set2["bedroom1todoor2"],   color_set2)
-
-    #plt.tight_layout() 
-    plt.show()()
+    ##plt.tight_layout() 
+    #plt.show()()
 
 
 
+#def plot_compare2_6path_2map(stamp_set1, stamp_set2):
+    #fig = plt.figure(facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    
+    #ax_map1   = plt.subplot(2,4,1)
+    
+    #ax_dist1 = plt.subplot(4,4,2)
+    #ax_entr1 = plt.subplot(4,4,6, sharex=ax_dist1)
+    #ax_dist2 = plt.subplot(4,4,3)
+    #ax_entr2 = plt.subplot(4,4,7, sharex=ax_dist2)
+    #ax_dist3 = plt.subplot(4,4,4)
+    #ax_entr3 = plt.subplot(4,4,8, sharex=ax_dist3)
+    
+    #ax_map2   = plt.subplot(2,4,5)
+    
+    #ax_dist4 = plt.subplot(4,4,10)
+    #ax_entr4 = plt.subplot(4,4,14, sharex=ax_dist4)
+    #ax_dist5 = plt.subplot(4,4,11)
+    #ax_entr5 = plt.subplot(4,4,15, sharex=ax_dist5)
+    #ax_dist6 = plt.subplot(4,4,12)
+    #ax_entr6 = plt.subplot(4,4,16, sharex=ax_dist6)
+    
+    #color_set1 = ["#9999FF","#3333FF","#000099"]
+    #color_set2 = ["#FF9999","#FF3333","#BB0000"]
+    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map1)
 
-def plot_compare2_6path_3map(stamp_set1, stamp_set2):
-    fig = plt.figure(facecolor='white')
-    plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
-    
-    ax_map1   = plt.subplot(3,3,1)
-    ax_dist1 = plt.subplot(6,3,2)
-    ax_dist2 = plt.subplot(6,3,3)
-    ax_entr1 = plt.subplot(6,3,5, sharex=ax_dist1)
-    ax_entr2 = plt.subplot(6,3,6, sharex=ax_dist2)
-    
-    ax_map2   = plt.subplot(3,3,4)
-    ax_dist3 = plt.subplot(6,3,8)
-    ax_dist4 = plt.subplot(6,3,9)
-    ax_entr3 = plt.subplot(6,3,11, sharex=ax_dist3)    
-    ax_entr4 = plt.subplot(6,3,12, sharex=ax_dist4)
-    
-    ax_map3   = plt.subplot(3,3,7)
-    ax_dist5 = plt.subplot(6,3,14)
-    ax_dist6 = plt.subplot(6,3,15)
-    ax_entr5 = plt.subplot(6,3,17, sharex=ax_dist5)
-    ax_entr6 = plt.subplot(6,3,18, sharex=ax_dist6)
-    
-    
-    color_set1 = ["#9999FF","#3333FF","#000099"]
-    color_set2 = ["#FF9999","#FF3333","#BB0000"]
-    
-    
-        #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["office1tobathroom1"], color_set1)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set1["door1tolivroom1"],    color_set1)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set2["door1tolivroom1"],    color_set2)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["office1tobathroom1"], color_set1)
     #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set2["office1tobathroom1"], color_set2)
     #drawFamilyOfBagRecords(ax_map1, ax_dist3, ax_entr3, stamp_set1["music1tobedroom1"],   color_set1)
     #drawFamilyOfBagRecords(ax_map1, ax_dist3, ax_entr3, stamp_set2["music1tobedroom1"],   color_set2)
     
+    
     #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map2)
+
     #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["livroom1tooffice1"], color_set1)
     #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["livroom1tooffice1"], color_set2)
     #drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set1["bathroom1tomusic1"], color_set1)
@@ -512,36 +480,257 @@ def plot_compare2_6path_3map(stamp_set1, stamp_set2):
     #drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set1["bedroom1todoor2"],   color_set1)
     #drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set2["bedroom1todoor2"],   color_set2)
 
+    ##plt.tight_layout() 
+    #plt.show()()
+
+
+
+
+#def plot_compare2_6path_3map_legacy(stamp_set1, stamp_set2):
+    #fig = plt.figure(facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    
+    #ax_map1   = plt.subplot(3,3,1)
+    #ax_dist1 = plt.subplot(6,3,2)
+    #ax_dist2 = plt.subplot(6,3,3)
+    #ax_entr1 = plt.subplot(6,3,5, sharex=ax_dist1)
+    #ax_entr2 = plt.subplot(6,3,6, sharex=ax_dist2)
+    
+    #ax_map2   = plt.subplot(3,3,4)
+    #ax_dist3 = plt.subplot(6,3,8)
+    #ax_dist4 = plt.subplot(6,3,9)
+    #ax_entr3 = plt.subplot(6,3,11, sharex=ax_dist3)    
+    #ax_entr4 = plt.subplot(6,3,12, sharex=ax_dist4)
+    
+    #ax_map3   = plt.subplot(3,3,7)
+    #ax_dist5 = plt.subplot(6,3,14)
+    #ax_dist6 = plt.subplot(6,3,15)
+    #ax_entr5 = plt.subplot(6,3,17, sharex=ax_dist5)
+    #ax_entr6 = plt.subplot(6,3,18, sharex=ax_dist6)
+    
+    
+    #color_set1 = ["#9999FF","#3333FF","#000099"]
+    #color_set2 = ["#FF9999","#FF3333","#BB0000"]
+    
+    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map1)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set1["door1tolivroom1"],   color_set1)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set2["door1tolivroom1"],   color_set2)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["bathroom1tomusic1"], color_set1)
+    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set2["bathroom1tomusic1"], color_set2)
+    
+    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map2)
+    #drawFamilyOfBagRecords(ax_map2, ax_dist3, ax_entr3, stamp_set1["livroom1tooffice1"],   color_set1)
+    #drawFamilyOfBagRecords(ax_map2, ax_dist3, ax_entr3, stamp_set2["livroom1tooffice1"],   color_set2)
+    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["bedroom1todoor2"], color_set1)
+    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["bedroom1todoor2"], color_set2)
+    
     #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map3)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["livroom1tooffice1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["livroom1tooffice1"], color_set2)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set1["bathroom1tomusic1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set2["bathroom1tomusic1"], color_set2)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set1["bedroom1todoor2"],   color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set2["bedroom1todoor2"],   color_set2)
-    
-    PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map1)
-    drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set1["door1tolivroom1"],   color_set1)
-    drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set2["door1tolivroom1"],   color_set2)
-    drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["bathroom1tomusic1"], color_set1)
-    drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set2["bathroom1tomusic1"], color_set2)
-    
-    PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map2)
-    drawFamilyOfBagRecords(ax_map2, ax_dist3, ax_entr3, stamp_set1["livroom1tooffice1"],   color_set1)
-    drawFamilyOfBagRecords(ax_map2, ax_dist3, ax_entr3, stamp_set2["livroom1tooffice1"],   color_set2)
-    drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["bedroom1todoor2"], color_set1)
-    drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["bedroom1todoor2"], color_set2)
-    
-    PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map3)
-    drawFamilyOfBagRecords(ax_map3, ax_dist5, ax_entr5, stamp_set1["music1tobedroom1"], color_set1)
-    drawFamilyOfBagRecords(ax_map3, ax_dist5, ax_entr5, stamp_set2["music1tobedroom1"], color_set2)
-    drawFamilyOfBagRecords(ax_map3, ax_dist6, ax_entr6, stamp_set1["office1tobathroom1"],   color_set1)
-    drawFamilyOfBagRecords(ax_map3, ax_dist6, ax_entr6, stamp_set2["office1tobathroom1"],   color_set2)
+    #drawFamilyOfBagRecords(ax_map3, ax_dist5, ax_entr5, stamp_set1["music1tobedroom1"], color_set1)
+    #drawFamilyOfBagRecords(ax_map3, ax_dist5, ax_entr5, stamp_set2["music1tobedroom1"], color_set2)
+    #drawFamilyOfBagRecords(ax_map3, ax_dist6, ax_entr6, stamp_set1["office1tobathroom1"],   color_set1)
+    #drawFamilyOfBagRecords(ax_map3, ax_dist6, ax_entr6, stamp_set2["office1tobathroom1"],   color_set2)
 
-    #plt.tight_layout() 
-    plt.show()()
+    ##plt.tight_layout() 
+    #plt.show()()
+
+
+def plot_set_of_tries(ax_map, ax_dist, ax_entr, bag_stamps, colors):
+    lines = []
+    for k,stamp in enumerate(bag_stamps):
+        bagRecord = DBASE.getRecord(stamp)
+        pbr = PlottableBagRecord(bagRecord)
+        lines.append(pbr.plotPathDistEntropy(ax_map, ax_dist, ax_entr, colors[k])[0])
+    return lines
+
+def plot_on_1map(fig, sub_grid, locations, method_names, method_ids, method_color_sets, route_names, route_ids, stamp_sets):
+    lines = []
+    num_routes = len(route_names)
+    gs = gridspec.GridSpecFromSubplotSpec(2, num_routes+1, 
+            subplot_spec=sub_grid,
+            hspace=0.1) #left=0.02, right=0.98, bottom=0.04, top=0.96) #, wspace=0.05)
+    ax_map = plt.Subplot(fig, gs[:,0])
+    fig.add_subplot(ax_map)
+    map_stamp = stamp_sets[method_ids[0]][route_ids[0]][0]
+    PlottableBagRecord(DBASE.getRecord(map_stamp)).plotMaps(ax_map)
+    for k, loc in enumerate(locations):
+        ax_map.annotate(loc,
+            xy=LOCATIONS[loc][:2], 
+            xycoords='data',
+            xytext=(0, 25), 
+            textcoords='offset points',
+            backgroundcolor=(1.0, 1.0, 0.0, 0.7),
+            #linewidth=0.1,
+            arrowprops=dict(
+                facecolor=(1.0, 1.0, 0.0, 0.7), 
+                linewidth=0.1,
+                #edgecolor='none',
+                #alpha=0.7, 
+                shrink=0.05, 
+                frac=0.5, 
+                width=4, 
+                headwidth=9 ), #http://matplotlib.org/users/annotations_intro.html
+            horizontalalignment='center', 
+            verticalalignment='bottom', 
+            fontsize=16)
+    for route_k,route_name in enumerate(route_names):
+        route_id  = route_ids[route_k]
+        ax_entr = plt.Subplot(fig, gs[0,route_k+1])
+        ax_entr.set_title(route_names[route_k], fontsize=20)
+        fig.add_subplot(ax_entr)
+        ax_dist = plt.Subplot(fig, gs[1,route_k+1], sharex=ax_entr)
+        fig.add_subplot(ax_dist)
+        for method_k, method in enumerate(method_names):
+            method_id = method_ids[method_k]
+            stamp_list = stamp_sets[method_id][route_id]
+            ls = plot_set_of_tries(ax_map, ax_dist, ax_entr, stamp_list, method_color_sets[method_k])
+            if route_k==0:
+                lines += ls
+    return lines
+
+
+def plot_compare_6route_3map(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(2*8.5, 2*11.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(3, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.9) #, wspace=0.05)
+    lines = plot_on_1map(fig, outer_grid[0], 
+                locations= ["door1", "livroom1", "bathroom1", "music1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["door1->livroom1", "bathroom1->music1"],
+                route_ids=   ["door1tolivroom1", "bathroom1tomusic1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1], 
+                locations= ["livroom1", "office1", "bedroom1", "door2"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["livroom1->office1", "bedroom1->door2"],
+                route_ids=   ["livroom1tooffice1", "bedroom1todoor2"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[2], 
+                locations= ["office1", "bathroom1", "music1", "bedroom1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["office1->bathroom1", "music1->bedroom1"],
+                route_ids=   ["office1tobathroom1", "music1tobedroom1"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 3
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.95], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
+
+def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#9999FF","#3333FF","#000099"]
+    red_set  = ["#FF9999","#FF3333","#BB0000"]
+    
+    plot_compare_6route_3map(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set,     red_set]
+    )
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+
+#def plot_compare_mx94_vs_mx70_without_pois(out_file):
+    #plot_compare2_6route_3map(
+        #title="Comparing performance: mx94 (blue) and mx70 (red) without points of interest",
+        #method_names=      ["mx94",         "mx70"],
+        #method_ids=        ["mx94_no_pois", "mx70_no_pois"],
+        #out_file=out_file
+    #)
 
 
 if __name__=="__main__":
     #plot_all()
-    plot_compare2_6path_3map(bags["mx94_no_pois"], bags["mx70_no_pois"])
+    #mx94 vs mx70: with and without POIs
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: mx94 (blue) and mx70 (red) WITHOUT points of interest",
+        method_names=   ["mx94",         "mx70"],
+        method_ids=     ["mx94_no_pois", "mx70_no_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/mx94_vs_mx70_without_pois.pdf"
+    )
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: mx94 (blue) and mx70 (red) WITH points of interest",
+        method_names=   ["mx94",         "mx70"],
+        method_ids=     ["mx94_pois", "mx70_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/mx94_vs_mx70_with_pois.pdf"
+    )
+    
+    #two matrices: with and without POIs
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: using same (blue) vs different (red) interface matrices WITHOUT points of interest",
+        method_names=   ["same matrix", "different matrices"],
+        method_ids=     ["mx94_no_pois",   "two_mx_no_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/two_mx_no_pois.pdf"
+    )
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: using same (blue) vs different (red) interface matrices WITH points of interest",
+        method_names=   ["same matrix", "different matrices"],
+        method_ids=     ["mx94_pois",   "two_mx_with_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/two_mx_with_pois.pdf"
+    )
+
+    #goal marker (no POIs): mx94, mx70
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: with(red) and without (blue) goal marker displayed, mx94",
+        method_names=   ["without goal marker", "with goal marker"],
+        method_ids=     ["mx94_pois",   "goal_marker_mx94"],
+        out_file=       "/home/sd/Desktop/temp_pics/goal_marker_mx94.pdf"
+    )
+    
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: with(red) and without (blue) goal marker displayed, mx70",
+        method_names=   ["without goal marker", "with goal marker"],
+        method_ids=     ["mx70_no_pois",   "goal_marker_mx70"],
+        out_file=       "/home/sd/Desktop/temp_pics/goal_marker_mx70.pdf"
+    )
+
+    #smoothening (no POIs): mx94, mx70
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: with(red) and without (blue) smoothening, mx94",
+        method_names=   ["same matrix", "different matrices"],
+        method_ids=     ["mx94_pois",   "smooth_mx94_no_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/smooth_mx94_no_pois.pdf"
+    )
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: with(red) and without (blue) smoothening, mx70",
+        method_names=   ["without smoothening", "with smoothening"],
+        method_ids=     ["mx70_no_pois",   "smooth_mx70_no_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/smooth_mx70_no_pois.pdf"
+    )
+    
+    #pois: mx94, mx70
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: with(red) and without (blue) POIs, mx94",
+        method_names=   ["without POIs", "with POIs"],
+        method_ids=     ["mx94_no_pois",   "mx94_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/pois_mx94.pdf"
+    )
+    plot_compare2_6route_3map(
+        title=          "Comparing performance: with(red) and without (blue) POIs, mx70",
+        method_names=   ["without POIs", "with POIs"],
+        method_ids=     ["mx70_no_pois",   "mx70_pois"],
+        out_file=       "/home/sd/Desktop/temp_pics/pois_mx70.pdf"
+    )

@@ -391,26 +391,29 @@ class PlottableBagRecord:
 
     def plotEntropy(self, axes, color):
         #info("    Drawing entropy plot")
-        axes.plot(self.bagRecord['entropy']['t'], self.bagRecord['entropy']['v'], 
+        l = axes.plot(self.bagRecord['entropy']['t'], self.bagRecord['entropy']['v'], 
                           color=color, 
                           linestyle='-'
                           )
         axes.grid(True)
         axes.autoscale(True)
         #axes.set_title("PDF entropy evolution over time", y=1.00)
-        axes.set_ylabel("PDF entropy, bits")
-        axes.set_xlabel("Time, sec")
+        axes.set_ylabel("PDF entropy, bits", fontsize=16)
+        axes.set_xlabel("Time, sec", fontsize=16)
+        return l
     
     def plotDistance(self, axes, color):
         #info("    Drawing distance plot")
-        axes.plot(self.bagRecord['dist']['t'], self.bagRecord['dist']['v'], 
+        l = axes.plot(self.bagRecord['dist']['t'], self.bagRecord['dist']['v'], 
                           color=color, 
                           linestyle='-'
                  )
         axes.grid(True)
         axes.autoscale(True)
         #axes.set_title("Distance to destination over time", y=1.00)
-        axes.set_ylabel("Distance to goal, m")
+        axes.set_ylabel("Distance to goal, m", fontsize=16)
+        axes.set_xlabel("Time, sec", fontsize=16)
+        return l
     
     def plotPath(self, axes, color):
         for k,t in enumerate(self.bagRecord['path']['t']):
@@ -418,9 +421,9 @@ class PlottableBagRecord:
 
     def plotPathDistEntropy(self, ax_map, ax_dist, ax_entr, color):
         self.plotPath(ax_map, color)
-        self.plotDistance(ax_dist, color)
-        self.plotEntropy(ax_entr, color)
-
+        line_dist = self.plotDistance(ax_dist, color)
+        line_entr = self.plotEntropy(ax_entr, color)
+        return (line_dist, line_entr)
     
     
     
