@@ -599,7 +599,7 @@ def plot_compare_3route_1map(title, method_names, method_ids, method_color_sets)
             handles.append(handle)
             labels.append("%s, try %d"%(method_name,try_k+1))
     fig.legend( handles, labels, loc='upper right', bbox_to_anchor=[0.02,0.0,0.98,0.999], ncol=ntries )
-    plt.figtext(0.02, 0.94, title, fontsize=19, fontweight='bold', ha='left')
+    plt.figtext(0.02, 0.94, title, fontsize=18, fontweight='bold', style='italic', ha='left')
     return outer_grid
 
 def plot_compare2_3route_1map(title, method_names, method_ids, out_file):
@@ -613,7 +613,7 @@ def plot_compare2_3route_1map(title, method_names, method_ids, out_file):
         title=title,
         method_names=      method_names,
         method_ids=        method_ids,
-        method_color_sets= [blue_set,     red_set]
+        method_color_sets= [red_set,     blue_set]
     )
     plt.savefig(out_file)
     #call(["evince", out_file])
@@ -628,29 +628,36 @@ def plots_for_RSS(output_file_prefix):
 #% nav to no pois
 #% change of mind
     plot_compare2_3route_1map(
-        title=          "94% vs 70% HMI matrix",
-        method_names=   ["mx94",         "mx70"],
-        method_ids=     ["mx94_no_pois", "mx70_no_pois"],
+        title=          "a) 94% vs 70% HMI matrix",
+        method_names=   ["mx70",         "mx949"],
+        method_ids=     ["mx70_no_pois", "mx94_no_pois"],
         out_file=       output_file_prefix+"mx.pdf"
     )
     plot_compare2_3route_1map(
-        title=          "Effect of POIs on init PDF", #     Uniform init PDF vs PDF with POIs
+        title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
         method_names=   ["no POIs",      "with POIs"],
         method_ids=     ["mx94_no_pois", "mx94_pois"],
         out_file=       output_file_prefix+"pois.pdf"
     )
     plot_compare2_3route_1map(
-        title=          "Effect of goal marker on segmented map", #Without goal marker vs with goal marker
-        method_names=   ["w/o goal marker",      "w/ goal marker"],
-        method_ids=     ["mx94_no_pois", "goal_marker_mx94"],
-        out_file=       output_file_prefix+"goal-marker.pdf"
+        title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
+        method_names=   ["no POIs",      "with POIs"],
+        method_ids=     ["mx70_no_pois", "mx70_pois"],
+        out_file=       output_file_prefix+"pois-70.pdf"
     )
     plot_compare2_3route_1map(
-        title=          "Effect of PDF smoothening", 
+        title=          "c) Effect of PDF smoothening", 
         method_names=   ["w/o smoothening",      "w/ smoothening"],
         method_ids=     ["mx94_no_pois", "smooth_mx94_no_pois"],
         out_file=       output_file_prefix+"smooth.pdf"
     )
+    plot_compare2_3route_1map(
+        title=          "d) Effect of goal marker on segmented map", #Without goal marker vs with goal marker
+        method_names=   ["w/o goal marker",      "w/ goal marker"],
+        method_ids=     ["mx94_no_pois", "goal_marker_mx94"],
+        out_file=       output_file_prefix+"goal-marker.pdf"
+    )
+
     
     
 if __name__=="__main__":
