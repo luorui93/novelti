@@ -500,18 +500,7 @@ def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
     #plt.show()
 
 
-#def plot_compare_mx94_vs_mx70_without_pois(out_file):
-    #plot_compare2_6route_3map(
-        #title="Comparing performance: mx94 (blue) and mx70 (red) without points of interest",
-        #method_names=      ["mx94",         "mx70"],
-        #method_ids=        ["mx94_no_pois", "mx70_no_pois"],
-        #out_file=out_file
-    #)
-
-
-if __name__=="__main__":
-    #plot_all()
-    #mx94 vs mx70: with and without POIs
+def plots_for_thesis():
     plot_compare2_6route_3map(
         title=          "Comparing performance: mx94 (blue) and mx70 (red) WITHOUT points of interest",
         method_names=   ["mx94",         "mx70"],
@@ -581,3 +570,91 @@ if __name__=="__main__":
         method_ids=     ["mx70_no_pois",   "mx70_pois"],
         out_file=       "/home/sd/Desktop/temp_pics/pois_mx70.pdf"
     )
+
+
+def plot_compare_3route_1map(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(16, 7), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(1, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.08, top=0.85) #, wspace=0.05)
+    plot_on_1map(fig, outer_grid[0], 
+                locations= ["door1", "livroom1", "office1", "bathroom1", "music1", "bedroom1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["door1->livroom1", "office1->bathroom1", "music1->bedroom1"],
+                route_ids=   ["door1tolivroom1", "office1tobathroom1", "music1tobedroom1"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 3
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper right', bbox_to_anchor=[0.02,0.0,0.98,0.999], ncol=ntries )
+    plt.figtext(0.02, 0.94, title, fontsize=19, fontweight='bold', ha='left')
+    return outer_grid
+
+def plot_compare2_3route_1map(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#9999FF","#3333FF","#000099"]
+    red_set  = ["#FF9999","#FF3333","#BB0000"]
+    
+    plot_compare_3route_1map(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set,     red_set]
+    )
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+
+def plots_for_RSS(output_file_prefix):
+    #% 70 vs 94 no pois
+#% with pois vs no pois
+#% with and without goal marker
+#% smooth and no smooth
+#% nav to no pois
+#% change of mind
+    plot_compare2_3route_1map(
+        title=          "94% vs 70% HMI matrix",
+        method_names=   ["mx94",         "mx70"],
+        method_ids=     ["mx94_no_pois", "mx70_no_pois"],
+        out_file=       output_file_prefix+"mx.pdf"
+    )
+    plot_compare2_3route_1map(
+        title=          "Effect of POIs on init PDF", #     Uniform init PDF vs PDF with POIs
+        method_names=   ["no POIs",      "with POIs"],
+        method_ids=     ["mx94_no_pois", "mx94_pois"],
+        out_file=       output_file_prefix+"pois.pdf"
+    )
+    plot_compare2_3route_1map(
+        title=          "Effect of goal marker on segmented map", #Without goal marker vs with goal marker
+        method_names=   ["w/o goal marker",      "w/ goal marker"],
+        method_ids=     ["mx94_no_pois", "goal_marker_mx94"],
+        out_file=       output_file_prefix+"goal-marker.pdf"
+    )
+    plot_compare2_3route_1map(
+        title=          "Effect of PDF smoothening", 
+        method_names=   ["w/o smoothening",      "w/ smoothening"],
+        method_ids=     ["mx94_no_pois", "smooth_mx94_no_pois"],
+        out_file=       output_file_prefix+"smooth.pdf"
+    )
+    
+    
+if __name__=="__main__":
+    #plot_all()
+    #mx94 vs mx70: with and without POIs
+    #plots_for_thesis()
+    plots_for_RSS(output_file_prefix="/home/sd/Desktop/lthmi_nav_paper/img/robot-plot-")
