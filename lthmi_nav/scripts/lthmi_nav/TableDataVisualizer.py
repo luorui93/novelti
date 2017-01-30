@@ -45,7 +45,7 @@ def drawTableWithBars(ax, means, stds, group_names, color_names, colors):
     ax.yaxis.grid(True)
     #ax.xaxis.grid(True)
 
-def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+def render4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
     bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
                 '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
     n_rows = len(page_row_names)
@@ -70,7 +70,8 @@ def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_name
                 ax.set_title(page_col_names[page_col], y=1.0) #1.15)
             if page_col==0:
                 ax.set_ylabel(page_row_names[page_row])
-    f.suptitle(title, fontsize=14, fontweight='bold')
+    #f.suptitle(title, fontsize=14, fontweight='bold')
+    plt.figtext(0.02, 0.95, title, fontsize=17, fontweight='bold', ha='left')
     setSameYScale(axarr, n_rows, n_cols)
     #plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
     f.subplots_adjust(left=0.05, bottom=0.03, right=0.99, top=0.9, wspace=0.12, hspace=0.07) 
@@ -81,11 +82,9 @@ def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_name
             handle = mpatches.Patch(color=bar_colors[k])
             handles.append(handle)
             labels.append(color_name)
-    f.legend( handles, labels, loc='upper center', bbox_to_anchor=[0.02,0.0,0.98,0.96], ncol=len(plot_color_names) )
-    
-    
-    plt.show()
-    return axarr
+    f.legend( handles, labels, loc='upper right', bbox_to_anchor=[0.02,0.0,0.98,0.9999], ncol=len(plot_color_names) )
+
+    return (f,plt, axarr)
 
 
 def setSameYScale(axarr, n_rows, n_cols):
@@ -324,16 +323,16 @@ class Table2NDimVector:
         else:
             return names
     
-    def display4dPage(self, firstDimValue, title=None, renames={}):
+    def render4dPage(self, firstDimValue, title=None, renames={}):
         varIdx = self.val2idx[0][firstDimValue]
         if title is None:
             title = "Various characteristics, %s=%s" %(self.dim_names[0], str(self.idx2val[0][varIdx]))
         #display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
-        display4DdataAsBarPlotPage(title, self.means[varIdx], self.stds[varIdx], 
+        (fig,plt1, axarr) = render4DdataAsBarPlotPage(title, self.means[varIdx], self.stds[varIdx], 
                                    page_row_names=self.getRenames(self.idx2val[1], renames, "page_row_names"),
                                    page_col_names=self.getRenames(self.idx2val[2], renames, "page_col_names"),
                                    plot_group_names=self.getRenames(self.idx2val[3], renames, "plot_group_names"), 
                                    plot_color_names=self.getRenames(self.idx2val[4], renames, "plot_color_names"))
-                      
+        return (fig,plt1, axarr)
 
     
