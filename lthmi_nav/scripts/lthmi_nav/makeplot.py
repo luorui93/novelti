@@ -6,7 +6,7 @@ import sys
 from TableDataVisualizer import *
 
 usage = """ USAGE:
-    ./makeplot.py stats_file_path1.txt [ stats_file_path2.txt [stats_file_path3.txt ... ]]
+    ./makeplot.py <output_image_files_prefix> stats_file_path1.txt [ stats_file_path2.txt [stats_file_path3.txt ... ]]
 
 """
 
@@ -25,13 +25,13 @@ def fff(self, d):
     return d['t_nav'] #1 if d['t_nav']==0.0 else 0
 
 if __name__=="__main__":
-    if len(sys.argv)<2:
+    if len(sys.argv)<3:
         print usage
         sys.exit(1)
         
 
-        
-    files = sys.argv[1:]
+    output_image_files_prefix =  sys.argv[1]
+    files = sys.argv[2:]
     #print files
     dt = DataTable.fromCsvFiles(files, 
         filter_dict = {
@@ -53,27 +53,50 @@ if __name__=="__main__":
     print "All divs: %s" % (str(dt.getUniqueRecordsInColumn("div")))
     v = Table2NDimVector(dt, 
         dim_names   = ('mx', '_res_', 'pos','path','div'),  # 5 dimensions 
-        result_cols = ('over_len', 't_nav', 't_nav_corr') # 'vel', 'period', 'sep2nav', 'over_time'
+        result_cols = ('t_nav', 't_nav_corr') # ,'over_len', 'vel', 'period', 'sep2nav', 'over_time'
     )
-    v.display4dPage('mx70',
-        renames = {
-            "plot_group_names":  {100: "route 1", 103: "route 2", 110: "route 3"},
-            "page_row_names": {'over_len': 'shortest dist/drive dist', 't_nav':'navigation duration, sec', 't_nav_corr':'navigation duration, sec\n (calculation time excluded)'},
-            "page_col_names": {
-                "no_move"       : "no move until inferred", 
-                "ra_maxprob"    : "max prob in reach area", 
-                "maxprob_obst"  : "closest to max prob", 
-                "nearcog_obst"  : "closest to COG", 
-                "cog2lopt"      : "local optimum"
+    renames = {
+            "plot_group_names":  {
+                100: "route 1", 
+                103: "route 2", 
+                110: "route 3"
             },
-            "plot_color_names": {
-                'htile'     : "horizontal tile",
-                'vtile'     : "vertical tile", 
-                'altertile' : "alternating tile",
-                'extremal'  : "by extremals",
-                'equidist'  : "by equdistants",
-                "extredist" : "extremals and equidistants",
-            }
-        }
-    )
+            "page_row_names": {
+                'over_len'  : 'driven distance/shortest distance', 
+                't_nav'     :'navigation duration, sec', 
+                't_nav_corr':'navigation duration, sec\n (calculation time excluded)'
+            },
+            #"page_col_names": {
+                #"no_move"       : "no move until inferred", 
+                #"ra_maxprob"    : "max prob in reach area", 
+                #"maxprob_obst"  : "closest to max prob", 
+                #"nearcog_obst"  : "closest to COG", 
+                #"cog2lopt"      : "local optimum"
+            #},
+            #"plot_color_names": {
+                #'htile'     : "horizontal tile",
+                #'vtile'     : "vertical tile", 
+                #'altertile' : "alternating tile",
+                #'extremal'  : "by extremals",
+                #'equidist'  : "by equdistants",
+                #"extredist" : "extremals and equidistants",
+            #}
+    }
+    
+    w,h = 16, 7.5
+    (fig, plt1, axarr) = v.render4dPage('mx70', "HMI matrix: 70%", renames)
+    fig.set_size_inches(w, h)
+    plt1.savefig(output_image_files_prefix+"mx70.pdf")
 
+
+    (fig, plt1, axarr) = v.render4dPage('mx79', "HMI matrix: 79%", renames)
+    fig.set_size_inches(w, h)
+    plt1.savefig(output_image_files_prefix+"mx79.pdf")
+
+    (fig, plt1, axarr) = v.render4dPage('mx91', "HMI matrix: 91%", renames)
+    fig.set_size_inches(w, h)
+    plt1.savefig(output_image_files_prefix+"mx91.pdf")
+    
+    (fig, plt1, axarr) = v.render4dPage('mx100', "HMI matrix: 100% (deterministic HMI)", renames)
+    fig.set_size_inches(w, h)
+    plt1.savefig(output_image_files_prefix+"mx100.pdf")
