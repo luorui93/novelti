@@ -156,8 +156,75 @@ BAG_STAMPS = {
         "bedroom1todoor2":      ['2017-01-01_23-32-32_EST-0500', '2017-01-01_23-51-26_EST-0500', '2017-01-02_00-16-53_EST-0500'],
     },
     
-    "pos_div" : {
-        "storage1to2" : {
+    
+    # comparing pos div methods
+    "nearcog_extremal__no_move": {
+        "storage1tostorage2":          ["2017-01-02_02-06-57_EST-0500", "2017-01-02_02-24-31_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_02-08-49_EST-0500", "2017-01-02_02-25-56_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_02-14-36_EST-0500", "2017-01-02_08-06-52_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_02-19-02_EST-0500", "2017-01-02_08-10-09_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_02-20-53_EST-0500", "2017-01-02_08-12-32_EST-0500"]
+    },
+    "nearcog_extremal__cog2lopt": {
+        "storage1tostorage2":          ["2017-01-02_08-20-50_EST-0500", "2017-01-02_08-32-56_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_08-22-44_EST-0500", "2017-01-02_08-35-00_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_08-25-42_EST-0500", "2017-01-02_08-36-23_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_08-28-40_EST-0500", "2017-01-02_08-40-09_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_08-29-55_EST-0500", "2017-01-02_08-41-33_EST-0500"]
+    },
+    "nearcog_extremal__nearcog_obst": {
+        "storage1tostorage2":          ["2017-01-02_08-50-45_EST-0500", "2017-01-02_09-07-48_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_08-58-57_EST-0500", "2017-01-02_09-09-07_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_09-00-40_EST-0500", "2017-01-02_09-10-30_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_09-04-00_EST-0500", "2017-01-02_09-12-43_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_09-05-15_EST-0500", "2017-01-02_09-15-12_EST-0500"]
+    },
+    "altertile__no_move": {
+        "storage1tostorage2":          ["2017-01-02_09-20-26_EST-0500", "2017-01-02_09-32-59_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_09-22-03_EST-0500", "2017-01-02_09-35-51_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_09-23-47_EST-0500", "2017-01-02_09-37-15_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_09-27-10_EST-0500", "2017-01-02_09-40-13_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_09-29-30_EST-0500", "2017-01-02_09-42-01_EST-0500"]
+    },
+    "altertile__cog2lopt": {
+        "storage1tostorage2":          ["2017-01-02_09-45-48_EST-0500", "2017-01-02_09-59-49_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_09-47-25_EST-0500", "2017-01-02_10-01-29_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_09-52-07_EST-0500", "2017-01-02_10-03-51_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_09-54-57_EST-0500", "2017-01-02_10-05-41_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_09-57-35_EST-0500", "2017-01-02_10-07-50_EST-0500"]
+    },
+    "altertile__nearcog_obst": {
+        "storage1tostorage2":          ["2017-01-02_10-29-59_EST-0500", "2017-01-02_10-40-40_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_10-31-45_EST-0500", "2017-01-02_10-42-08_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_10-33-59_EST-0500", "2017-01-02_10-43-49_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_10-35-50_EST-0500", "2017-01-02_10-45-33_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_10-37-17_EST-0500", "2017-01-02_10-47-38_EST-0500"]
+    },
+    "extredist__no_move": {
+        "storage1tostorage2":          ["2017-01-02_10-51-22_EST-0500", "2017-01-02_11-08-09_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_10-52-55_EST-0500", "2017-01-02_11-09-39_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_10-54-29_EST-0500", "2017-01-02_11-11-00_EST-0500"],
+        "livroom2tolivroom1":              ["2017-01-02_10-58-15_EST-0500", "2017-01-02_11-13-45_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_11-03-28_EST-0500", "2017-01-02_11-35-47_EST-0500"]
+    },
+    "extredist__cog2lopt": {
+        "storage1tostorage2":          ["2017-01-02_11-40-14_EST-0500", "2017-01-02_11-59-34_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_11-41-51_EST-0500", "2017-01-02_12-02-03_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_11-52-24_EST-0500", "2017-01-02_12-03-34_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_11-54-43_EST-0500", "2017-01-02_12-05-31_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_11-56-37_EST-0500", "2017-01-02_12-07-39_EST-0500"]
+    },
+    "extredist__nearcog_obst": {
+        "storage1tostorage2":          ["2017-01-02_12-11-18_EST-0500", "2017-01-02_12-31-47_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_12-12-49_EST-0500", "2017-01-02_12-32-56_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_12-14-14_EST-0500", "2017-01-02_12-34-12_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_12-16-08_EST-0500", "2017-01-02_12-36-20_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_12-17-58_EST-0500", "2017-01-02_12-38-16_EST-0500"]
+    },
+
+        
+    "pos_div1" : {
+        "storage1tostorage2" : {
             "nearcog_extremal__no_move":        ["2017-01-02_02-06-57_EST-0500", "2017-01-02_02-24-31_EST-0500"],
             "nearcog_extremal__cog2lopt":       ["2017-01-02_08-20-50_EST-0500", "2017-01-02_08-32-56_EST-0500"],
             "nearcog_extremal__nearcog_obst":   ["2017-01-02_08-50-45_EST-0500", "2017-01-02_09-07-48_EST-0500"],
@@ -168,7 +235,7 @@ BAG_STAMPS = {
             "extredist__cog2lopt":              ["2017-01-02_11-40-14_EST-0500", "2017-01-02_11-59-34_EST-0500"],
             "extredist__nearcog_obst":          ["2017-01-02_12-11-18_EST-0500", "2017-01-02_12-31-47_EST-0500"]
         },
-        "storage2to3" : {
+        "storage2tostorage3" : {
             "nearcog_extremal__no_move":        ["2017-01-02_02-08-49_EST-0500", "2017-01-02_02-25-56_EST-0500"],
             "nearcog_extremal__cog2lopt":       ["2017-01-02_08-22-44_EST-0500", "2017-01-02_08-35-00_EST-0500"],
             "nearcog_extremal__nearcog_obst":   ["2017-01-02_08-58-57_EST-0500", "2017-01-02_09-09-07_EST-0500"],
@@ -190,7 +257,7 @@ BAG_STAMPS = {
             "extredist__cog2lopt":              ["2017-01-02_11-52-24_EST-0500", "2017-01-02_12-03-34_EST-0500"],
             "extredist__nearcog_obst":          ["2017-01-02_12-14-14_EST-0500", "2017-01-02_12-34-12_EST-0500"]
         },
-        "livroom2to1" : {
+        "livroom2tolivroom1" : {
             "nearcog_extremal__no_move":        ["2017-01-02_02-19-02_EST-0500", "2017-01-02_08-10-09_EST-0500"],
             "nearcog_extremal__cog2lopt":       ["2017-01-02_08-28-40_EST-0500", "2017-01-02_08-40-09_EST-0500"],
             "nearcog_extremal__nearcog_obst":   ["2017-01-02_09-04-00_EST-0500", "2017-01-02_09-12-43_EST-0500"],
@@ -328,25 +395,25 @@ def plot_all():
 
 
 
-    gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["nearcog_extremal__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["nearcog_extremal__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["nearcog_extremal__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["altertile__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["altertile__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["altertile__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["extredist__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["extredist__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["extredist__nearcog_obst"], "blue")
 
-    gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["nearcog_extremal__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["nearcog_extremal__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["nearcog_extremal__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["altertile__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["altertile__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["altertile__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["extredist__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["extredist__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["extredist__nearcog_obst"], "blue")
 
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__no_move"], "blue")
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__cog2lopt"], "blue")
@@ -358,15 +425,15 @@ def plot_all():
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__cog2lopt"], "blue")
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__nearcog_obst"], "blue")
     
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["nearcog_extremal__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["nearcog_extremal__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["nearcog_extremal__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["altertile__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["altertile__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["altertile__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["extredist__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["extredist__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["extredist__nearcog_obst"], "blue")
 
     gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__no_move"], "blue")
     gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__cog2lopt"], "blue")
@@ -482,6 +549,53 @@ def plot_compare_6route_3map(title, method_names, method_ids, method_color_sets)
     return outer_grid
 
 
+def plot_compare_5route_3map(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(2*8.5, 2*11.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(3, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.9) #, wspace=0.05)
+    lines = plot_on_1map(fig, outer_grid[0], 
+                locations= ["storage1", "storage2", "livroom2", "livroom1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["storage1->storage2", "livroom2->livroom1"],
+                route_ids=   ["storage1tostorage2", "livroom2tolivroom1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1], 
+                locations= ["storage2", "storage3", "livroom1", "kitchen1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["storage2->storage3", "livroom1->kitchen1"],
+                route_ids=   ["storage2tostorage3", "livroom1tokitchen1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[2], 
+                locations= ["storage3", "livroom2"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["storage3->livroom2"],
+                route_ids=   ["storage3tolivroom2"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 2
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.95], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
+
 def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
     print "\n\n======================================================================="
     print title
@@ -495,6 +609,27 @@ def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
         method_ids=        method_ids,
         method_color_sets= [blue_set,     red_set]
     )
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+
+def plot_compare3_5route_3map(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#9999FF","#3333FF","#000099"]
+    red_set  = ["#FF9999","#FF3333","#BB0000"]
+    green_set  = ["#99FF99","#33FF33","#00BB00"]
+    
+    plot_compare_5route_3map(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set, red_set, green_set]
+    )
+    print "Saving file to:"
+    print out_file
     plt.savefig(out_file)
     #call(["evince", out_file])
     #plt.show()
@@ -569,6 +704,15 @@ def plots_for_thesis(output_file_prefix):
         method_names=   ["without POIs", "with POIs"],
         method_ids=     ["mx70_no_pois",   "mx70_pois"],
         out_file=       output_file_prefix + "pois-mx70.pdf"
+    )
+
+
+    ###############compare pos methods 
+    plot_compare3_5route_3map(
+        title=          "qqqq",
+        method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+        method_ids=     ["nearcog_extremal__no_move",   "nearcog_extremal__cog2lopt", "nearcog_extremal__nearcog_obst"],
+        out_file=       output_file_prefix + "nearcog_extremal-pos.pdf"
     )
 
 
@@ -662,7 +806,5 @@ def plots_for_RSS(output_file_prefix):
     
 if __name__=="__main__":
     #plot_all()
-    #mx94 vs mx70: with and without POIs
-    #plots_for_thesis()
-    plots_for_RSS(output_file_prefix="/home/sd/Desktop/thesis/lthmi_nav_paper/img/robot-plot-")
+    #plots_for_RSS(output_file_prefix="/home/sd/Desktop/thesis/lthmi_nav_paper/img/robot-plot-")
     plots_for_thesis(output_file_prefix="/home/sd/Desktop/thesis/lthmi_nav_paper/img/robot-plot-big-")
