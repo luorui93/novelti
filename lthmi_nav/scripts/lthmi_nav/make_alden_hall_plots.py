@@ -36,6 +36,33 @@ LOCATIONS = {
     "storage3":   (15.27,  8.66,   -1.57079)
 }
 
+""" 
+==== There are 4 sets of routes ====
+6route
+    door1 -> livroom1 
+    livroom1 -> office1
+    office1 -> bathroom1
+    bathroom1 -> music1
+    music1 -> bedroom1
+    bedroom1 -> door2
+
+5route
+    storage1 -> storage2
+    storage2 -> storage3
+    storage3 -> livroom2
+    livroom2 -> livroom1
+    livroom1 -> kitchen1
+    
+nproute = non-POI routes 
+    kitchen1 -> office1
+    office1 -> bedroom1
+
+mcroute = change-of-mind routes
+    kitchen1storage1 
+    storage1tostorage3
+"""
+
+
 BAG_STAMPS = {
     "mx94_no_pois": {
         "door1tolivroom1":      ['2016-12-28_18-37-51_EST-0500', '2016-12-28_19-22-15_EST-0500', '2016-12-28_19-37-11_EST-0500'],
@@ -87,13 +114,16 @@ BAG_STAMPS = {
         "bedroom1todoor2":      ['2016-12-31_12-20-06_EST-0500', '2016-12-31_12-32-07_EST-0500', '2016-12-31_13-02-38_EST-0500'],
     },
     
+    
+    #kitchen1->(livroom1)->storage1
+    #storage1->(storage2)->storage3
     "change_of_mind_mx85_no_pois": {
-        "kitchen1storage1":     ['2016-12-30_23-52-22_EST-0500', '2016-12-31_00-02-24_EST-0500', '2016-12-31_00-10-05_EST-0500', '2016-12-31_00-18-06_EST-0500', '2016-12-31_00-26-40_EST-0500'],
-        "storage1tostorage3":   ['2016-12-30_23-56-01_EST-0500', '2016-12-31_00-06-22_EST-0500', '2016-12-31_00-13-25_EST-0500', '2016-12-31_00-21-30_EST-0500', '2016-12-31_00-30-31_EST-0500']
+        "kitchen1tostorage1":   ['2016-12-30_23-52-22_EST-0500', '2016-12-31_00-02-24_EST-0500', '2016-12-31_00-10-05_EST-0500', '2016-12-31_00-18-06_EST-0500'],#, '2016-12-31_00-26-40_EST-0500'],
+        "storage1tostorage3":   ['2016-12-30_23-56-01_EST-0500', '2016-12-31_00-06-22_EST-0500', '2016-12-31_00-13-25_EST-0500', '2016-12-31_00-21-30_EST-0500'],#, '2016-12-31_00-30-31_EST-0500']
     },
     "change_of_mind_mx85_with_pois": {
-        "kitchen1storage1":     ['2016-12-31_13-25-26_EST-0500', '2016-12-31_13-32-25_EST-0500', '2016-12-31_13-39-14_EST-0500', '2016-12-31_13-46-34_EST-0500', '2016-12-31_14-01-07_EST-0500'],
-        "storage1tostorage3":   ['2016-12-31_13-28-36_EST-0500', '2016-12-31_13-36-11_EST-0500', '2016-12-31_13-42-05_EST-0500', '2016-12-31_13-52-59_EST-0500', '2016-12-31_14-04-18_EST-0500']
+        "kitchen1tostorage1":   ['2016-12-31_13-25-26_EST-0500', '2016-12-31_13-32-25_EST-0500', '2016-12-31_13-39-14_EST-0500', '2016-12-31_13-46-34_EST-0500'],# '2016-12-31_14-01-07_EST-0500'],
+        "storage1tostorage3":   ['2016-12-31_13-28-36_EST-0500', '2016-12-31_13-36-11_EST-0500', '2016-12-31_13-42-05_EST-0500', '2016-12-31_13-52-59_EST-0500'],#, '2016-12-31_14-04-18_EST-0500']
     },
     
     "nav_to_non_poi_mx94": {
@@ -101,7 +131,7 @@ BAG_STAMPS = {
         "office1tobedroom1":    ['2016-12-31_14-32-59_EST-0500', '2016-12-31_14-37-20_EST-0500', '2016-12-31_14-41-48_EST-0500', '2016-12-31_14-46-18_EST-0500'],
     },
     "nav_to_non_poi_mx70": {
-        "kitchen1tooffice1":    ['2016-12-31_18-18-12_EST-0500','2016-12-31_18-23-53_EST-0500' , '2016-12-31_18-39-26_EST-0500', '2016-12-31_18-51-16_EST-0500'],
+        "kitchen1tooffice1":    ['2016-12-31_18-18-12_EST-0500', '2016-12-31_18-23-53_EST-0500', '2016-12-31_18-39-26_EST-0500', '2016-12-31_18-51-16_EST-0500'],
         "office1tobedroom1":    ['2016-12-31_18-20-36_EST-0500', '2016-12-31_18-35-12_EST-0500', '2016-12-31_18-46-21_EST-0500', '2016-12-31_18-54-57_EST-0500'],
     },
     
@@ -466,6 +496,7 @@ def plot_on_1map(fig, sub_grid, locations, method_names, method_ids, method_colo
     fig.add_subplot(ax_map)
     map_stamp = stamp_sets[method_ids[0]][route_ids[0]][0]
     PlottableBagRecord(DBASE.getRecord(map_stamp)).plotMaps(ax_map)
+    #draw labels for locations:
     for k, loc in enumerate(locations):
         ax_map.annotate(loc,
             xy=LOCATIONS[loc][:2], 
@@ -591,9 +622,89 @@ def plot_compare_5route_3map(title, method_names, method_ids, method_color_sets)
                 linewidth=2) #, label="%s, try %d"%(method_name,try_k))
             handles.append(handle)
             labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.965], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
+
+def plot_compare_nproutes(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(11.0, 12.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(2, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.85) #, wspace=0.05)
+    
+    lines = plot_on_1map(fig, outer_grid[0],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["kitchen1", "office1"],
+                route_names= ["kitchen1->office1"],
+                route_ids=   ["kitchen1tooffice1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["office1", "bedroom1"],
+                route_names= ["office1->bedroom1"],
+                route_ids=   ["office1tobedroom1"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 4
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
     fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.95], ncol=ntries )
     fig.suptitle(title, fontsize=25,horizontalalignment='center')
     return outer_grid
+
+def plot_compare_mcroutes(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(11.0, 12.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(2, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.85) #, wspace=0.05)
+    
+    lines = plot_on_1map(fig, outer_grid[0],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["kitchen1", "storage1", "livroom1"],
+                route_names= ["kitchen1->(livroom1)->storage1"],
+                route_ids=   ["kitchen1tostorage1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["storage1", "storage3", "storage2"],
+                route_names= ["storage1->(storage2)->storage3"],
+                route_ids=   ["storage1tostorage3"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 4
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.95], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
 
 
 def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
@@ -627,6 +738,45 @@ def plot_compare3_5route_3map(title, method_names, method_ids, out_file):
         method_names=      method_names,
         method_ids=        method_ids,
         method_color_sets= [blue_set, red_set, green_set]
+    )
+    print "Saving file to:"
+    print out_file
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+def plot_compare2_nproutes(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#BBBBFF","#8888FF", "#2222CC","#000088"]
+    red_set  = ["#FFBBBB","#FF8888", "#CC2222","#880000"]
+    
+    plot_compare_nproutes(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set, red_set]
+    )
+    print "Saving file to:"
+    print out_file
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+
+def plot_compare2_mcroutes(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#BBBBFF","#8888FF", "#2222CC","#000088"]
+    red_set  = ["#FFBBBB","#FF8888", "#CC2222","#880000"]
+    print method_names
+    plot_compare_mcroutes(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set, red_set]
     )
     print "Saving file to:"
     print out_file
@@ -709,11 +859,64 @@ def plots_for_thesis(output_file_prefix):
 
     ###############compare pos methods 
     plot_compare3_5route_3map(
-        title=          "qqqq",
+        title=          "Performance effect of POSE SELECTION policy when division policy is 'nearcog_extremal'",
         method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
         method_ids=     ["nearcog_extremal__no_move",   "nearcog_extremal__cog2lopt", "nearcog_extremal__nearcog_obst"],
-        out_file=       output_file_prefix + "nearcog_extremal-pos.pdf"
+        out_file=       output_file_prefix + "pos-nearcog_extremal.pdf"
     )
+    
+    plot_compare3_5route_3map(
+        title=          "Performance effect of POSE SELECTION policy when division policy is 'altertile'",
+        method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+        method_ids=     ["altertile__no_move",   "altertile__cog2lopt", "altertile__nearcog_obst"],
+        out_file=       output_file_prefix + "pos-altertile.pdf"
+    )
+    
+    plot_compare3_5route_3map(
+        title=          "Performance effect of POSE SELECTION policy when division policy is 'extredist'",
+        method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+        method_ids=     ["extredist__no_move",   "extredist__cog2lopt", "extredist__nearcog_obst"],
+        out_file=       output_file_prefix + "pos-extredist.pdf"
+    )
+
+     ##############compare div methods 
+    plot_compare3_5route_3map(
+        title=          "Performance effect of DIVISION POLICY when pose selection policy is 'no_move'",
+        method_names=   ["nearcog_extremal", "altertile", "extredist"],
+        method_ids=     ["nearcog_extremal__no_move",   "altertile__no_move", "extredist__no_move"],
+        out_file=       output_file_prefix + "div-no_move.pdf"
+    )
+    plot_compare3_5route_3map(
+        title=          "Performance effect of DIVISION POLICY when pose selection policy is 'cog2lopt'",
+        method_names=   ["nearcog_extremal", "altertile", "extredist"],
+        method_ids=     ["nearcog_extremal__cog2lopt",   "altertile__cog2lopt", "extredist__cog2lopt"],
+        out_file=       output_file_prefix + "div-cog2lopt.pdf"
+    )
+    plot_compare3_5route_3map(
+        title=          "Performance effect of DIVISION POLICY when pose selection policy is 'nearcog_obst'",
+        method_names=   ["nearcog_extremal", "altertile", "extredist"],
+        method_ids=     ["nearcog_extremal__nearcog_obst",   "altertile__nearcog_obst", "extredist__nearcog_obst"],
+        out_file=       output_file_prefix + "div-nearcog_obst.pdf"
+    )
+    
+    ############## Navigation to Non-POIs
+    plot_compare2_nproutes(
+        title=          "Navigating to Non-POIs",
+        method_names=   ["mx94", "mx70"],
+        method_ids=     ["nav_to_non_poi_mx94",   "nav_to_non_poi_mx70"],
+        out_file=       output_file_prefix + "non-pois.pdf"
+    ) 
+    
+    ############## Change of mind
+    plot_compare2_mcroutes(
+        title=          "Changing intended destination half-way",
+        method_names=   ["With POIs", "W/out POIs"],
+        method_ids=     ["change_of_mind_mx85_no_pois",   "change_of_mind_mx85_with_pois"],
+        out_file=       output_file_prefix + "change-of-mind.pdf"
+    ) 
+
+    
+
 
 
 def plot_compare_3route_1map(title, method_names, method_ids, method_color_sets):
