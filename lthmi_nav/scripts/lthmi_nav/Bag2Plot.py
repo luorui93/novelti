@@ -99,6 +99,8 @@ class LthmiNavExpRecord:
                 meta['poseInferredStamp'] = msg.header.stamp
             if topic=="/pose_intended_goal":
                 meta['goal'] = msg.pose
+            if topic=="/pose_intended_goal2":
+                meta['goal2'] = msg.pose
             if "poseInferredStamp" in meta and topic=="/rosout" and msg.name=="/node_mediator":
                 if msg.msg == "Arrived to the destination":
                     pass
@@ -123,7 +125,11 @@ class LthmiNavExpRecord:
         #This function is ugly, probably this whole class should be written in C++
         
         #prepare command line parameters to calculate CWave distance
-        src = [str(v) for v in self.pose2vertex(self.meta['goal'].position.x, self.meta['goal'].position.y)]
+        if "goal2" in self.meta:
+            goal = self.meta['goal2']
+        else:
+            goal = self.meta['goal']
+        src = [str(v) for v in self.pose2vertex(goal.position.x, goal.position.y)]
         pts = [i for sub in   [self.pose2vertex(self.poses['x'][k], self.poses['y'][k])  for k in xrange(len(self.poses['x']))]    for i in sub]
         popen_cmd = [self.cwave_cmdline_path] + ["one2many"] + list(src) + [str(val) for val in pts]
         
@@ -378,8 +384,9 @@ class PlottableBagRecord:
         
     def plotMaps(self, axes):
         #info("    Drawing maps")
-        self.plotMap(axes)
         self.plotMapInflated(axes)
+        self.plotMap(axes)
+        
 
     def drawArrow(self, axes, x,y,a, color):
         arr_length  = 0.16
