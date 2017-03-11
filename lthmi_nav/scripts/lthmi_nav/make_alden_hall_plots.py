@@ -787,27 +787,27 @@ def plot_compare2_mcroutes(title, method_names, method_ids, out_file):
 
 def plots_for_thesis(output_file_prefix):
     plot_compare2_6route_3map(
-        title=          "Comparing performance: mx94 (blue) and mx70 (red) WITHOUT points of interest",
-        method_names=   ["mx94",         "mx70"],
+        title=          "Effect of HMI accuracy WITHOUT points of interest",
+        method_names=   ["94% HMI",         "70% HMI"],
         method_ids=     ["mx94_no_pois", "mx70_no_pois"],
         out_file=       output_file_prefix + "mx94-vs-mx70-no-pois.pdf"
     )
     plot_compare2_6route_3map(
-        title=          "Comparing performance: mx94 (blue) and mx70 (red) WITH points of interest",
-        method_names=   ["mx94",         "mx70"],
+        title=          "Effect of HMI accuracy WITH points of interest",
+        method_names=   ["94% HMI",         "70% HMI"],
         method_ids=     ["mx94_pois", "mx70_pois"],
         out_file=       output_file_prefix + "mx94-vs-mx70-with-pois.pdf"
     )
     
     #two matrices: with and without POIs
     plot_compare2_6route_3map(
-        title=          "Comparing performance: using same (blue) vs different (red) interface matrices WITHOUT points of interest",
+        title=          "Effect of inference_unit matrix being less accurate than HMI matrix, without POIs",
         method_names=   ["same matrix", "different matrices"],
         method_ids=     ["mx94_no_pois",   "two_mx_no_pois"],
         out_file=       output_file_prefix + "two-mx-no-pois.pdf"
     )
     plot_compare2_6route_3map(
-        title=          "Comparing performance: using same (blue) vs different (red) interface matrices WITH points of interest",
+        title=          "Effect of inference_unit matrix being less accurate than HMI matrix, with POIs",
         method_names=   ["same matrix", "different matrices"],
         method_ids=     ["mx94_pois",   "two_mx_with_pois"],
         out_file=       output_file_prefix + "two-mx-with-pois.pdf"
@@ -815,14 +815,14 @@ def plots_for_thesis(output_file_prefix):
 
     #goal marker (no POIs): mx94, mx70
     plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) goal marker displayed, mx94",
+        title=          "Effect of the goal marker, 94% HMI",
         method_names=   ["without goal marker", "with goal marker"],
-        method_ids=     ["mx94_pois",   "goal_marker_mx94"],
+        method_ids=     ["mx94_no_pois",   "goal_marker_mx94"],
         out_file=       output_file_prefix + "goal-marker-mx94.pdf"
     )
     
     plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) goal marker displayed, mx70",
+        title=          "Effect of the goal marker, 70% HMI",
         method_names=   ["without goal marker", "with goal marker"],
         method_ids=     ["mx70_no_pois",   "goal_marker_mx70"],
         out_file=       output_file_prefix + "goal-marker-mx70.pdf"
@@ -830,13 +830,13 @@ def plots_for_thesis(output_file_prefix):
 
     #smoothening (no POIs): mx94, mx70
     plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) smoothening, mx94",
-        method_names=   ["same matrix", "different matrices"],
-        method_ids=     ["mx94_pois",   "smooth_mx94_no_pois"],
+        title=          "Effect of PDF smoothening, 94% HMI",
+        method_names=   ["without smoothening", "with smoothening"],
+        method_ids=     ["mx94_no_pois",   "smooth_mx94_no_pois"],
         out_file=       output_file_prefix + "smooth-mx94-no-pois.pdf"
     )
     plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) smoothening, mx70",
+        title=          "Effect of PDF smoothening, 70% HMI",
         method_names=   ["without smoothening", "with smoothening"],
         method_ids=     ["mx70_no_pois",   "smooth_mx70_no_pois"],
         out_file=       output_file_prefix + "smooth-mx70-no-pois.pdf"
@@ -844,13 +844,13 @@ def plots_for_thesis(output_file_prefix):
     
     #pois: mx94, mx70
     plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) POIs, mx94",
+        title=          "Effect of POIs, 94% HMI",
         method_names=   ["without POIs", "with POIs"],
         method_ids=     ["mx94_no_pois",   "mx94_pois"],
         out_file=       output_file_prefix + "pois-mx94.pdf"
     )
     plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) POIs, mx70",
+        title=          "Effect of POIs, 70% HMI",
         method_names=   ["without POIs", "with POIs"],
         method_ids=     ["mx70_no_pois",   "mx70_pois"],
         out_file=       output_file_prefix + "pois-mx70.pdf"
@@ -901,7 +901,7 @@ def plots_for_thesis(output_file_prefix):
     
     ############## Navigation to Non-POIs
     plot_compare2_nproutes(
-        title=          "Navigating to Non-POIs",
+        title=          "Navigating to Non-POI vertices",
         method_names=   ["mx94", "mx70"],
         method_ids=     ["nav_to_non_poi_mx94",   "nav_to_non_poi_mx70"],
         out_file=       output_file_prefix + "non-pois.pdf"
@@ -909,8 +909,8 @@ def plots_for_thesis(output_file_prefix):
     
     ############## Change of mind
     plot_compare2_mcroutes(
-        title=          "Changing intended destination half-way",
-        method_names=   ["With POIs", "W/out POIs"],
+        title=          "Changing intended destination on the way",
+        method_names=   ["W/out POIs", "With POIs"],
         method_ids=     ["change_of_mind_mx85_no_pois",   "change_of_mind_mx85_with_pois"],
         out_file=       output_file_prefix + "change-of-mind.pdf"
     ) 
