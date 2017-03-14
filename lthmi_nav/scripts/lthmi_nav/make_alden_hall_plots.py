@@ -787,13 +787,13 @@ def plot_compare2_mcroutes(title, method_names, method_ids, out_file):
 
 def plots_for_thesis(output_file_prefix):
     plot_compare2_6route_3map(
-        title=          "Effect of HMI accuracy WITHOUT points of interest",
+        title=          "Effect of HMI accuracy when no POIs are defined",
         method_names=   ["94% HMI",         "70% HMI"],
         method_ids=     ["mx94_no_pois", "mx70_no_pois"],
         out_file=       output_file_prefix + "mx94-vs-mx70-no-pois.pdf"
     )
     plot_compare2_6route_3map(
-        title=          "Effect of HMI accuracy WITH points of interest",
+        title=          "Effect of HMI accuracy when POIs are present",
         method_names=   ["94% HMI",         "70% HMI"],
         method_ids=     ["mx94_pois", "mx70_pois"],
         out_file=       output_file_prefix + "mx94-vs-mx70-with-pois.pdf"
@@ -881,19 +881,19 @@ def plots_for_thesis(output_file_prefix):
 
      ##############compare div methods 
     plot_compare3_5route_3map(
-        title=          "Performance effect of DIVISION POLICY when pose selection policy is 'no_move'",
+        title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'no_move'",
         method_names=   ["nearcog_extremal", "altertile", "extredist"],
         method_ids=     ["nearcog_extremal__no_move",   "altertile__no_move", "extredist__no_move"],
         out_file=       output_file_prefix + "div-no_move.pdf"
     )
     plot_compare3_5route_3map(
-        title=          "Performance effect of DIVISION POLICY when pose selection policy is 'cog2lopt'",
+        title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'cog2lopt'",
         method_names=   ["nearcog_extremal", "altertile", "extredist"],
         method_ids=     ["nearcog_extremal__cog2lopt",   "altertile__cog2lopt", "extredist__cog2lopt"],
         out_file=       output_file_prefix + "div-cog2lopt.pdf"
     )
     plot_compare3_5route_3map(
-        title=          "Performance effect of DIVISION POLICY when pose selection policy is 'nearcog_obst'",
+        title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'nearcog_obst'",
         method_names=   ["nearcog_extremal", "altertile", "extredist"],
         method_ids=     ["nearcog_extremal__nearcog_obst",   "altertile__nearcog_obst", "extredist__nearcog_obst"],
         out_file=       output_file_prefix + "div-nearcog_obst.pdf"
