@@ -384,8 +384,9 @@ class PlottableBagRecord:
         
     def plotMaps(self, axes):
         #info("    Drawing maps")
-        self.plotMapInflated(axes)
         self.plotMap(axes)
+        self.plotMapInflated(axes)
+        
         
 
     def drawArrow(self, axes, x,y,a, color):
