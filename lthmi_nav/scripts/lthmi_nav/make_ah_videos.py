@@ -205,15 +205,15 @@ class CamVideoBase:
         
 videos = [
     # name              title                           desktop video stamp             desktop t_start     cam t_start     cam t_offset    bag t_offset    cam dur8n camOffY
-    ("non-pois",        "nav to non-POIs",              "2016-12-31_18-46-21_EST-0500", 5,                  4.7,            0.0,            4.3,            180,     660), #cam<13.7 bag<4.7
-    ("goal-mark",       "Goal marker",                  "2017-01-01_18-36-44_EST-0500", 5,                  12.1,           0.0,            6.55,           55,      610), #cam<12.4   6.4<bag<6.7
-    ("pois",            "Effect of POIs",               "2016-12-29_21-55-19_EST-0500", 5,                  6.8,            0.0,            3.6,            55,      610), #1.8<bag<2.8?... bag>=3.5
+    ("non-pois",        "nav to non-POIs",              "2016-12-31_18-46-21_EST-0500", 5,                  4.7,            0.0,            4.2,            180,     660), #cam<13.7 bag<=4.3
+    ("goal-mark",       "Goal marker",                  "2017-01-01_18-36-44_EST-0500", 5,                  12.1,           0.0,            6.65,           55,      610), #cam<12.4   6.4<6.55<bag<6.7
+    ("pois",            "Effect of POIs",               "2016-12-29_21-55-19_EST-0500", 5,                  6.8,            0.0,            3.7,            55,      610), #1.8<bag<2.8?... bag>=3.6
     ("smooth",          "Smoothening",                  "2017-01-01_21-17-06_EST-0500", 5,                  13.1,           0.0,            4.9,            90,      610), #cam>12.8  4.7<bag<5.0
     ("change-intent",   "Change of destination",        "2016-12-31_00-02-24_EST-0500", 18.5,               21.7,           0.0,            3.1,            135,     660),
     ("simple",          "Simple experiment",            "2016-12-28_19-04-03_EST-0500", 10,                 8.7,            0.0,            2.5,            87,      660),
     ("div-extredist",   "extredist map segmentation",   "2017-01-02_12-17-58_EST-0500", 5,                  12.4,           0.0,            4.2,            100,     610), #4.0<bag<7.0
     ("div-altertile",   "altertile map segmentation",   "2017-01-02_10-47-38_EST-0500", 5,                  11.9,           0.0,            8.4,            60,      610), #cam<12.4, bag>7.7
-    ("div-nearcog_extr","nearcog_extr map segmentation","2017-01-02_09-15-12_EST-0500", 5,                  12.0,           0.0,            9.7,            77,      610), #cam<12.4, bag<7.0? bag>5.7
+    ("div-nearcog_extr","nearcog_extr map segmentation","2017-01-02_09-15-12_EST-0500", 5,                  12.0,           0.0,            9.9,            77,      610), #cam<12.4, bag<7.0? bag>9.7>5.7
     ("pos-no-move",     "no_move pose selection",       "2017-01-02_11-35-47_EST-0500", 5,                  14.0,           0.0,            10.7,           100,     610), #cam>12.4, bag>10
     ("pos-cog2lopt",    "cog2lopt pose selection",      "2017-01-02_12-07-39_EST-0500", 23,                 30.8,           0.0,            3.7,            65,      610), #cam>=30.4, bag<=4.0
     ("pos-nearcog-obst","nearcog_obst pose selection",  "2017-01-02_12-38-16_EST-0500", 5,                  12.4,           0.0,            5.5,            60,      610), #cam, bag<7
