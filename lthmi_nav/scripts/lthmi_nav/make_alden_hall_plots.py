@@ -9,16 +9,8 @@ import matplotlib.lines as mlines
 from subprocess import call
 
 
-usage = """ USAGE:
-    TODO
 
-"""
-
-bagDir = "/home/sd/Desktop/ah_data/2016-12-experiments-in-alden-hall/bags"
-cacheDir = "/home/sd/Desktop/ah_data_cache"
-cwaveToolPath = "/home/sd/ws/devel/lib/lthmi_nav/cwave_cmdline"
-
-DBASE = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
+DBASE = None
 
 LOCATIONS = {
     #name          x       y       yaw
@@ -785,136 +777,155 @@ def plot_compare2_mcroutes(title, method_names, method_ids, out_file):
     #plt.show()
 
 
-def plots_for_thesis(output_file_prefix):
-    plot_compare2_6route_3map(
-        title=          "Effect of HMI accuracy when no POIs are defined",
-        method_names=   ["94% HMI",         "70% HMI"],
-        method_ids=     ["mx94_no_pois", "mx70_no_pois"],
-        out_file=       output_file_prefix + "mx94-vs-mx70-no-pois.pdf"
-    )
-    plot_compare2_6route_3map(
-        title=          "Effect of HMI accuracy when POIs are present",
-        method_names=   ["94% HMI",         "70% HMI"],
-        method_ids=     ["mx94_pois", "mx70_pois"],
-        out_file=       output_file_prefix + "mx94-vs-mx70-with-pois.pdf"
-    )
+def plots_for_thesis(output_file_prefix, plot_name):
+    extension = ".pdf"
+    if plot_name == "mx94-vs-mx70-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of HMI accuracy when no POIs are defined",
+            method_names=   ["94% HMI",         "70% HMI"],
+            method_ids=     ["mx94_no_pois", "mx70_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "mx94-vs-mx70-with-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of HMI accuracy when POIs are present",
+            method_names=   ["94% HMI",         "70% HMI"],
+            method_ids=     ["mx94_pois", "mx70_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
     
     #two matrices: with and without POIs
-    plot_compare2_6route_3map(
-        title=          "Effect of inference_unit matrix being less accurate than HMI matrix, without POIs",
-        method_names=   ["same matrix", "different matrices"],
-        method_ids=     ["mx94_no_pois",   "two_mx_no_pois"],
-        out_file=       output_file_prefix + "two-mx-no-pois.pdf"
-    )
-    plot_compare2_6route_3map(
-        title=          "Effect of inference_unit matrix being less accurate than HMI matrix, with POIs",
-        method_names=   ["same matrix", "different matrices"],
-        method_ids=     ["mx94_pois",   "two_mx_with_pois"],
-        out_file=       output_file_prefix + "two-mx-with-pois.pdf"
-    )
+    elif plot_name == "two-mx-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of inference_unit matrix being less accurate than HMI matrix, without POIs",
+            method_names=   ["same matrix", "different matrices"],
+            method_ids=     ["mx94_no_pois",   "two_mx_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "two-mx-with-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of inference_unit matrix being less accurate than HMI matrix, with POIs",
+            method_names=   ["same matrix", "different matrices"],
+            method_ids=     ["mx94_pois",   "two_mx_with_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
 
     #goal marker (no POIs): mx94, mx70
-    plot_compare2_6route_3map(
-        title=          "Effect of the goal marker, 94% HMI",
-        method_names=   ["without goal marker", "with goal marker"],
-        method_ids=     ["mx94_no_pois",   "goal_marker_mx94"],
-        out_file=       output_file_prefix + "goal-marker-mx94.pdf"
-    )
-    
-    plot_compare2_6route_3map(
-        title=          "Effect of the goal marker, 70% HMI",
-        method_names=   ["without goal marker", "with goal marker"],
-        method_ids=     ["mx70_no_pois",   "goal_marker_mx70"],
-        out_file=       output_file_prefix + "goal-marker-mx70.pdf"
-    )
+    elif plot_name == "goal-marker-mx94":
+        plot_compare2_6route_3map(
+            title=          "Effect of the goal marker, 94% HMI",
+            method_names=   ["without goal marker", "with goal marker"],
+            method_ids=     ["mx94_no_pois",   "goal_marker_mx94"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "goal-marker-mx70":
+        plot_compare2_6route_3map(
+            title=          "Effect of the goal marker, 70% HMI",
+            method_names=   ["without goal marker", "with goal marker"],
+            method_ids=     ["mx70_no_pois",   "goal_marker_mx70"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
 
     #smoothening (no POIs): mx94, mx70
-    plot_compare2_6route_3map(
-        title=          "Effect of PDF smoothening, 94% HMI",
-        method_names=   ["without smoothening", "with smoothening"],
-        method_ids=     ["mx94_no_pois",   "smooth_mx94_no_pois"],
-        out_file=       output_file_prefix + "smooth-mx94-no-pois.pdf"
-    )
-    plot_compare2_6route_3map(
-        title=          "Effect of PDF smoothening, 70% HMI",
-        method_names=   ["without smoothening", "with smoothening"],
-        method_ids=     ["mx70_no_pois",   "smooth_mx70_no_pois"],
-        out_file=       output_file_prefix + "smooth-mx70-no-pois.pdf"
-    )
+    elif plot_name == "smooth-mx94-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of PDF smoothening, 94% HMI",
+            method_names=   ["without smoothening", "with smoothening"],
+            method_ids=     ["mx94_no_pois",   "smooth_mx94_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "smooth-mx70-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of PDF smoothening, 70% HMI",
+            method_names=   ["without smoothening", "with smoothening"],
+            method_ids=     ["mx70_no_pois",   "smooth_mx70_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
     
     #pois: mx94, mx70
-    plot_compare2_6route_3map(
-        title=          "Effect of POIs, 94% HMI",
-        method_names=   ["without POIs", "with POIs"],
-        method_ids=     ["mx94_no_pois",   "mx94_pois"],
-        out_file=       output_file_prefix + "pois-mx94.pdf"
-    )
-    plot_compare2_6route_3map(
-        title=          "Effect of POIs, 70% HMI",
-        method_names=   ["without POIs", "with POIs"],
-        method_ids=     ["mx70_no_pois",   "mx70_pois"],
-        out_file=       output_file_prefix + "pois-mx70.pdf"
-    )
+    elif plot_name == "pois-mx94":
+        plot_compare2_6route_3map(
+            title=          "Effect of POIs, 94% HMI",
+            method_names=   ["without POIs", "with POIs"],
+            method_ids=     ["mx94_no_pois",   "mx94_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pois-mx70":
+        plot_compare2_6route_3map(
+            title=          "Effect of POIs, 70% HMI",
+            method_names=   ["without POIs", "with POIs"],
+            method_ids=     ["mx70_no_pois",   "mx70_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
 
 
     ###############compare pos methods 
-    plot_compare3_5route_3map(
-        title=          "Performance effect of POSE SELECTION policy when division policy is 'nearcog_extremal'",
-        method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
-        method_ids=     ["nearcog_extremal__no_move",   "nearcog_extremal__cog2lopt", "nearcog_extremal__nearcog_obst"],
-        out_file=       output_file_prefix + "pos-nearcog_extremal.pdf"
-    )
-    
-    plot_compare3_5route_3map(
-        title=          "Performance effect of POSE SELECTION policy when division policy is 'altertile'",
-        method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
-        method_ids=     ["altertile__no_move",   "altertile__cog2lopt", "altertile__nearcog_obst"],
-        out_file=       output_file_prefix + "pos-altertile.pdf"
-    )
-    
-    plot_compare3_5route_3map(
-        title=          "Performance effect of POSE SELECTION policy when division policy is 'extredist'",
-        method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
-        method_ids=     ["extredist__no_move",   "extredist__cog2lopt", "extredist__nearcog_obst"],
-        out_file=       output_file_prefix + "pos-extredist.pdf"
-    )
+    elif plot_name == "pos-nearcog_extremal":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of POSE SELECTION policy when division policy is 'nearcog_extremal'",
+            method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+            method_ids=     ["nearcog_extremal__no_move",   "nearcog_extremal__cog2lopt", "nearcog_extremal__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pos-altertile":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of POSE SELECTION policy when division policy is 'altertile'",
+            method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+            method_ids=     ["altertile__no_move",   "altertile__cog2lopt", "altertile__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pos-extredist":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of POSE SELECTION policy when division policy is 'extredist'",
+            method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+            method_ids=     ["extredist__no_move",   "extredist__cog2lopt", "extredist__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
 
-     ##############compare div methods 
-    plot_compare3_5route_3map(
-        title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'no_move'",
-        method_names=   ["nearcog_extremal", "altertile", "extredist"],
-        method_ids=     ["nearcog_extremal__no_move",   "altertile__no_move", "extredist__no_move"],
-        out_file=       output_file_prefix + "div-no_move.pdf"
-    )
-    plot_compare3_5route_3map(
-        title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'cog2lopt'",
-        method_names=   ["nearcog_extremal", "altertile", "extredist"],
-        method_ids=     ["nearcog_extremal__cog2lopt",   "altertile__cog2lopt", "extredist__cog2lopt"],
-        out_file=       output_file_prefix + "div-cog2lopt.pdf"
-    )
-    plot_compare3_5route_3map(
-        title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'nearcog_obst'",
-        method_names=   ["nearcog_extremal", "altertile", "extredist"],
-        method_ids=     ["nearcog_extremal__nearcog_obst",   "altertile__nearcog_obst", "extredist__nearcog_obst"],
-        out_file=       output_file_prefix + "div-nearcog_obst.pdf"
-    )
+    ##############compare div methods 
+    elif plot_name == "div-no_move":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'no_move'",
+            method_names=   ["nearcog_extremal", "altertile", "extredist"],
+            method_ids=     ["nearcog_extremal__no_move",   "altertile__no_move", "extredist__no_move"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "div-cog2lopt":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'cog2lopt'",
+            method_names=   ["nearcog_extremal", "altertile", "extredist"],
+            method_ids=     ["nearcog_extremal__cog2lopt",   "altertile__cog2lopt", "extredist__cog2lopt"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "div-nearcog_obst":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'nearcog_obst'",
+            method_names=   ["nearcog_extremal", "altertile", "extredist"],
+            method_ids=     ["nearcog_extremal__nearcog_obst",   "altertile__nearcog_obst", "extredist__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
     
     ############## Navigation to Non-POIs
-    plot_compare2_nproutes(
-        title=          "Navigating to Non-POI vertices",
-        method_names=   ["mx94", "mx70"],
-        method_ids=     ["nav_to_non_poi_mx94",   "nav_to_non_poi_mx70"],
-        out_file=       output_file_prefix + "non-pois.pdf"
-    ) 
+    elif plot_name == "non-pois":
+        plot_compare2_nproutes(
+            title=          "Navigating to Non-POI vertices",
+            method_names=   ["mx94", "mx70"],
+            method_ids=     ["nav_to_non_poi_mx94",   "nav_to_non_poi_mx70"],
+            out_file=       output_file_prefix + plot_name + extension
+        ) 
     
     ############## Change of mind
-    plot_compare2_mcroutes(
-        title=          "Changing intended destination on the way",
-        method_names=   ["W/out POIs", "With POIs"],
-        method_ids=     ["change_of_mind_mx85_no_pois",   "change_of_mind_mx85_with_pois"],
-        out_file=       output_file_prefix + "change-of-mind.pdf"
-    ) 
-
+    elif plot_name == "change-of-mind":
+        plot_compare2_mcroutes(
+            title=          "Changing intended destination on the way",
+            method_names=   ["W/out POIs", "With POIs"],
+            method_ids=     ["change_of_mind_mx85_no_pois",   "change_of_mind_mx85_with_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        ) 
+    else:
+        return False
+    
+    return True
     
 
 
@@ -967,47 +978,87 @@ def plot_compare2_3route_1map(title, method_names, method_ids, out_file):
     #plt.show()
 
 
-def plots_for_RSS(output_file_prefix):
+def plots_for_RSS(output_file_prefix, plot_name):
     #% 70 vs 94 no pois
-#% with pois vs no pois
-#% with and without goal marker
-#% smooth and no smooth
-#% nav to no pois
-#% change of mind
-    plot_compare2_3route_1map(
-        title=          "a) 94% vs 70% HMI matrix",
-        method_names=   ["mx70",         "mx949"],
-        method_ids=     ["mx70_no_pois", "mx94_no_pois"],
-        out_file=       output_file_prefix+"mx.pdf"
-    )
-    plot_compare2_3route_1map(
-        title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
-        method_names=   ["no POIs",      "with POIs"],
-        method_ids=     ["mx94_no_pois", "mx94_pois"],
-        out_file=       output_file_prefix+"pois.pdf"
-    )
-    plot_compare2_3route_1map(
-        title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
-        method_names=   ["no POIs",      "with POIs"],
-        method_ids=     ["mx70_no_pois", "mx70_pois"],
-        out_file=       output_file_prefix+"pois-70.pdf"
-    )
-    plot_compare2_3route_1map(
-        title=          "c) Effect of PDF smoothening", 
-        method_names=   ["w/o smoothening",      "w/ smoothening"],
-        method_ids=     ["mx94_no_pois", "smooth_mx94_no_pois"],
-        out_file=       output_file_prefix+"smooth.pdf"
-    )
-    plot_compare2_3route_1map(
-        title=          "d) Effect of goal marker on segmented map", #Without goal marker vs with goal marker
-        method_names=   ["w/o goal marker",      "w/ goal marker"],
-        method_ids=     ["mx94_no_pois", "goal_marker_mx94"],
-        out_file=       output_file_prefix+"goal-marker.pdf"
-    )
+    #% with pois vs no pois
+    #% with and without goal marker
+    #% smooth and no smooth
+    #% nav to no pois
+    #% change of mind
+    extension = ".pdf"
+    if plot_name == "mx":
+        plot_compare2_3route_1map(
+            title=          "a) 94% vs 70% HMI matrix",
+            method_names=   ["mx70",         "mx949"],
+            method_ids=     ["mx70_no_pois", "mx94_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pois":
+        plot_compare2_3route_1map(
+            title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
+            method_names=   ["no POIs",      "with POIs"],
+            method_ids=     ["mx94_no_pois", "mx94_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pois-70":
+        plot_compare2_3route_1map(
+            title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
+            method_names=   ["no POIs",      "with POIs"],
+            method_ids=     ["mx70_no_pois", "mx70_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "smooth":
+        plot_compare2_3route_1map(
+            title=          "c) Effect of PDF smoothening", 
+            method_names=   ["w/o smoothening",      "w/ smoothening"],
+            method_ids=     ["mx94_no_pois", "smooth_mx94_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "goal-marker":
+        plot_compare2_3route_1map(
+            title=          "d) Effect of goal marker on segmented map", #Without goal marker vs with goal marker
+            method_names=   ["w/o goal marker",      "w/ goal marker"],
+            method_ids=     ["mx94_no_pois", "goal_marker_mx94"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    else:
+        return False
+    return True
+
+usage = """ USAGE:
+    %s <bagDir> <parsedBagsCacheDir> <cwaveToolPath> <outputDir> <outputFile>
+
+""" % sys.argv[0]
+    
+if __name__=="__main__":
+    bagDir = "/home/sd/Desktop/ah_data/2016-12-experiments-in-alden-hall/bags"
+    cacheDir = "/home/sd/Desktop/ah_data_cache"
+    cwaveToolPath = "/home/sd/ws/devel/lib/lthmi_nav/cwave_cmdline"
+
+    if len(sys.argv)<4:
+        print "Incorrect usage!"
+        exit(1)
+    
+    bagDir          = sys.argv[1]
+    cacheDir        = sys.argv[2]
+    cwaveToolPath   = sys.argv[3]
+    outputDir       = sys.argv[4]
+    outputFile      = sys.argv[5]
+  
+    DBASE = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
+    
+    thesis_prefix = "robot-plot-big-"
+    rss_prefix = "robot-plot-"
+    if outputFile.startswith(thesis_prefix):
+        plot_name = outputFile[len(thesis_prefix):-4]
+        if not plots_for_thesis(outputDir+"/"+thesis_prefix,  plot_name):
+            print "Unknown plot name for thesis plot: '%s'" % plot_name
+            exit(1)
+    else:
+        plot_name = outputFile[len(rss_prefix):-4]
+        if not plots_for_RSS(outputDir+"/"+rss_prefix,  plot_name):
+            print "Unknown plot name for RSS plot: '%s'" % plot_name
+            exit(1)
 
     
     
-if __name__=="__main__":
-    #plot_all()
-    #plots_for_RSS(output_file_prefix="/home/sd/Desktop/thesis/lthmi_nav_paper/img/robot-plot-")
-    plots_for_thesis(output_file_prefix="/home/sd/Desktop/thesis/lthmi_nav_paper/img/robot-plot-big-")
