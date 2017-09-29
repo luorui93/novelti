@@ -99,6 +99,8 @@ class LthmiNavExpRecord:
                 meta['poseInferredStamp'] = msg.header.stamp
             if topic=="/pose_intended_goal":
                 meta['goal'] = msg.pose
+            if topic=="/pose_intended_goal2":
+                meta['goal2'] = msg.pose
             if "poseInferredStamp" in meta and topic=="/rosout" and msg.name=="/node_mediator":
                 if msg.msg == "Arrived to the destination":
                     pass
@@ -123,7 +125,11 @@ class LthmiNavExpRecord:
         #This function is ugly, probably this whole class should be written in C++
         
         #prepare command line parameters to calculate CWave distance
-        src = [str(v) for v in self.pose2vertex(self.meta['goal'].position.x, self.meta['goal'].position.y)]
+        if "goal2" in self.meta:
+            goal = self.meta['goal2']
+        else:
+            goal = self.meta['goal']
+        src = [str(v) for v in self.pose2vertex(goal.position.x, goal.position.y)]
         pts = [i for sub in   [self.pose2vertex(self.poses['x'][k], self.poses['y'][k])  for k in xrange(len(self.poses['x']))]    for i in sub]
         popen_cmd = [self.cwave_cmdline_path] + ["one2many"] + list(src) + [str(val) for val in pts]
         
@@ -216,104 +222,107 @@ class LthmiNavExpRecord:
         return path
 
 
-class LthmiNavExpPlot:
-    """
-    Usage pattern:
-        p = LthmiNavExpPlot()
-        p.plotBagRecord(bagRecord1, color1)
-        p.plotBagRecord(bagRecord2, color2)
-        ...
-        p.show()
-    """
+#class LthmiNavExpPlot:
+    #"""
+    #Usage pattern:
+        #p = LthmiNavExpPlot()
+        #p.plotBagRecord(bagRecord1, color1)
+        #p.plotBagRecord(bagRecord2, color2)
+        #...
+        #p.show()
+    #"""
     
-    def __init__(self):
-        #self.baseDir = baseDir
-        #if baseDir is not None:
-            #self.readListOfAllBagFiles()
+    #def __init__(self):
+        ##self.baseDir = baseDir
+        ##if baseDir is not None:
+            ##self.readListOfAllBagFiles()
         
-        self.colors = [  'blue',  'red', '#5F9ED1', '#ABABAB','#FF800E', '#006B40', 
-                    '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
-        self.styles = ['-', '--', '.-', '-.']
-        self.fig = plt.figure(facecolor='white')
-        self.ax_map = plt.subplot(121)
-        self.ax_dist = plt.subplot(222)
-        self.ax_entr = plt.subplot(224, sharex=self.ax_dist)
-        self.firstBagRecord = True
-        self.bagsDisplayed = 0
+        #self.colors = [  'blue',  'red', '#5F9ED1', '#ABABAB','#FF800E', '#006B40', 
+                    #'#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
+        #self.styles = ['-', '--', '.-', '-.']
+        #self.fig = plt.figure(facecolor='white')
+        #self.ax_map = plt.subplot(121)
+        #self.ax_dist = plt.subplot(222)
+        #self.ax_entr = plt.subplot(224, sharex=self.ax_dist)
+        #self.firstBagRecord = True
+        #self.bagsDisplayed = 0
 
     
-    def plotBagRecord(self, bagRecord, color):
-        if self.bagsDisplayed == 0:
-            self.plotMaps(
-                bagRecord['width'], 
-                bagRecord['height'], 
-                bagRecord['map_inflated'], 
-                bagRecord['map']
-            )
-        self.plotDistance(bagRecord["dist"], color)
-        self.plotEntropy(bagRecord["entropy"], color)
-        self.plotPath(bagRecord["path"], color)
-        self.bagsDisplayed += 1
+    #def plotBagRecord(self, bagRecord, color):
+        #if self.bagsDisplayed == 0:
+            #self.plotMaps(
+                #bagRecord['width'], 
+                #bagRecord['height'], 
+                #bagRecord['map_inflated'], 
+                #bagRecord['map']
+            #)
+        #self.plotDistance(bagRecord["dist"], color)
+        #self.plotEntropy(bagRecord["entropy"], color)
+        #self.plotPath(bagRecord["path"], color)
+        #self.bagsDisplayed += 1
     
-    def plotMaps(self, width, height, map1, map_inflated):
-        """
-            width and height are sizes of map in meters
-            map1 and map_inflated are 2D matrices
-        """
-        info("    Drawing map")
-        self.ax_map.matshow(map_inflated, 
-                            origin="lower", 
-                            cmap=plt.cm.gray, 
-                            vmin=0, vmax=1, norm=None,
-                            extent=(0,width,0,height))
-        self.ax_map.matshow(map1, 
-                            origin="lower", 
-                            alpha=0.3, 
-                            cmap=plt.cm.gray, 
-                            vmin=0, vmax=1, norm=None,
-                            extent=(0,width,0,height))
+    #def plotMaps(self, width, height, map1, map_inflated):
+        #"""
+            #width and height are sizes of map in meters
+            #map1 and map_inflated are 2D matrices
+        #"""
+        #info("    Drawing map")
+        #self.ax_map.matshow(map_inflated, 
+                            #origin="lower", 
+                            #cmap=plt.cm.gray, 
+                            #vmin=0, vmax=1, norm=None,
+                            #extent=(0,width,0,height))
+        #self.ax_map.matshow(map1, 
+                            #origin="lower", 
+                            #alpha=0.3, 
+                            #cmap=plt.cm.gray, 
+                            #vmin=0, vmax=1, norm=None,
+                            #extent=(0,width,0,height))
     
-    def plotEntropy(self, entropy, color):
-        info("    Drawing entropy plot")
-        self.ax_entr.plot(entropy['t'], entropy['v'], 
-                          color=color, 
-                          linestyle=self.styles[0]
-                          )
-        self.ax_entr.grid(True)
-        self.ax_entr.autoscale(True)
-        self.ax_entr.set_title("PDF entropy evolution over time", y=1.00)
-        self.ax_entr.set_ylabel("Entropy, bits")
-        self.ax_entr.set_xlabel("Time, sec")
+    #def plotEntropy(self, entropy, color):
+        #info("    Drawing entropy plot")
+        #self.ax_entr.plot(entropy['t'], entropy['v'], 
+                          #color=color, 
+                          #linestyle=self.styles[0]
+                          #)
+        #self.ax_entr.grid(True)
+        #self.ax_entr.autoscale(True)
+        #self.ax_entr.set_title("PDF entropy evolution over time", y=1.00)
+        #self.ax_entr.set_ylabel("Entropy, bits")
+        #self.ax_entr.set_xlabel("Time, sec")
     
-    def plotDistance(self, dist, color):
-        info("    Drawing distance plot")
-        self.ax_dist.plot(dist['t'], dist['v'], 
-                          color=color, 
-                          linestyle=self.styles[0]
-                          )
-        self.ax_dist.grid(True)
-        self.ax_dist.autoscale(True)
-        self.ax_dist.set_title("Distance to destination over time", y=1.00)
-        self.ax_dist.set_ylabel("Distance, m")
+    #def plotDistance(self, dist, color):
+        #info("    Drawing distance plot")
+        #self.ax_dist.plot(dist['t'], dist['v'], 
+                          #color=color, 
+                          #linestyle=self.styles[0]
+                          #)
+        #self.ax_dist.grid(True)
+        #self.ax_dist.autoscale(True)
+        #self.ax_dist.set_title("Distance to destination over time", y=1.00)
+        #self.ax_dist.set_ylabel("Distance, m")
     
-    def plotPath(self, path, color):
-        for k,t in enumerate(path['t']):
-            self.drawArrow(path['x'][k], path['y'][k], path['a'][k], color)
+    #def plotPath(self, path, color):
+        #for k,t in enumerate(path['t']):
+            #self.drawArrow(path['x'][k], path['y'][k], path['a'][k], color)
 
-    def drawArrow(self, x,y,a, color):
-        arr_length  = 0.2
-        head_length = 0.07
-        head_width  = 0.07
-        self.ax_map.arrow(x, y, arr_length*cos(a), arr_length*sin(a), 
-                   length_includes_head = True,
-                   head_width=head_width, 
-                   head_length=head_length, 
-                   fc=color, 
-                   ec=color)
+    #def drawArrow(self, x,y,a, color):
+        #arr_length  = 0.2
+        #head_length = 0.07
+        #head_width  = 0.07
+        #self.ax_map.arrow(x, y, arr_length*cos(a), arr_length*sin(a), 
+                   #length_includes_head = True,
+                   #head_width=head_width, 
+                   #head_length=head_length,
+                   #linewidth=0.001,
+                   #joinstyle='miter', #['miter' | 'round' | 'bevel']
+                   #capstyle='butt', #['butt' | 'round' | 'projecting']   http://stackoverflow.com/a/10297860/5787022
+                   #fc=color, 
+                   #ec=color)
     
-    def show(self):
-        plt.tight_layout() 
-        plt.show()
+    #def show(self):
+        #plt.tight_layout() 
+        #plt.show()
 
 
 
@@ -377,15 +386,20 @@ class PlottableBagRecord:
         #info("    Drawing maps")
         self.plotMap(axes)
         self.plotMapInflated(axes)
+        
+        
 
     def drawArrow(self, axes, x,y,a, color):
-        arr_length  = 0.2
-        head_length = 0.07
-        head_width  = 0.07
+        arr_length  = 0.16
+        head_length = 0.08
+        head_width  = 0.08
         axes.arrow(x, y, arr_length*cos(a), arr_length*sin(a), 
                    length_includes_head = True,
                    head_width=head_width, 
                    head_length=head_length, 
+                   linewidth=0.1,
+                   #joinstyle='miter', #['miter' | 'round' | 'bevel']
+                   #capstyle='butt', #['butt' | 'round' | 'projecting']   http://stackoverflow.com/a/10297860/5787022
                    fc=color, 
                    ec=color)
 

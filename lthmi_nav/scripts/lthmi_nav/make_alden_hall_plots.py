@@ -9,16 +9,8 @@ import matplotlib.lines as mlines
 from subprocess import call
 
 
-usage = """ USAGE:
-    TODO
 
-"""
-
-bagDir = "/home/sd/Desktop/ah_data/2016-12-experiments-in-alden-hall/bags"
-cacheDir = "/home/sd/Desktop/ah_data_cache"
-cwaveToolPath = "/home/sd/ws/devel/lib/lthmi_nav/cwave_cmdline"
-
-DBASE = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
+DBASE = None
 
 LOCATIONS = {
     #name          x       y       yaw
@@ -35,6 +27,33 @@ LOCATIONS = {
     "storage2":   (15.26,  10.26,   0.0),
     "storage3":   (15.27,  8.66,   -1.57079)
 }
+
+""" 
+==== There are 4 sets of routes ====
+6route
+    door1 -> livroom1 
+    livroom1 -> office1
+    office1 -> bathroom1
+    bathroom1 -> music1
+    music1 -> bedroom1
+    bedroom1 -> door2
+
+5route
+    storage1 -> storage2
+    storage2 -> storage3
+    storage3 -> livroom2
+    livroom2 -> livroom1
+    livroom1 -> kitchen1
+    
+nproute = non-POI routes 
+    kitchen1 -> office1
+    office1 -> bedroom1
+
+mcroute = change-of-mind routes
+    kitchen1storage1 
+    storage1tostorage3
+"""
+
 
 BAG_STAMPS = {
     "mx94_no_pois": {
@@ -87,13 +106,16 @@ BAG_STAMPS = {
         "bedroom1todoor2":      ['2016-12-31_12-20-06_EST-0500', '2016-12-31_12-32-07_EST-0500', '2016-12-31_13-02-38_EST-0500'],
     },
     
+    
+    #kitchen1->(livroom1)->storage1
+    #storage1->(storage2)->storage3
     "change_of_mind_mx85_no_pois": {
-        "kitchen1storage1":     ['2016-12-30_23-52-22_EST-0500', '2016-12-31_00-02-24_EST-0500', '2016-12-31_00-10-05_EST-0500', '2016-12-31_00-18-06_EST-0500', '2016-12-31_00-26-40_EST-0500'],
-        "storage1tostorage3":   ['2016-12-30_23-56-01_EST-0500', '2016-12-31_00-06-22_EST-0500', '2016-12-31_00-13-25_EST-0500', '2016-12-31_00-21-30_EST-0500', '2016-12-31_00-30-31_EST-0500']
+        "kitchen1tostorage1":   ['2016-12-30_23-52-22_EST-0500', '2016-12-31_00-02-24_EST-0500', '2016-12-31_00-10-05_EST-0500', '2016-12-31_00-18-06_EST-0500'],#, '2016-12-31_00-26-40_EST-0500'],
+        "storage1tostorage3":   ['2016-12-30_23-56-01_EST-0500', '2016-12-31_00-06-22_EST-0500', '2016-12-31_00-13-25_EST-0500', '2016-12-31_00-21-30_EST-0500'],#, '2016-12-31_00-30-31_EST-0500']
     },
     "change_of_mind_mx85_with_pois": {
-        "kitchen1storage1":     ['2016-12-31_13-25-26_EST-0500', '2016-12-31_13-32-25_EST-0500', '2016-12-31_13-39-14_EST-0500', '2016-12-31_13-46-34_EST-0500', '2016-12-31_14-01-07_EST-0500'],
-        "storage1tostorage3":   ['2016-12-31_13-28-36_EST-0500', '2016-12-31_13-36-11_EST-0500', '2016-12-31_13-42-05_EST-0500', '2016-12-31_13-52-59_EST-0500', '2016-12-31_14-04-18_EST-0500']
+        "kitchen1tostorage1":   ['2016-12-31_13-25-26_EST-0500', '2016-12-31_13-32-25_EST-0500', '2016-12-31_13-39-14_EST-0500', '2016-12-31_13-46-34_EST-0500'],# '2016-12-31_14-01-07_EST-0500'],
+        "storage1tostorage3":   ['2016-12-31_13-28-36_EST-0500', '2016-12-31_13-36-11_EST-0500', '2016-12-31_13-42-05_EST-0500', '2016-12-31_13-52-59_EST-0500'],#, '2016-12-31_14-04-18_EST-0500']
     },
     
     "nav_to_non_poi_mx94": {
@@ -101,7 +123,7 @@ BAG_STAMPS = {
         "office1tobedroom1":    ['2016-12-31_14-32-59_EST-0500', '2016-12-31_14-37-20_EST-0500', '2016-12-31_14-41-48_EST-0500', '2016-12-31_14-46-18_EST-0500'],
     },
     "nav_to_non_poi_mx70": {
-        "kitchen1tooffice1":    ['2016-12-31_18-18-12_EST-0500','2016-12-31_18-23-53_EST-0500' , '2016-12-31_18-39-26_EST-0500', '2016-12-31_18-51-16_EST-0500'],
+        "kitchen1tooffice1":    ['2016-12-31_18-18-12_EST-0500', '2016-12-31_18-23-53_EST-0500', '2016-12-31_18-39-26_EST-0500', '2016-12-31_18-51-16_EST-0500'],
         "office1tobedroom1":    ['2016-12-31_18-20-36_EST-0500', '2016-12-31_18-35-12_EST-0500', '2016-12-31_18-46-21_EST-0500', '2016-12-31_18-54-57_EST-0500'],
     },
     
@@ -156,8 +178,75 @@ BAG_STAMPS = {
         "bedroom1todoor2":      ['2017-01-01_23-32-32_EST-0500', '2017-01-01_23-51-26_EST-0500', '2017-01-02_00-16-53_EST-0500'],
     },
     
-    "pos_div" : {
-        "storage1to2" : {
+    
+    # comparing pos div methods
+    "nearcog_extremal__no_move": {
+        "storage1tostorage2":          ["2017-01-02_02-06-57_EST-0500", "2017-01-02_02-24-31_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_02-08-49_EST-0500", "2017-01-02_02-25-56_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_02-14-36_EST-0500", "2017-01-02_08-06-52_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_02-19-02_EST-0500", "2017-01-02_08-10-09_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_02-20-53_EST-0500", "2017-01-02_08-12-32_EST-0500"]
+    },
+    "nearcog_extremal__cog2lopt": {
+        "storage1tostorage2":          ["2017-01-02_08-20-50_EST-0500", "2017-01-02_08-32-56_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_08-22-44_EST-0500", "2017-01-02_08-35-00_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_08-25-42_EST-0500", "2017-01-02_08-36-23_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_08-28-40_EST-0500", "2017-01-02_08-40-09_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_08-29-55_EST-0500", "2017-01-02_08-41-33_EST-0500"]
+    },
+    "nearcog_extremal__nearcog_obst": {
+        "storage1tostorage2":          ["2017-01-02_08-50-45_EST-0500", "2017-01-02_09-07-48_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_08-58-57_EST-0500", "2017-01-02_09-09-07_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_09-00-40_EST-0500", "2017-01-02_09-10-30_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_09-04-00_EST-0500", "2017-01-02_09-12-43_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_09-05-15_EST-0500", "2017-01-02_09-15-12_EST-0500"]
+    },
+    "altertile__no_move": {
+        "storage1tostorage2":          ["2017-01-02_09-20-26_EST-0500", "2017-01-02_09-32-59_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_09-22-03_EST-0500", "2017-01-02_09-35-51_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_09-23-47_EST-0500", "2017-01-02_09-37-15_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_09-27-10_EST-0500", "2017-01-02_09-40-13_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_09-29-30_EST-0500", "2017-01-02_09-42-01_EST-0500"]
+    },
+    "altertile__cog2lopt": {
+        "storage1tostorage2":          ["2017-01-02_09-45-48_EST-0500", "2017-01-02_09-59-49_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_09-47-25_EST-0500", "2017-01-02_10-01-29_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_09-52-07_EST-0500", "2017-01-02_10-03-51_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_09-54-57_EST-0500", "2017-01-02_10-05-41_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_09-57-35_EST-0500", "2017-01-02_10-07-50_EST-0500"]
+    },
+    "altertile__nearcog_obst": {
+        "storage1tostorage2":          ["2017-01-02_10-29-59_EST-0500", "2017-01-02_10-40-40_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_10-31-45_EST-0500", "2017-01-02_10-42-08_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_10-33-59_EST-0500", "2017-01-02_10-43-49_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_10-35-50_EST-0500", "2017-01-02_10-45-33_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_10-37-17_EST-0500", "2017-01-02_10-47-38_EST-0500"]
+    },
+    "extredist__no_move": {
+        "storage1tostorage2":          ["2017-01-02_10-51-22_EST-0500", "2017-01-02_11-08-09_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_10-52-55_EST-0500", "2017-01-02_11-09-39_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_10-54-29_EST-0500", "2017-01-02_11-11-00_EST-0500"],
+        "livroom2tolivroom1":              ["2017-01-02_10-58-15_EST-0500", "2017-01-02_11-13-45_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_11-03-28_EST-0500", "2017-01-02_11-35-47_EST-0500"]
+    },
+    "extredist__cog2lopt": {
+        "storage1tostorage2":          ["2017-01-02_11-40-14_EST-0500", "2017-01-02_11-59-34_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_11-41-51_EST-0500", "2017-01-02_12-02-03_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_11-52-24_EST-0500", "2017-01-02_12-03-34_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_11-54-43_EST-0500", "2017-01-02_12-05-31_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_11-56-37_EST-0500", "2017-01-02_12-07-39_EST-0500"]
+    },
+    "extredist__nearcog_obst": {
+        "storage1tostorage2":          ["2017-01-02_12-11-18_EST-0500", "2017-01-02_12-31-47_EST-0500"],
+        "storage2tostorage3":          ["2017-01-02_12-12-49_EST-0500", "2017-01-02_12-32-56_EST-0500"],
+        "storage3tolivroom2":   ["2017-01-02_12-14-14_EST-0500", "2017-01-02_12-34-12_EST-0500"],
+        "livroom2tolivroom1":          ["2017-01-02_12-16-08_EST-0500", "2017-01-02_12-36-20_EST-0500"],
+        "livroom1tokitchen1":   ["2017-01-02_12-17-58_EST-0500", "2017-01-02_12-38-16_EST-0500"]
+    },
+
+        
+    "pos_div1" : {
+        "storage1tostorage2" : {
             "nearcog_extremal__no_move":        ["2017-01-02_02-06-57_EST-0500", "2017-01-02_02-24-31_EST-0500"],
             "nearcog_extremal__cog2lopt":       ["2017-01-02_08-20-50_EST-0500", "2017-01-02_08-32-56_EST-0500"],
             "nearcog_extremal__nearcog_obst":   ["2017-01-02_08-50-45_EST-0500", "2017-01-02_09-07-48_EST-0500"],
@@ -168,7 +257,7 @@ BAG_STAMPS = {
             "extredist__cog2lopt":              ["2017-01-02_11-40-14_EST-0500", "2017-01-02_11-59-34_EST-0500"],
             "extredist__nearcog_obst":          ["2017-01-02_12-11-18_EST-0500", "2017-01-02_12-31-47_EST-0500"]
         },
-        "storage2to3" : {
+        "storage2tostorage3" : {
             "nearcog_extremal__no_move":        ["2017-01-02_02-08-49_EST-0500", "2017-01-02_02-25-56_EST-0500"],
             "nearcog_extremal__cog2lopt":       ["2017-01-02_08-22-44_EST-0500", "2017-01-02_08-35-00_EST-0500"],
             "nearcog_extremal__nearcog_obst":   ["2017-01-02_08-58-57_EST-0500", "2017-01-02_09-09-07_EST-0500"],
@@ -190,7 +279,7 @@ BAG_STAMPS = {
             "extredist__cog2lopt":              ["2017-01-02_11-52-24_EST-0500", "2017-01-02_12-03-34_EST-0500"],
             "extredist__nearcog_obst":          ["2017-01-02_12-14-14_EST-0500", "2017-01-02_12-34-12_EST-0500"]
         },
-        "livroom2to1" : {
+        "livroom2tolivroom1" : {
             "nearcog_extremal__no_move":        ["2017-01-02_02-19-02_EST-0500", "2017-01-02_08-10-09_EST-0500"],
             "nearcog_extremal__cog2lopt":       ["2017-01-02_08-28-40_EST-0500", "2017-01-02_08-40-09_EST-0500"],
             "nearcog_extremal__nearcog_obst":   ["2017-01-02_09-04-00_EST-0500", "2017-01-02_09-12-43_EST-0500"],
@@ -328,25 +417,25 @@ def plot_all():
 
 
 
-    gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["nearcog_extremal__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["altertile__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage1to2"]["extredist__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["nearcog_extremal__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["nearcog_extremal__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["nearcog_extremal__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["altertile__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["altertile__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["altertile__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["extredist__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["extredist__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage1tostorage2"]["extredist__nearcog_obst"], "blue")
 
-    gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["nearcog_extremal__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["altertile__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["storage2to3"]["extredist__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["nearcog_extremal__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["nearcog_extremal__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["nearcog_extremal__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["altertile__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["altertile__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["altertile__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["extredist__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["extredist__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["storage2tostorage3"]["extredist__nearcog_obst"], "blue")
 
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__no_move"], "blue")
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["nearcog_extremal__cog2lopt"], "blue")
@@ -358,15 +447,15 @@ def plot_all():
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__cog2lopt"], "blue")
     gp.plotArray(bags["pos_div"]["storage3tolivroom2"]["extredist__nearcog_obst"], "blue")
     
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["nearcog_extremal__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["altertile__nearcog_obst"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__no_move"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__cog2lopt"], "blue")
-    gp.plotArray(bags["pos_div"]["livroom2to1"]["extredist__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["nearcog_extremal__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["nearcog_extremal__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["nearcog_extremal__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["altertile__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["altertile__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["altertile__nearcog_obst"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["extredist__no_move"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["extredist__cog2lopt"], "blue")
+    gp.plotArray(bags["pos_div"]["livroom2tolivroom1"]["extredist__nearcog_obst"], "blue")
 
     gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__no_move"], "blue")
     gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["nearcog_extremal__cog2lopt"], "blue")
@@ -379,159 +468,6 @@ def plot_all():
     gp.plotArray(bags["pos_div"]["livroom1tokitchen1"]["extredist__nearcog_obst"], "blue")
 
     gp.show()
-
-
-#def plot_mx94_vs_mx70_no_pois2():
-    #dbase = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
-    
-    #fig = plt.figure(facecolor='white')
-    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
-    
-    ##ax_map   = plt.subplot(121)
-    ##ax_dist1 = plt.subplot(222)
-    ##ax_entr1 = plt.subplot(224, sharex=ax_dist1)
-
-    ##ax_map   = plt.subplot(131)
-    ##ax_dist1 = plt.subplot(232)
-    ##ax_entr1 = plt.subplot(235, sharex=ax_dist1)
-    ##ax_dist2 = plt.subplot(233)
-    ##ax_entr2 = plt.subplot(236, sharex=ax_dist2)
-    ###ax_dist3 = plt.subplot(244)
-    ###ax_entr3 = plt.subplot(248, sharex=ax_dist3)
-    
-    #ax_map   = plt.subplot(141)
-    #ax_dist1 = plt.subplot(242)
-    #ax_entr1 = plt.subplot(246, sharex=ax_dist1)
-    #ax_dist2 = plt.subplot(243)
-    #ax_entr2 = plt.subplot(247, sharex=ax_dist2)
-    #ax_dist3 = plt.subplot(244)
-    #ax_entr3 = plt.subplot(248, sharex=ax_dist3)
-    
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][0])).plotMaps(ax_map)
-
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][0])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#9999FF")
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][1])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#3333FF")
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["door1tolivroom1"][2])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#000099")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][0])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#FF9999")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][1])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#FF3333")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["door1tolivroom1"][2])).plotPathDistEntropy(ax_map, ax_dist1, ax_entr1, "#BB0000")
-    
-    
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][0])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#9999FF")
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][1])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#3333FF")
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["office1tobathroom1"][2])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#000099")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][0])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#FF9999")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][1])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#FF3333")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["office1tobathroom1"][2])).plotPathDistEntropy(ax_map, ax_dist2, ax_entr2, "#BB0000")
-    
-    
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][0])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#9999FF")
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][1])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#3333FF")
-    #PlottableBagRecord(dbase.getRecord(bags["mx94_no_pois"]["music1tobedroom1"][2])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#000099")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][0])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#FF9999")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][1])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#FF3333")
-    #PlottableBagRecord(dbase.getRecord(bags["mx70_no_pois"]["music1tobedroom1"][2])).plotPathDistEntropy(ax_map, ax_dist3, ax_entr3, "#BB0000")
-    
-    ##plt.tight_layout() 
-    #plt.show()()
-
-
-
-#def plot_compare2_6path_2map(stamp_set1, stamp_set2):
-    #fig = plt.figure(facecolor='white')
-    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
-    
-    #ax_map1   = plt.subplot(2,4,1)
-    
-    #ax_dist1 = plt.subplot(4,4,2)
-    #ax_entr1 = plt.subplot(4,4,6, sharex=ax_dist1)
-    #ax_dist2 = plt.subplot(4,4,3)
-    #ax_entr2 = plt.subplot(4,4,7, sharex=ax_dist2)
-    #ax_dist3 = plt.subplot(4,4,4)
-    #ax_entr3 = plt.subplot(4,4,8, sharex=ax_dist3)
-    
-    #ax_map2   = plt.subplot(2,4,5)
-    
-    #ax_dist4 = plt.subplot(4,4,10)
-    #ax_entr4 = plt.subplot(4,4,14, sharex=ax_dist4)
-    #ax_dist5 = plt.subplot(4,4,11)
-    #ax_entr5 = plt.subplot(4,4,15, sharex=ax_dist5)
-    #ax_dist6 = plt.subplot(4,4,12)
-    #ax_entr6 = plt.subplot(4,4,16, sharex=ax_dist6)
-    
-    #color_set1 = ["#9999FF","#3333FF","#000099"]
-    #color_set2 = ["#FF9999","#FF3333","#BB0000"]
-    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map1)
-
-    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set1["door1tolivroom1"],    color_set1)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set2["door1tolivroom1"],    color_set2)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["office1tobathroom1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set2["office1tobathroom1"], color_set2)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist3, ax_entr3, stamp_set1["music1tobedroom1"],   color_set1)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist3, ax_entr3, stamp_set2["music1tobedroom1"],   color_set2)
-    
-    
-    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map2)
-
-    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["livroom1tooffice1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["livroom1tooffice1"], color_set2)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set1["bathroom1tomusic1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist5, ax_entr5, stamp_set2["bathroom1tomusic1"], color_set2)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set1["bedroom1todoor2"],   color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist6, ax_entr6, stamp_set2["bedroom1todoor2"],   color_set2)
-
-    ##plt.tight_layout() 
-    #plt.show()()
-
-
-
-
-#def plot_compare2_6path_3map_legacy(stamp_set1, stamp_set2):
-    #fig = plt.figure(facecolor='white')
-    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
-    
-    #ax_map1   = plt.subplot(3,3,1)
-    #ax_dist1 = plt.subplot(6,3,2)
-    #ax_dist2 = plt.subplot(6,3,3)
-    #ax_entr1 = plt.subplot(6,3,5, sharex=ax_dist1)
-    #ax_entr2 = plt.subplot(6,3,6, sharex=ax_dist2)
-    
-    #ax_map2   = plt.subplot(3,3,4)
-    #ax_dist3 = plt.subplot(6,3,8)
-    #ax_dist4 = plt.subplot(6,3,9)
-    #ax_entr3 = plt.subplot(6,3,11, sharex=ax_dist3)    
-    #ax_entr4 = plt.subplot(6,3,12, sharex=ax_dist4)
-    
-    #ax_map3   = plt.subplot(3,3,7)
-    #ax_dist5 = plt.subplot(6,3,14)
-    #ax_dist6 = plt.subplot(6,3,15)
-    #ax_entr5 = plt.subplot(6,3,17, sharex=ax_dist5)
-    #ax_entr6 = plt.subplot(6,3,18, sharex=ax_dist6)
-    
-    
-    #color_set1 = ["#9999FF","#3333FF","#000099"]
-    #color_set2 = ["#FF9999","#FF3333","#BB0000"]
-    
-    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map1)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set1["door1tolivroom1"],   color_set1)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist1, ax_entr1, stamp_set2["door1tolivroom1"],   color_set2)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set1["bathroom1tomusic1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map1, ax_dist2, ax_entr2, stamp_set2["bathroom1tomusic1"], color_set2)
-    
-    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map2)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist3, ax_entr3, stamp_set1["livroom1tooffice1"],   color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist3, ax_entr3, stamp_set2["livroom1tooffice1"],   color_set2)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set1["bedroom1todoor2"], color_set1)
-    #drawFamilyOfBagRecords(ax_map2, ax_dist4, ax_entr4, stamp_set2["bedroom1todoor2"], color_set2)
-    
-    #PlottableBagRecord(DBASE.getRecord(stamp_set1["door1tolivroom1"][0])).plotMaps(ax_map3)
-    #drawFamilyOfBagRecords(ax_map3, ax_dist5, ax_entr5, stamp_set1["music1tobedroom1"], color_set1)
-    #drawFamilyOfBagRecords(ax_map3, ax_dist5, ax_entr5, stamp_set2["music1tobedroom1"], color_set2)
-    #drawFamilyOfBagRecords(ax_map3, ax_dist6, ax_entr6, stamp_set1["office1tobathroom1"],   color_set1)
-    #drawFamilyOfBagRecords(ax_map3, ax_dist6, ax_entr6, stamp_set2["office1tobathroom1"],   color_set2)
-
-    ##plt.tight_layout() 
-    #plt.show()()
 
 
 def plot_set_of_tries(ax_map, ax_dist, ax_entr, bag_stamps, colors):
@@ -552,6 +488,7 @@ def plot_on_1map(fig, sub_grid, locations, method_names, method_ids, method_colo
     fig.add_subplot(ax_map)
     map_stamp = stamp_sets[method_ids[0]][route_ids[0]][0]
     PlottableBagRecord(DBASE.getRecord(map_stamp)).plotMaps(ax_map)
+    #draw labels for locations:
     for k, loc in enumerate(locations):
         ax_map.annotate(loc,
             xy=LOCATIONS[loc][:2], 
@@ -635,6 +572,133 @@ def plot_compare_6route_3map(title, method_names, method_ids, method_color_sets)
     return outer_grid
 
 
+def plot_compare_5route_3map(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(2*8.5, 2*11.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(3, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.9) #, wspace=0.05)
+    lines = plot_on_1map(fig, outer_grid[0], 
+                locations= ["storage1", "storage2", "livroom2", "livroom1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["storage1->storage2", "livroom2->livroom1"],
+                route_ids=   ["storage1tostorage2", "livroom2tolivroom1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1], 
+                locations= ["storage2", "storage3", "livroom1", "kitchen1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["storage2->storage3", "livroom1->kitchen1"],
+                route_ids=   ["storage2tostorage3", "livroom1tokitchen1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[2], 
+                locations= ["storage3", "livroom2"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["storage3->livroom2"],
+                route_ids=   ["storage3tolivroom2"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 2
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.965], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
+
+def plot_compare_nproutes(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(11.0, 12.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(2, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.85) #, wspace=0.05)
+    
+    lines = plot_on_1map(fig, outer_grid[0],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["kitchen1", "office1"],
+                route_names= ["kitchen1->office1"],
+                route_ids=   ["kitchen1tooffice1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["office1", "bedroom1"],
+                route_names= ["office1->bedroom1"],
+                route_ids=   ["office1tobedroom1"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 4
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.95], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
+def plot_compare_mcroutes(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(11.0, 12.0), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(2, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.04, top=0.85) #, wspace=0.05)
+    
+    lines = plot_on_1map(fig, outer_grid[0],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["kitchen1", "storage1", "livroom1"],
+                route_names= ["kitchen1->(livroom1)->storage1"],
+                route_ids=   ["kitchen1tostorage1"],
+                stamp_sets=BAG_STAMPS)
+    plot_on_1map(fig, outer_grid[1],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                locations=   ["storage1", "storage3", "storage2"],
+                route_names= ["storage1->(storage2)->storage3"],
+                route_ids=   ["storage1tostorage3"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 4
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper left', bbox_to_anchor=[0.02,0.0,0.98,0.95], ncol=ntries )
+    fig.suptitle(title, fontsize=25,horizontalalignment='center')
+    return outer_grid
+
+
+
 def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
     print "\n\n======================================================================="
     print title
@@ -653,84 +717,348 @@ def plot_compare2_6route_3map(title, method_names, method_ids, out_file):
     #plt.show()
 
 
-#def plot_compare_mx94_vs_mx70_without_pois(out_file):
-    #plot_compare2_6route_3map(
-        #title="Comparing performance: mx94 (blue) and mx70 (red) without points of interest",
-        #method_names=      ["mx94",         "mx70"],
-        #method_ids=        ["mx94_no_pois", "mx70_no_pois"],
-        #out_file=out_file
-    #)
+def plot_compare3_5route_3map(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#9999FF","#3333FF","#000099"]
+    red_set  = ["#FF9999","#FF3333","#BB0000"]
+    green_set  = ["#99FF99","#33FF33","#00BB00"]
+    
+    plot_compare_5route_3map(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set, red_set, green_set]
+    )
+    print "Saving file to:"
+    print out_file
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+def plot_compare2_nproutes(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#BBBBFF","#8888FF", "#2222CC","#000088"]
+    red_set  = ["#FFBBBB","#FF8888", "#CC2222","#880000"]
+    
+    plot_compare_nproutes(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set, red_set]
+    )
+    print "Saving file to:"
+    print out_file
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
 
 
-if __name__=="__main__":
-    #plot_all()
-    #mx94 vs mx70: with and without POIs
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: mx94 (blue) and mx70 (red) WITHOUT points of interest",
-        method_names=   ["mx94",         "mx70"],
-        method_ids=     ["mx94_no_pois", "mx70_no_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/mx94_vs_mx70_without_pois.pdf"
+def plot_compare2_mcroutes(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#BBBBFF","#8888FF", "#2222CC","#000088"]
+    red_set  = ["#FFBBBB","#FF8888", "#CC2222","#880000"]
+    print method_names
+    plot_compare_mcroutes(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [blue_set, red_set]
     )
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: mx94 (blue) and mx70 (red) WITH points of interest",
-        method_names=   ["mx94",         "mx70"],
-        method_ids=     ["mx94_pois", "mx70_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/mx94_vs_mx70_with_pois.pdf"
-    )
+    print "Saving file to:"
+    print out_file
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+
+def plots_for_thesis(output_file_prefix, plot_name):
+    extension = ".pdf"
+    if plot_name == "mx94-vs-mx70-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of HMI accuracy when no POIs are defined",
+            method_names=   ["94% HMI",         "70% HMI"],
+            method_ids=     ["mx94_no_pois", "mx70_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "mx94-vs-mx70-with-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of HMI accuracy when POIs are present",
+            method_names=   ["94% HMI",         "70% HMI"],
+            method_ids=     ["mx94_pois", "mx70_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
     
     #two matrices: with and without POIs
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: using same (blue) vs different (red) interface matrices WITHOUT points of interest",
-        method_names=   ["same matrix", "different matrices"],
-        method_ids=     ["mx94_no_pois",   "two_mx_no_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/two_mx_no_pois.pdf"
-    )
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: using same (blue) vs different (red) interface matrices WITH points of interest",
-        method_names=   ["same matrix", "different matrices"],
-        method_ids=     ["mx94_pois",   "two_mx_with_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/two_mx_with_pois.pdf"
-    )
+    elif plot_name == "two-mx-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of inference_unit matrix being less accurate than HMI matrix, without POIs",
+            method_names=   ["same matrix", "different matrices"],
+            method_ids=     ["mx94_no_pois",   "two_mx_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "two-mx-with-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of inference_unit matrix being less accurate than HMI matrix, with POIs",
+            method_names=   ["same matrix", "different matrices"],
+            method_ids=     ["mx94_pois",   "two_mx_with_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
 
     #goal marker (no POIs): mx94, mx70
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) goal marker displayed, mx94",
-        method_names=   ["without goal marker", "with goal marker"],
-        method_ids=     ["mx94_pois",   "goal_marker_mx94"],
-        out_file=       "/home/sd/Desktop/temp_pics/goal_marker_mx94.pdf"
-    )
-    
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) goal marker displayed, mx70",
-        method_names=   ["without goal marker", "with goal marker"],
-        method_ids=     ["mx70_no_pois",   "goal_marker_mx70"],
-        out_file=       "/home/sd/Desktop/temp_pics/goal_marker_mx70.pdf"
-    )
+    elif plot_name == "goal-marker-mx94":
+        plot_compare2_6route_3map(
+            title=          "Effect of the goal marker, 94% HMI",
+            method_names=   ["without goal marker", "with goal marker"],
+            method_ids=     ["mx94_no_pois",   "goal_marker_mx94"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "goal-marker-mx70":
+        plot_compare2_6route_3map(
+            title=          "Effect of the goal marker, 70% HMI",
+            method_names=   ["without goal marker", "with goal marker"],
+            method_ids=     ["mx70_no_pois",   "goal_marker_mx70"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
 
     #smoothening (no POIs): mx94, mx70
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) smoothening, mx94",
-        method_names=   ["same matrix", "different matrices"],
-        method_ids=     ["mx94_pois",   "smooth_mx94_no_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/smooth_mx94_no_pois.pdf"
-    )
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) smoothening, mx70",
-        method_names=   ["without smoothening", "with smoothening"],
-        method_ids=     ["mx70_no_pois",   "smooth_mx70_no_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/smooth_mx70_no_pois.pdf"
-    )
+    elif plot_name == "smooth-mx94-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of PDF smoothening, 94% HMI",
+            method_names=   ["without smoothening", "with smoothening"],
+            method_ids=     ["mx94_no_pois",   "smooth_mx94_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "smooth-mx70-no-pois":
+        plot_compare2_6route_3map(
+            title=          "Effect of PDF smoothening, 70% HMI",
+            method_names=   ["without smoothening", "with smoothening"],
+            method_ids=     ["mx70_no_pois",   "smooth_mx70_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
     
     #pois: mx94, mx70
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) POIs, mx94",
-        method_names=   ["without POIs", "with POIs"],
-        method_ids=     ["mx94_no_pois",   "mx94_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/pois_mx94.pdf"
+    elif plot_name == "pois-mx94":
+        plot_compare2_6route_3map(
+            title=          "Effect of POIs, 94% HMI",
+            method_names=   ["without POIs", "with POIs"],
+            method_ids=     ["mx94_no_pois",   "mx94_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pois-mx70":
+        plot_compare2_6route_3map(
+            title=          "Effect of POIs, 70% HMI",
+            method_names=   ["without POIs", "with POIs"],
+            method_ids=     ["mx70_no_pois",   "mx70_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+
+
+    ###############compare pos methods 
+    elif plot_name == "pos-nearcog_extremal":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of POSE SELECTION policy when division policy is 'nearcog_extremal'",
+            method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+            method_ids=     ["nearcog_extremal__no_move",   "nearcog_extremal__cog2lopt", "nearcog_extremal__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pos-altertile":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of POSE SELECTION policy when division policy is 'altertile'",
+            method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+            method_ids=     ["altertile__no_move",   "altertile__cog2lopt", "altertile__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pos-extredist":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of POSE SELECTION policy when division policy is 'extredist'",
+            method_names=   ["no_move", "cog2lopt", "nearcog_obst"],
+            method_ids=     ["extredist__no_move",   "extredist__cog2lopt", "extredist__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+
+    ##############compare div methods 
+    elif plot_name == "div-no_move":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'no_move'",
+            method_names=   ["nearcog_extremal", "altertile", "extredist"],
+            method_ids=     ["nearcog_extremal__no_move",   "altertile__no_move", "extredist__no_move"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "div-cog2lopt":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'cog2lopt'",
+            method_names=   ["nearcog_extremal", "altertile", "extredist"],
+            method_ids=     ["nearcog_extremal__cog2lopt",   "altertile__cog2lopt", "extredist__cog2lopt"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "div-nearcog_obst":
+        plot_compare3_5route_3map(
+            title=          "Performance effect of MAP SEGMENTATION policy when pose selection policy is 'nearcog_obst'",
+            method_names=   ["nearcog_extremal", "altertile", "extredist"],
+            method_ids=     ["nearcog_extremal__nearcog_obst",   "altertile__nearcog_obst", "extredist__nearcog_obst"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    
+    ############## Navigation to Non-POIs
+    elif plot_name == "non-pois":
+        plot_compare2_nproutes(
+            title=          "Navigating to Non-POI vertices",
+            method_names=   ["mx94", "mx70"],
+            method_ids=     ["nav_to_non_poi_mx94",   "nav_to_non_poi_mx70"],
+            out_file=       output_file_prefix + plot_name + extension
+        ) 
+    
+    ############## Change of mind
+    elif plot_name == "change-of-mind":
+        plot_compare2_mcroutes(
+            title=          "Changing intended destination on the way",
+            method_names=   ["W/out POIs", "With POIs"],
+            method_ids=     ["change_of_mind_mx85_no_pois",   "change_of_mind_mx85_with_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        ) 
+    else:
+        return False
+    
+    return True
+    
+
+
+
+def plot_compare_3route_1map(title, method_names, method_ids, method_color_sets):
+    fig = plt.figure(figsize=(16, 7), facecolor='white')
+    #plt.subplots_adjust(left=0.02, right=0.98, top=0.9, bottom=0.1)
+    outer_grid = gridspec.GridSpec(1, 1)
+    outer_grid.update(left=0.02, right=0.98, bottom=0.08, top=0.85) #, wspace=0.05)
+    plot_on_1map(fig, outer_grid[0], 
+                locations= ["door1", "livroom1", "office1", "bathroom1", "music1", "bedroom1"],
+                method_names=      method_names,
+                method_ids=        method_ids,
+                method_color_sets= method_color_sets,
+                route_names= ["door1->livroom1", "office1->bathroom1", "music1->bedroom1"],
+                route_ids=   ["door1tolivroom1", "office1tobathroom1", "music1tobedroom1"],
+                stamp_sets=BAG_STAMPS)
+    #plt.tight_layout()
+    #fig.autolayout = True
+    
+    ntries = 3
+    labels = []
+    handles=[]
+    for try_k in xrange(ntries):
+        for method_k,method_name in enumerate(method_names):
+            handle = mlines.Line2D([], [], 
+                color=method_color_sets[method_k][try_k],
+                linewidth=2) #, label="%s, try %d"%(method_name,try_k))
+            handles.append(handle)
+            labels.append("%s, try %d"%(method_name,try_k+1))
+    fig.legend( handles, labels, loc='upper right', bbox_to_anchor=[0.02,0.0,0.98,0.999], ncol=ntries )
+    plt.figtext(0.02, 0.94, title, fontsize=20, fontweight='bold', style='italic', ha='left')
+    return outer_grid
+
+def plot_compare2_3route_1map(title, method_names, method_ids, out_file):
+    print "\n\n======================================================================="
+    print title
+    print "======================================================================="
+    blue_set = ["#9999FF","#3333FF","#000099"]
+    red_set  = ["#FF9999","#FF3333","#BB0000"]
+    
+    plot_compare_3route_1map(
+        title=title,
+        method_names=      method_names,
+        method_ids=        method_ids,
+        method_color_sets= [red_set,     blue_set]
     )
-    plot_compare2_6route_3map(
-        title=          "Comparing performance: with(red) and without (blue) POIs, mx70",
-        method_names=   ["without POIs", "with POIs"],
-        method_ids=     ["mx70_no_pois",   "mx70_pois"],
-        out_file=       "/home/sd/Desktop/temp_pics/pois_mx70.pdf"
-    )
+    plt.savefig(out_file)
+    #call(["evince", out_file])
+    #plt.show()
+
+
+def plots_for_RSS(output_file_prefix, plot_name):
+    #% 70 vs 94 no pois
+    #% with pois vs no pois
+    #% with and without goal marker
+    #% smooth and no smooth
+    #% nav to no pois
+    #% change of mind
+    extension = ".pdf"
+    if plot_name == "mx":
+        plot_compare2_3route_1map(
+            title=          "a) 94% vs 70% HMI matrix",
+            method_names=   ["mx70",         "mx949"],
+            method_ids=     ["mx70_no_pois", "mx94_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pois":
+        plot_compare2_3route_1map(
+            title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
+            method_names=   ["no POIs",      "with POIs"],
+            method_ids=     ["mx94_no_pois", "mx94_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "pois-70":
+        plot_compare2_3route_1map(
+            title=          "b) Effect of POIs", #     Uniform init PDF vs PDF with POIs
+            method_names=   ["no POIs",      "with POIs"],
+            method_ids=     ["mx70_no_pois", "mx70_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "smooth":
+        plot_compare2_3route_1map(
+            title=          "c) Effect of PDF smoothening", 
+            method_names=   ["w/o smoothening",      "w/ smoothening"],
+            method_ids=     ["mx94_no_pois", "smooth_mx94_no_pois"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    elif plot_name == "goal-marker":
+        plot_compare2_3route_1map(
+            title=          "d) Effect of goal marker on segmented map", #Without goal marker vs with goal marker
+            method_names=   ["w/o goal marker",      "w/ goal marker"],
+            method_ids=     ["mx94_no_pois", "goal_marker_mx94"],
+            out_file=       output_file_prefix + plot_name + extension
+        )
+    else:
+        return False
+    return True
+
+usage = """ USAGE:
+    %s <bagDir> <parsedBagsCacheDir> <cwaveToolPath> <outputDir> <outputFile>
+
+""" % sys.argv[0]
+    
+if __name__=="__main__":
+    bagDir = "/home/sd/Desktop/ah_data/2016-12-experiments-in-alden-hall/bags"
+    cacheDir = "/home/sd/Desktop/ah_data_cache"
+    cwaveToolPath = "/home/sd/ws/devel/lib/lthmi_nav/cwave_cmdline"
+
+    if len(sys.argv)<4:
+        print "Incorrect usage!"
+        exit(1)
+    
+    bagDir          = sys.argv[1]
+    cacheDir        = sys.argv[2]
+    cwaveToolPath   = sys.argv[3]
+    outputDir       = sys.argv[4]
+    outputFile      = sys.argv[5]
+  
+    DBASE = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
+    
+    thesis_prefix = "robot-plot-big-"
+    rss_prefix = "robot-plot-"
+    if outputFile.startswith(thesis_prefix):
+        plot_name = outputFile[len(thesis_prefix):-4]
+        if not plots_for_thesis(outputDir+"/"+thesis_prefix,  plot_name):
+            print "Unknown plot name for thesis plot: '%s'" % plot_name
+            exit(1)
+    else:
+        plot_name = outputFile[len(rss_prefix):-4]
+        if not plots_for_RSS(outputDir+"/"+rss_prefix,  plot_name):
+            print "Unknown plot name for RSS plot: '%s'" % plot_name
+            exit(1)
+
+    
+    

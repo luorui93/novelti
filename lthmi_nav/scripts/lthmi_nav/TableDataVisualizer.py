@@ -14,10 +14,8 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-def drawTableWithBars(ax, means, stds, group_names, color_names):
+def drawTableWithBars(ax, means, stds, group_names, color_names, colors):
     #matplotlib.rcParams.update({'font.size': 16})
-    bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
-                '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
     gap = 0.5 # measured in bar width's
     n_colors = len(color_names)
     n_groups = len(group_names)
@@ -25,7 +23,7 @@ def drawTableWithBars(ax, means, stds, group_names, color_names):
     
     
     color_offsets = width*np.arange(n_colors)
-    colors = [bar_colors[cid] for cid in xrange(n_colors)]
+    colors = [colors[cid] for cid in xrange(n_colors)]
     
     group_barplots = []
     for gid, group_name in enumerate(group_names):
@@ -35,19 +33,21 @@ def drawTableWithBars(ax, means, stds, group_names, color_names):
     ax.set_xticks(np.arange((1.0-gap*width)/2, n_groups,1))
     ax.set_xticklabels(tuple(group_names))
     
-    ax.legend(group_barplots[0], color_names,
-        ncol=len(color_names),
-        bbox_to_anchor=(0.0, 1.03, 1.0, 0.1), 
-        loc=3,
-        mode="expand", 
-        borderaxespad=0.
-    )
+    #ax.legend(group_barplots[0], color_names,
+        #ncol=len(color_names),
+        #bbox_to_anchor=(0.0, 1.03, 1.0, 0.1), 
+        #loc=3,
+        #mode="expand", 
+        #borderaxespad=0.
+    #)
  
 
     ax.yaxis.grid(True)
     #ax.xaxis.grid(True)
 
-def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+def render4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+    bar_colors = [  'yellow', '#ABABAB', '#5F9ED1', '#FF800E', '#006B40', 
+                '#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
     n_rows = len(page_row_names)
     n_cols = len(page_col_names)
     f, axarr = plt.subplots(n_rows, n_cols, sharex=True, facecolor='white', figsize=(16, 12))
@@ -65,16 +65,26 @@ def display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_name
                 ax = axarr[page_row]
             else:
                 ax = axarr[page_row, page_col]
-            drawTableWithBars(ax, means2d, stds2d, plot_group_names, plot_color_names)
+            drawTableWithBars(ax, means2d, stds2d, plot_group_names, plot_color_names, bar_colors)
             if page_row==0:
-                ax.set_title(page_col_names[page_col], y=1.15)
+                ax.set_title(page_col_names[page_col], y=1.0) #1.15)
             if page_col==0:
                 ax.set_ylabel(page_row_names[page_row])
-    f.suptitle(title, fontsize=14, fontweight='bold')
+    #f.suptitle(title, fontsize=14, fontweight='bold')
+    plt.figtext(0.02, 0.95, title, fontsize=17, fontweight='bold', ha='left')
     setSameYScale(axarr, n_rows, n_cols)
-    plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
-    plt.show()
-    return axarr
+    #plt.tight_layout(pad=1.0, h_pad=4.0, w_pad=2.0, rect=(0, 0, 1, 0.95))
+    f.subplots_adjust(left=0.05, bottom=0.03, right=0.99, top=0.9, wspace=0.12, hspace=0.07) 
+    
+    labels = []
+    handles=[]
+    for k,color_name in enumerate(plot_color_names):
+            handle = mpatches.Patch(color=bar_colors[k])
+            handles.append(handle)
+            labels.append(color_name)
+    f.legend( handles, labels, loc='upper right', bbox_to_anchor=[0.02,0.0,0.98,0.9999], ncol=len(plot_color_names) )
+
+    return (f,plt, axarr)
 
 
 def setSameYScale(axarr, n_rows, n_cols):
@@ -155,6 +165,16 @@ class DataTable:
             #print len(self.data[key])
         return True
     
+    def getNumberOfRecords(self):
+        anyKey = self.data.keys()[0]
+        return len(self.data[anyKey])
+    
+    def getUniqueRecordsInColumn(self, key):
+        uniq = set()
+        for v in self.data[key]:
+            uniq.add(v)
+        return uniq
+    
     def addRow(self, keys, row, calculated_values):
         """
         returns True if row added
@@ -178,6 +198,7 @@ class DataTable:
         
         
         """
+        print "Adding data from file %s" % fname
         with open(fname) as f:
             # reader header
             self.cur_file = fname
@@ -296,12 +317,22 @@ class Table2NDimVector:
             it.iternext()
         #print self.means
 
-    def display4dPage(self, firstDimValue, title=None):
+    def getRenames(self, names, renamesDict, key):
+        if key in renamesDict:
+            return tuple([renamesDict[key][name] for name in names])
+        else:
+            return names
+    
+    def render4dPage(self, firstDimValue, title=None, renames={}):
         varIdx = self.val2idx[0][firstDimValue]
         if title is None:
             title = "Various characteristics, %s=%s" %(self.dim_names[0], str(self.idx2val[0][varIdx]))
-        display4DdataAsBarPlotPage(title, self.means[varIdx], self.stds[varIdx], \
-            self.idx2val[1], self.idx2val[2], self.idx2val[3], self.idx2val[4])
-                      
+        #display4DdataAsBarPlotPage(title, means, stds, page_row_names, page_col_names, plot_group_names, plot_color_names):
+        (fig,plt1, axarr) = render4DdataAsBarPlotPage(title, self.means[varIdx], self.stds[varIdx], 
+                                   page_row_names=self.getRenames(self.idx2val[1], renames, "page_row_names"),
+                                   page_col_names=self.getRenames(self.idx2val[2], renames, "page_col_names"),
+                                   plot_group_names=self.getRenames(self.idx2val[3], renames, "plot_group_names"), 
+                                   plot_color_names=self.getRenames(self.idx2val[4], renames, "plot_color_names"))
+        return (fig,plt1, axarr)
 
     
