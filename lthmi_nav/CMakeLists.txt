@@ -8,8 +8,7 @@ project(lthmi_nav)
 
 #SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++0x -O3")  #optimized
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++0x -Winline -gdwarf-2 -g3  " ) #for debug
-SET( CWAVE_LIB_DIR  "/home/sd/ws_old/src/cwave") 
-SET( CWAVE_INCLUDE_DIR  "/home/sd/ws_old/src/cwave/include")
+SET( CWAVE_LIB_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/lib") 
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
