@@ -1,0 +1,59 @@
+define d
+    b novelti::ExtremalMapDivider::divide
+end
+define f
+    b novelti::ExtremalMapDivider::findBoundaryVertex
+end
+define u
+    b novelti::ExtremalMapDivider::boundaryWalkerUpdate
+end
+define v
+    b novelti::ExtremalMapDivider::visitVertex if (x==399 && y>=347)
+end
+
+define sp
+    b cwave::Walker::setPoint
+end
+
+define as
+    b cwave::CWave2::addStar if (s.c.x==13 && s.c.y==12)
+end
+
+b novelti::ExtremalMapDivider::isPointIn if (pt.x==58 && pt.y==119)
+
+define dline
+    b novelti::ExtremalMapDivider::processBoundaryVertex
+    b novelti::ExtremalMapDivider::visitVertex
+end
+
+#b novelti::ExtremalMapDivider::qqq if (x==397 && (y==337 || y==336))
+#b novelti::ExtremalMapDivider::qqq if (x==399 && y==335)
+#b map_divider_extremal.cpp:143 if (pt.x==399 && pt.y==335)
+b novelti::ExtremalMapDivider::qqq
+#b map_divider_extremal.cpp:387 if (x==199 && y==110)
+#b novelti::ExtremalMapDivider::removeSingleUnassigned
+
+#b novelti::MapDivider::divideAndPublish
+
+#dline
+#d
+#u
+#v
+
+
+b novelti::ExtremalMapDivider::divideByExtremals
+
+#b novelti::CWaveProcPassOne::procVertex if (star.id==18)
+
+b novelti::ExtremalMapDivider::iterateStarRegion
+#b novelti::CWaveProcPassTwo::CWaveProcPassTwo
+#b novelti::CWaveProcPassOne::procVertex if (p.x==22 && p.y==6)
+#b novelti::CWaveProcPassTwo::procVertex if (p.x==22 && p.y==6)
+#b novelti::CWaveProcPassTwo::procVertex if (star.id==18 && p.x==21 && p.y==6)
+#b novelti::CWaveProcPassTwo::onDistanceCorrection if (p.x==22 && p.y==6)
+
+#b novelti::CWaveProcPassTwo::~CWaveProcPassTwo
+
+r
+c
+#n 5444

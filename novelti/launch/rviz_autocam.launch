@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="lthmi_rviz" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find novelti)/rviz/run_autocam.rviz" />
+</launch>
