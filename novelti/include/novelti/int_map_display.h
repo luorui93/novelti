@@ -60,6 +60,7 @@ class Property;
 class QuaternionProperty;
 class RosTopicProperty;
 class VectorProperty;
+class ColorProperty;
 
 /**
  * \class IntMapDisplay
@@ -136,6 +137,7 @@ protected:
   FloatProperty* alpha_property_;
   Property* draw_under_property_;
   EnumProperty* color_scheme_property_;
+  ColorProperty* region0_property_;
 };
 
 } // namespace rviz

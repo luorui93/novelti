@@ -26,7 +26,7 @@ def warn(msg):
 def err(msg):
     sys.stderr.write("ERROR:   %s\n" % msg)
 
-class LthmiNavExpRecord:
+class NoveltiExpRecord:
     
     def __init__(self, bag_path, cwave_cmdline_path, **cfg):
         info("Reading bag from %s" % bag_path)
@@ -222,10 +222,10 @@ class LthmiNavExpRecord:
         return path
 
 
-#class LthmiNavExpPlot:
+#class NoveltiExpPlot:
     #"""
     #Usage pattern:
-        #p = LthmiNavExpPlot()
+        #p = NoveltiExpPlot()
         #p.plotBagRecord(bagRecord1, color1)
         #p.plotBagRecord(bagRecord2, color2)
         #...
@@ -352,7 +352,7 @@ class RecordByStamp:
                     with open(pklFilePath, 'rb') as input1:
                         return pickle.load(input1) 
                 else:
-                    b = LthmiNavExpRecord(bagFilePath, self.cwaveToolPath)
+                    b = NoveltiExpRecord(bagFilePath, self.cwaveToolPath)
                     bagRecord = b.getRecord()
                     info("Saving data to cache as %s" % pklFilePath)
                     with open(pklFilePath, 'wb') as output:
@@ -446,7 +446,7 @@ class GroupPlot:
     
     def __init__(self, bagDir, cacheDir, cwaveToolPath):
         self.dbase = RecordByStamp(bagDir, cacheDir, cwaveToolPath)
-        self.plot  = LthmiNavExpPlot()
+        self.plot  = NoveltiExpPlot()
         
     def plotArray(self, timeStrs, color):
         for timeStr in timeStrs:
@@ -483,9 +483,9 @@ if __name__=="__main__":
             if len(sys.argv)<3:
                 usageError("Provide at least one path to a bag file")
             info("Reading bags")
-            bagRecords = [LthmiNavExpRecord(filepath) for filepath in sys.argv[2:]]
+            bagRecords = [NoveltiExpRecord(filepath) for filepath in sys.argv[2:]]
             info("Making plots")
-            p = LthmiNavExpPlot()
+            p = NoveltiExpPlot()
             for br in bagRecords:
                 p.plotBagRecord(br)
             p.show()
@@ -494,7 +494,7 @@ if __name__=="__main__":
                 usageError("Provide at least one path to a bag file")
             info("Reading bags")
             for bagpath in sys.argv[2:]:
-                br = LthmiNavExpRecord(bagpath)
+                br = NoveltiExpRecord(bagpath)
                 info("Saving data to %s" % bagpath+'.pkl')
                 with open(bagpath+'.pkl', 'wb') as output:
                     pickle.dump(br, output, pickle.HIGHEST_PROTOCOL)

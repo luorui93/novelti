@@ -123,7 +123,7 @@ class Mediator (SyncingNode):
         p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
         self.pub_pose_goal2.publish(p)
     
-    def startLthmiNav(self, init_pose):
+    def startNovelti(self, init_pose):
         rospy.loginfo("Starting novelti")
         self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
         if self.cfg['pub_random_goal']:
@@ -179,7 +179,7 @@ class Mediator (SyncingNode):
         self.pub_pose_current.publish(p)
         if self.state == "WAIT4START":
             self.state = "RUNNING"
-            self.startLthmiNav(msg)
+            self.startNovelti(msg)
     
     def poseDesiredCallback(self, msg):
         rospy.loginfo("Received pose desired: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))

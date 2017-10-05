@@ -7,7 +7,7 @@ import csv
 import os
 import sys
 
-#to fix: lthmi-auto-nav-experiment-2016-10-31_18-49-40.bag.txt
+#to fix: lti-auto-nav-experiment-2016-10-31_18-49-40.bag.txt
 
 
 

@@ -28,7 +28,7 @@ cmds = [("roslaunch novelti exp.launch  "
 
 varprms = {
     'dir' :"/home/yaphes/rosbag",
-    'bagid': lambda: "lthmi-auto-nav-experiment-%s" % (datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
+    'bagid': lambda: "lti-auto-nav-experiment-%s" % (datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
     'tries': 30,
     'map': 'ak500inflated',
     'resol': 0.1,

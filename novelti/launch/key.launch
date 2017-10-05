@@ -47,7 +47,7 @@
     
     
     <arg name="robot_map_file" value="$(find ak_labs)/pgm/$(arg map).yaml" />
-    <arg name="lthmi_map_file" value="$(find ak_labs)/map/$(arg map)_10cm_inf8.map" />
+    <arg name="lti_map_file" value="$(find ak_labs)/map/$(arg map)_10cm_inf8.map" />
     
     
     <!--predefined selectable parameters -->
@@ -71,8 +71,8 @@
     </rosparam>
     <rosparam>
         synced_nodes: 
-            real_robot0: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model', 'robot_model', ]
-            real_robot1: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lthmi_model',  ]
+            real_robot0: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lti_model', 'robot_model', ]
+            real_robot1: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lti_model',  ]
     </rosparam>
     
     <rosparam>
@@ -179,13 +179,13 @@
         <remap from="~goal2_y" to="/predefined_poses/$(arg dst2)/y" />
         <remap from="~goal2_yaw" to="/predefined_poses/$(arg dst2)yaw" />
         <param name="pub_random_goal" value="$(arg pub_random_goal)" />
-        <param name="map" value="$(arg lthmi_map_file)" />
+        <param name="map" value="$(arg lti_map_file)" />
         <param name="resolution" value="0.1" />
         <param name="real_robot" value="$(arg real_robot)" />
         <remap from="/map" to="/map_inflated" />
         <remap from="~synced_nodes" to="/synced_nodes/real_robot$(arg real_robot)"/>
         <rosparam>
-            waited_srvs:  ['/lthmi_rviz/reload_shaders']
+            waited_srvs:  ['/lti_rviz/reload_shaders']
         </rosparam>
     </node>
     
@@ -223,7 +223,7 @@
     
     
     <!-- Environment -->
-    <node pkg="novelti" type="node_lthmi_model.py" name="lthmi_model" output="screen" required="true">
+    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true">
         <remap from="~interface_matrix" to="/$(arg mx)"/>
         <param name="period" value="$(arg period)"/>
         <param unless="$(arg by_key)" name="random_if_missed" value="true"/>

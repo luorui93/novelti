@@ -51,6 +51,7 @@
 #include "rviz/properties/quaternion_property.h"
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/properties/vector_property.h"
+#include "rviz/properties/color_property.h"
 #include "rviz/validate_floats.h"
 #include "rviz/display_context.h"
 
@@ -117,6 +118,10 @@ MapDisplay::MapDisplay()
                                            "Prefer UDP topic transport",
                                            this,
                                            SLOT( updateTopic() ));
+
+  region0_color_property = new ColorProperty( "region 0 color", Qt::gray,
+                                              "The color of region 0.",
+                                            this, SLOT( updateColor() ));                                  
 }
 
 MapDisplay::~MapDisplay()

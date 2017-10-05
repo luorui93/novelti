@@ -51,6 +51,7 @@
 #include "rviz/properties/quaternion_property.h"
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/properties/vector_property.h"
+#include "rviz/properties/color_property.h"
 #include "rviz/validate_floats.h"
 #include "rviz/display_context.h"
 
@@ -68,6 +69,12 @@ IntMapDisplay::IntMapDisplay()
   , resolution_( 0.0f )
   , width_( 0 )
   , height_( 0 )
+  , region0_color_ (255,245,6,255)
+  , region1_color_ (117,6,235,255)
+  , region2_color_ (232,136,12,255)
+  , region3_color_ (82,176,255,255)
+  , region4_color_ (0,255,65,255)
+  , region5_color_ (255,0,0,255)
 {
   connect(this, SIGNAL( mapUpdated() ), this, SLOT( showMap() ));
   topic_property_ = new RosTopicProperty( "Topic", "",
@@ -116,6 +123,25 @@ IntMapDisplay::IntMapDisplay()
                                                   "Orientation of the map. (not editable)",
                                                   this );
   orientation_property_->setReadOnly( true );
+
+  region0_property_ = new ColorProperty( "Region 0 color", region0_color_,
+                                         "The color of region 0.",
+                                         this, SLOT( updateColor() ));
+  region1_property_ = new ColorProperty( "Region 1 color", region1_color_,
+                                         "The color of region 1.",
+                                         this, SLOT( updateColor() ));
+  region2_property_ = new ColorProperty( "Region 2 color", region2_color_,
+                                         "The color of region 2.",
+                                         this, SLOT( updateColor() ));
+  region3_property_ = new ColorProperty( "Region 3 color", region3_color_,
+                                         "The color of region 3.",
+                                         this, SLOT( updateColor() ));
+  region4_property_ = new ColorProperty( "Region 4 color", region4_color_,
+                                         "The color of region 4.",
+                                         this, SLOT( updateColor() ));
+  region5_property_ = new ColorProperty( "Region 5 color", region5_color_,
+                                         "The color of region 5.",
+                                         this, SLOT( updateColor() ));
 }
 
 IntMapDisplay::~IntMapDisplay()
@@ -124,7 +150,7 @@ IntMapDisplay::~IntMapDisplay()
   clear();
 }
 
-unsigned char* makeIntMapPalette()
+unsigned char* IntMapDisplay::makeIntMapPalette()
 {
   unsigned char* palette = new unsigned char[256*4];
   unsigned char* palette_ptr = palette;
@@ -162,7 +188,7 @@ unsigned char* makeIntMapPalette()
   return palette;
 }
 
-unsigned char* makeCostmapPalette()
+unsigned char* IntMapDisplay::makeCostmapPalette()
 {
   unsigned char* palette = new unsigned char[256*4];
   unsigned char* palette_ptr = palette;
@@ -217,85 +243,48 @@ unsigned char* makeCostmapPalette()
   return palette;
 }
 
-unsigned char* makeRegionPalette() {
+unsigned char* IntMapDisplay::makeRegionPalette() {
     
   unsigned char* palette = new unsigned char[256*4];
   unsigned char* palette_ptr = palette;
   //region colors
-  for( unsigned char i = 0; i < 20; i++ )  {
+  for( unsigned char i = 0; i < 40; i++ )  {
         //yellow FFF506
-        *palette_ptr++ = 255; // red
-        *palette_ptr++ = 245; // green
-        *palette_ptr++ = 6; // blue
-        *palette_ptr++ = 255; // alpha
+        *palette_ptr++ = region0_color_.red(); // red
+        *palette_ptr++ = region0_color_.green(); // green
+        *palette_ptr++ = region0_color_.blue(); // blue
+        *palette_ptr++ = region0_color_.alpha(); // alpha
         
         //dark blue 7506eb
-        *palette_ptr++ = 117; // red
-        *palette_ptr++ = 6; // green
-        *palette_ptr++ = 235; // blue
-        *palette_ptr++ = 255; // alpha
+        *palette_ptr++ = region1_color_.red(); // red
+        *palette_ptr++ = region1_color_.green(); // green
+        *palette_ptr++ = region1_color_.blue(); // blue
+        *palette_ptr++ = region1_color_.alpha(); // alpha
         
         //orange e8880c
-        *palette_ptr++ = 232; // red
-        *palette_ptr++ = 136; // green
-        *palette_ptr++ = 12; // blue
-        *palette_ptr++ = 255; // alpha
+        *palette_ptr++ = region2_color_.red(); // red
+        *palette_ptr++ = region2_color_.green(); // green
+        *palette_ptr++ = region2_color_.blue(); // blue
+        *palette_ptr++ = region2_color_.alpha(); // alpha
         
         //light blue
-        *palette_ptr++ = 82; // red
-        *palette_ptr++ = 176; // green
-        *palette_ptr++ = 255; // blue
-        *palette_ptr++ = 255; // alpha
+        *palette_ptr++ = region3_color_.red(); // red
+        *palette_ptr++ = region3_color_.green(); // green
+        *palette_ptr++ = region3_color_.blue(); // blue
+        *palette_ptr++ = region3_color_.alpha(); // alpha
         
         //green
-        *palette_ptr++ = 0; // red
-        *palette_ptr++ = 255; // green
-        *palette_ptr++ = 65; // blue
-        *palette_ptr++ = 255; // alpha
+        *palette_ptr++ = region4_color_.red(); // red
+        *palette_ptr++ = region4_color_.green(); // green
+        *palette_ptr++ = region4_color_.blue(); // blue
+        *palette_ptr++ = region4_color_.alpha(); // alpha
         
         //red
-        *palette_ptr++ = 255; // red
-        *palette_ptr++ = 0; // green
-        *palette_ptr++ = 0; // blue
-        *palette_ptr++ = 255; // alpha
+        *palette_ptr++ = region5_color_.red(); // red
+        *palette_ptr++ = region5_color_.green(); // green
+        *palette_ptr++ = region5_color_.blue(); // blue
+        *palette_ptr++ = region5_color_.alpha(); // alpha
         
-        
-        
-        //yellow FFF506
-        *palette_ptr++ = 115; // red
-        *palette_ptr++ = 125; // green
-        *palette_ptr++ = 6; // blue
-        *palette_ptr++ = 255; // alpha
-        
-        //dark blue 7506eb
-        *palette_ptr++ = 117; // red
-        *palette_ptr++ = 6; // green
-        *palette_ptr++ = 115; // blue
-        *palette_ptr++ = 255; // alpha
-        
-        //orange e8880c
-        *palette_ptr++ = 122; // red
-        *palette_ptr++ = 136; // green
-        *palette_ptr++ = 12; // blue
-        *palette_ptr++ = 255; // alpha
-        
-        //light blue
-        *palette_ptr++ = 82; // red
-        *palette_ptr++ = 176; // green
-        *palette_ptr++ = 115; // blue
-        *palette_ptr++ = 255; // alpha
-        
-        //green
-        *palette_ptr++ = 0; // red
-        *palette_ptr++ = 115; // green
-        *palette_ptr++ = 65; // blue
-        *palette_ptr++ = 255; // alpha
-        
-        //red
-        *palette_ptr++ = 115; // red
-        *palette_ptr++ = 0; // green
-        *palette_ptr++ = 0; // blue
-        *palette_ptr++ = 255; // alpha
   }              
   // illegal negative (char) values in shades of red/yellow
   for( int i = 240; i <= 254; i++ )  {
@@ -583,6 +572,36 @@ void IntMapDisplay::updateTopic()
   clear();
 }
 
+void IntMapDisplay::updateColor()
+{
+  //get user choice of color
+  QColor color0 = region0_property_->getColor();
+  color0.setAlphaF( alpha_property_->getFloat() );
+  QColor color1 = region1_property_->getColor();
+  color1.setAlphaF( alpha_property_->getFloat() );
+  QColor color2 = region2_property_->getColor();
+  color2.setAlphaF( alpha_property_->getFloat() );
+  QColor color3 = region3_property_->getColor();
+  color3.setAlphaF( alpha_property_->getFloat() );
+  QColor color4 = region4_property_->getColor();
+  color4.setAlphaF( alpha_property_->getFloat() );
+  QColor color5 = region5_property_->getColor();
+  color5.setAlphaF( alpha_property_->getFloat() );
+
+  //update palette color based on user input
+  region0_color_ = color0;
+  region1_color_ = color1;
+  region2_color_ = color2;
+  region3_color_ = color3;
+  region4_color_ = color4;
+  region5_color_ = color5;
+
+  //only update region map palette
+  palette_textures_[2] = makeIntMapPaletteTexture( makeRegionPalette() ); 
+  updatePalette();
+
+  context_->queueRender();
+}
 void IntMapDisplay::clear()
 {
   setStatus( StatusProperty::Warn, "Message", "No map received" );

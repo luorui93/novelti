@@ -60,6 +60,7 @@ class Property;
 class QuaternionProperty;
 class RosTopicProperty;
 class VectorProperty;
+class ColorProperty;
 
 /**
  * \class IntMapDisplay
@@ -82,6 +83,9 @@ public:
   int getHeight() { return height_; }
 
   virtual void setTopic( const QString &topic, const QString &datatype );
+  virtual unsigned char* makeIntMapPalette();
+  virtual unsigned char* makeCostmapPalette();
+  virtual unsigned char* makeRegionPalette();
 
 Q_SIGNALS:
   /** @brief Emitted when a new map is received*/
@@ -92,6 +96,7 @@ protected Q_SLOTS:
   void updateTopic();
   void updateDrawUnder();
   void updatePalette();
+  void updateColor();
   /** @brief Show current_map_ in the scene. */
   void showMap();
 
@@ -136,6 +141,14 @@ protected:
   FloatProperty* alpha_property_;
   Property* draw_under_property_;
   EnumProperty* color_scheme_property_;
+  ColorProperty *region0_property_, *region1_property_, *region2_property_, *region3_property_, *region4_property_, *region5_property_;
+
+  QColor region0_color_;
+  QColor region1_color_;
+  QColor region2_color_;
+  QColor region3_color_;
+  QColor region4_color_;
+  QColor region5_color_;
 };
 
 } // namespace rviz

@@ -184,7 +184,7 @@ public:
         prms_.tries   = prms["experimentator"]["n_runs"].as<int>();
         prms_.vel     = prms["robot_model"]["max_vel"].as<double>();
         prms_.trobot  = prms["robot_model"]["pub_period"].as<double>();
-        prms_.delay   = prms["lthmi_model"]["delay"].as<double>();
+        prms_.delay   = prms["lti_model"]["delay"].as<double>();
         prms_.phigh   = prms["inference_unit"]["thresh_high"].as<double>();
         prms_.plow    = prms["inference_unit"]["thresh_low"].as<double>();
         prms_.peps    = prms["inference_unit"]["eps"].as<double>();

@@ -71,8 +71,8 @@
     </rosparam>
     <rosparam>
         waited_srvs: 
-            mode0: ['/lthmi_rviz/reload_shaders']
-            mode1: ['/rosbag_record/get_loggers', '/lthmi_rviz/reload_shaders']
+            mode0: ['/lti_rviz/reload_shaders']
+            mode1: ['/rosbag_record/get_loggers', '/lti_rviz/reload_shaders']
     </rosparam>
 
     
@@ -84,7 +84,7 @@
         <param name="success_file" value="$(arg bagpath).success" />
         <remap from="~waited_srvs" to="$(arg waited_srvs_name)"/>
         <rosparam>
-            synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
+            synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lti_model', '/human_model', ]
         </rosparam>
     </node>
     
@@ -97,7 +97,7 @@
     </node>
     <node pkg="novelti" type="human_model" name="human_model" output="screen" required="true"> 
     </node>
-    <node pkg="novelti" type="node_lthmi_model.py" name="lthmi_model" output="screen" required="true">
+    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true">
         <remap from="~interface_matrix" to="/$(arg mx)"/>
         <param if="$(arg by_key)"     name="delay" value="0.0"/>
         <param unless="$(arg by_key)" name="delay" value="$(arg period)"/>

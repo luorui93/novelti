@@ -78,8 +78,8 @@
         <param name="resol" value="$(arg resol)" />
         <param name="n_runs" value="$(arg tries)" />
         <rosparam>
-            synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lthmi_model', '/human_model', ]
-            waited_srvs: ['/lthmi_rviz/reload_shaders', '/rosbag_record/get_loggers']
+            synced_nodes: ['/inference_unit', '/robot_model', '/best_pose_finder', '/map_divider', '/lti_model', '/human_model', ]
+            waited_srvs: ['/lti_rviz/reload_shaders', '/rosbag_record/get_loggers']
         </rosparam> <!--  '/rosbag_record/get_loggers' -->
     </node>
     
@@ -91,7 +91,7 @@
         <param name="pub_period"  value="0.025" />
     </node>
     <node pkg="novelti" type="node_human_model.py" name="human_model" output="screen"> </node>
-    <node pkg="novelti" type="node_lthmi_model.py" name="lthmi_model" output="screen" >
+    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" >
         <param name="number_of_commands" value="4" />
         <remap from="~interface_matrix" to="/$(arg mx)"/>
         <param if="$(arg by_key)"     name="delay" value="0.0"/>
