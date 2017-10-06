@@ -216,10 +216,10 @@ include_directories(
 # )
 # add_dependencies(space_divider_node ${PROJECT_NAME}_generate_messages_cpp)
 
-add_executable(chatter src/chatter.cpp)
-target_link_libraries(chatter
-    ${catkin_LIBRARIES}
-)
+#add_executable(chatter src/chatter.cpp)
+#target_link_libraries(chatter
+#    ${catkin_LIBRARIES}
+#)
 
 add_executable(map_divider src/node_map_divider.cpp src/map_divider.cpp)
 target_compile_definitions(map_divider PRIVATE  ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO  CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)

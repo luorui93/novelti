@@ -285,7 +285,7 @@
 
 
    <!-- Monitoring - ->
-    <node if="$(arg monitor)" pkg="novelti" type="monitor.py" name="monitor" output="screen">
+    <node if="$(arg monitor)" pkg="novelti" type="node_monitor.py" name="monitor" output="screen">
         <param name="output_prefix" value="$(arg monitor_output_prefix)"/>
     </node>-->
 
