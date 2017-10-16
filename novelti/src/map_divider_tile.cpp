@@ -37,6 +37,13 @@ class TileMapDivider :  public MapDivider {
         { 
             even_ = true; 
         }
+
+        TileMapDivider(TileType type, string paramPrefix) :
+            MapDivider(paramPrefix),
+            type_(type)
+        {
+            even_ = true;
+        }
         
         void divide() {
             switch(type_) {

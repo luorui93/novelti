@@ -2,6 +2,7 @@
 #define NOVELTI_BEST_POSE_FINDER_H
 
 #include <mutex>
+#include <string>
 
 #include <ros/ros.h>
 
@@ -31,8 +32,9 @@ using namespace cwave;
 
 namespace novelti {
 
-class BestPoseFinder : public SynchronizableNode {
+class BestPoseFinder{
 public:
+    ros::NodeHandle node;
     const double REACH_AREA_UNASSIGNED = -1.0;
     const double REACH_AREA_UNREACHABLE = -10.0;
     
@@ -45,6 +47,7 @@ public:
     Point ra_max;
     long int n_unassigned;
     Point pt; 
+    bool isNode;
     
     CompoundMap cmap;
     
@@ -64,8 +67,9 @@ public:
     novelti::FloatMap reach_area;
      
     BestPoseFinder();
-    void start(novelti::StartExperiment::Request& req);
-    void stop();
+    BestPoseFinder(const std::string paramPrefix);
+    void startExp(novelti::StartExperiment::Request& req);
+    void stopExp();
     void poseCurCallback(geometry_msgs::PoseStamped pose);
     void pdfCallback(novelti::FloatMapConstPtr pdf);
     bool getCurVertex(int& cx, int& cy);

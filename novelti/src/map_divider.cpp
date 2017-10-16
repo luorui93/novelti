@@ -21,15 +21,22 @@
 
 using namespace novelti;
 
-MapDivider::MapDivider() :
-        SynchronizableNode()
+MapDivider::MapDivider(const std::string paramPrefix) : 
+    node("~"),
+    isNode(false)
 {
     node.getParam("probs_optimal", probs_optimal);
     if (probs_optimal.size()==0)
         throw ros::Exception("ERROR: probs_optimal parameter should be specified and have length>0");
 }
+
+MapDivider::MapDivider():
+    MapDivider("")
+{
+    isNode = true;
+}
     
-void MapDivider::stop() {
+void MapDivider::stopExp() {
     sub_pose_opt.shutdown();
     sub_pdf.shutdown();
     pub_map_div.shutdown();
@@ -39,7 +46,7 @@ void MapDivider::stop() {
     #endif
 }
 
-void MapDivider::start(novelti::StartExperiment::Request& req) {
+void MapDivider::startExp(novelti::StartExperiment::Request& req) {
     state = WAITING;
     probs_actual = std::vector<double>(probs_optimal.size(),0.0);
     
@@ -53,9 +60,11 @@ void MapDivider::start(novelti::StartExperiment::Request& req) {
     map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
     
     pub_map_div   = node.advertise<novelti::IntMap>("/map_divided", 1, true); //latched
-    sub_pose_opt  = node.subscribe("/pose_best", 1, &MapDivider::poseOptCallback, this);
-    sub_pdf       = node.subscribe("/pdf", 1, &MapDivider::pdfCallback, this);
-    
+    if (isNode) {
+        sub_pose_opt  = node.subscribe("/pose_best", 1, &MapDivider::poseOptCallback, this);
+        sub_pdf       = node.subscribe("/pdf", 1, &MapDivider::pdfCallback, this);
+    }
+
     #ifdef DEBUG_DIVIDER
         pub_debug_map_div   = node.advertise<novelti::IntMap>("/debug_map_divided", 1, true); //latched
         pub_debug_pose      = node.advertise<geometry_msgs::PoseStamped>("/debug_pose", 1, true); //not latched
@@ -86,14 +95,23 @@ void MapDivider::pdfCallback(novelti::FloatMapConstPtr msg){
     }
 }
 
+void MapDivider::noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose){
+    pose_best = ptr_pose;
+    pdf = ptr_pdf;
+    divideAndPublish();
+}
+
+
 void MapDivider::divideAndPublish() {
-    if (false && (map_divided.header.seq != pdf->header.seq || map_divided.header.seq != pose_best->header.seq)) {
-        ROS_FATAL("%s: SYNCHRONIZATION BROKEN! map_divided.seq==%d, pdf.seq==%d, pose_best.seq==%d.",
-                 getName().c_str(), map_divided.header.seq, pdf->header.seq, pose_best->header.seq);
-        ros::shutdown();
-        exit(1);
+    if (isNode) {
+        if (false && (map_divided.header.seq != pdf->header.seq || map_divided.header.seq != pose_best->header.seq)) {
+            ROS_FATAL("%s: SYNCHRONIZATION BROKEN! map_divided.seq==%d, pdf.seq==%d, pose_best.seq==%d.",
+                      getName().c_str(), map_divided.header.seq, pdf->header.seq, pose_best->header.seq);
+            ros::shutdown();
+            exit(1);
+        }
     }
-    updateVertex(pose_best->pose, pt_best.x, pt_best.y);
+    SynchronizableNode::updateVertex(pose_best->pose, pt_best.x, pt_best.y, map_divided.info.resolution);
     ROS_INFO("%s: starting to divide", getName().c_str());
     startDivider();
     divide();
@@ -105,9 +123,6 @@ void MapDivider::divideAndPublish() {
     ROS_INFO("%s: published divided map", getName().c_str());
     map_divided.header.seq++;
 }
-
-
-
 
 void MapDivider::startDivider() {
     prob = 0.0;

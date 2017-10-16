@@ -33,16 +33,18 @@
 
 using namespace novelti;
 
-InferenceUnit::InferenceUnit() :
-        SynchronizableNode()
-{
 
+InferenceUnit::InferenceUnit(const std::string paramPrefix) :
+    isNode(false),
+    node("~")
+{
     node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
     node.param<float>("thresh_high", thresh_high, 0.98);
     node.param<float>("thresh_low", thresh_low, 0.5);
     node.param<double>("eps", eps, 1.0e-12);
     node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
-    
+    node.param<bool>("check_sync", check_sync_, true);
+
     //ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
     
     std::vector<double> view_sizes;
@@ -80,6 +82,12 @@ InferenceUnit::InferenceUnit() :
     coefs      = std::vector<double>(n_cmds, 0.0);
 }
 
+InferenceUnit::InferenceUnit():
+    InferenceUnit("")
+{
+    isNode = true;
+}
+
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
     state = INFERRING_NEW;
     ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
@@ -93,7 +101,7 @@ bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::R
     return true;
 }
 
-void InferenceUnit::stop() {
+void InferenceUnit::stopExp() {
     sub_map_div.shutdown();
     sub_cmd.shutdown();
     pub_pdf.shutdown();
@@ -101,7 +109,7 @@ void InferenceUnit::stop() {
 
 }
 
-void InferenceUnit::start(novelti::StartExperiment::Request& req) {
+void InferenceUnit::startExp(novelti::StartExperiment::Request& req) {
     state = INFERRING;
     fast_state = RCVD_NONE;
     pdf = FloatMap();
@@ -129,14 +137,18 @@ void InferenceUnit::start(novelti::StartExperiment::Request& req) {
     //set uniform pdf over reachable vertices
     uniform_prob_ = 1.0/total_vx;
     interest_area_thresh_ *= uniform_prob_;
-    resetPdf();
+    resetPdf(); //Already reset in start
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
-    sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
-    sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
+    if (isNode) {
+        sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
+        sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
+    }
     if (interest_area_thresh_ > 0.0)
         publishViewTf();
-    srv_new_goal = node.advertiseService("new_goal", &InferenceUnit::srvNewGoal, this);
+    if (isNode) {
+        srv_new_goal = node.advertiseService("new_goal", &InferenceUnit::srvNewGoal, this);
+    }
 }
 
 void InferenceUnit::resetPdf() {
@@ -290,6 +302,13 @@ void InferenceUnit::cmdCallback(CommandConstPtr msg){
         fast_state = RCVD_CMD;
         //ROS_INFO("%s: fast_state := RCVD_CMD", getName().c_str());
     }
+}
+
+void InferenceUnit::noveltiInfCallback(novelti::IntMapConstPtr ptr_map, CommandConstPtr ptr_cmd){
+    map_divided = ptr_map;
+    cmd_detected = ptr_cmd;
+    calcPriors();
+    updatePdfAndPublish();
 }
 
 void InferenceUnit::updatePdf() {
@@ -543,7 +562,7 @@ void InferenceUnit::pubPoseInferred(int k) {
     int x = k % map_divided->info.width;
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = "/map";
-    updatePose(pose, x, y);
+    SynchronizableNode::updatePose(pose, x, y, pdf.info.resolution);
     pub_pose_inf.publish(pose);
     ROS_INFO("%s: published /pose_inferred, vertex=(%d,%d), pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);
 }

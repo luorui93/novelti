@@ -71,7 +71,8 @@ public:
     #endif
         
     CWaveMapDivider(DivMethod method);
-    void start(novelti::StartExperiment::Request& req);
+    CWaveMapDivider(DivMethod method, string paramPrefix);
+    void startExp(novelti::StartExperiment::Request& req);
     void divide();
     void preprocessOverlappingStars(CWaveProcPassOne& procOne, CWaveProcPassTwo& procTwo);
     void divideNearCogByExtremals();
@@ -264,14 +265,24 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method) :
             pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, true); //not latched
         #endif
     }
+
+CWaveMapDivider::CWaveMapDivider(DivMethod method, string paramPrefix) :
+    MapDivider(paramPrefix),
+    method_(method)
+{ 
+    even_ = true;
+    #ifdef DEBUG_DIVIDER
+        pub_debug_track_map   = node.advertise<IntMap>("/debug_track_map", 1, true); //not latched
+    #endif
+}
     
-    void CWaveMapDivider::start(novelti::StartExperiment::Request& req) {
+    void CWaveMapDivider::startExp(novelti::StartExperiment::Request& req) {
         new (&cmap_) CompoundMap(req.map.info.width, req.map.info.height);
         for (int x=0; x<req.map.info.width; x++)
             for (int y=0; y<req.map.info.height; y++)
                 if (req.map.data[x + y*req.map.info.width]==0)
                     cmap_.setPixel(x,y, FREED); //free
-        MapDivider::start(req);
+        MapDivider::startExp(req);
     }
     
     

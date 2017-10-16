@@ -1,3 +1,6 @@
+#ifndef COMMON_CPP
+#define COMMON_CPP
+
 #include <math.h>
 #include <ros/ros.h>
 #include <tf/transform_datatypes.h>
@@ -46,17 +49,37 @@ public:
         return 0;
     }
     
+    static void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y, double resol) {
+        x = (int) round( pose.position.x / resol);
+        y = (int) round( pose.position.y / resol);
+    }
+    
+    static void updatePose(geometry_msgs::PoseStamped& pose, int x, int y, double resol) {
+        pose.header.stamp = ros::Time::now();
+        pose.pose.position.x = x*resol;
+        pose.pose.position.y = y*resol;
+        pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
+    }
+
     void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y) {
-        x = (int) round( pose.position.x / resolution);
-        y = (int) round( pose.position.y / resolution);
+        updateVertex(pose, x , y, resolution);
     }
     
     void updatePose(geometry_msgs::PoseStamped& pose, int x, int y) {
-        pose.header.stamp = ros::Time::now();
-        pose.pose.position.x = x*resolution;
-        pose.pose.position.y = y*resolution;
-        pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
+        updatePose(pose, x, y, resolution);
     }
+
+    // void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y) {
+    //     x = (int) round( pose.position.x / resolution);
+    //     y = (int) round( pose.position.y / resolution);
+    // }
+    
+    // void updatePose(geometry_msgs::PoseStamped& pose, int x, int y) {
+    //     pose.header.stamp = ros::Time::now();
+    //     pose.pose.position.x = x*resolution;
+    //     pose.pose.position.y = y*resolution;
+    //     pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
+    // }
     
     
     virtual void start(novelti::StartExperiment::Request& req) = 0;
@@ -64,3 +87,5 @@ public:
 };
 
 }
+
+#endif

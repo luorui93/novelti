@@ -34,9 +34,21 @@
 
 using namespace novelti;
 
+class InferenceUnitNode : public SynchronizableNode, public InferenceUnit {
+public:
+    InferenceUnitNode() {}
+    void start(novelti::StartExperiment::Request & req) {
+        startExp(req);
+    }
+    
+    void stop() {
+        stopExp();
+    }
+};
+
 int main(int argc, char **argv) {
     ros::init(argc, argv, "inference_unit");
     ros::NodeHandle n("~");
-    InferenceUnit iu;
+    InferenceUnitNode iu;
     iu.run();
 }

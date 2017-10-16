@@ -17,6 +17,7 @@
 */
 
 #include <vector>
+#include <string>
 
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
@@ -31,7 +32,7 @@
 
 namespace novelti {
 
-class InferenceUnit : public SynchronizableNode {
+class InferenceUnit{
 public:
     const float PDF_UNREACHABLE = -10.0;
     
@@ -40,6 +41,7 @@ public:
     State state;
     FastState fast_state;
     
+    ros::NodeHandle node;
     ros::Publisher      pub_pdf;
     ros::Publisher      pub_pose_inf;
     ros::Subscriber     sub_map_div;
@@ -70,16 +72,20 @@ public:
     double max_prob;
     int max_prob_k;
     float interest_area_thresh_;
+    bool isNode;
+    bool check_sync_;
     
     InferenceUnit();
+    InferenceUnit(const std::string paramPrefix);
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
-    void stop();
-    void start(novelti::StartExperiment::Request& req);
+    void stopExp();
+    void startExp(novelti::StartExperiment::Request& req);
     void resetPdf();
     void setUniformPdf();
     void setStaticPredictedPdf();
     void mapDivCallback(novelti::IntMapConstPtr msg);
     void cmdCallback(CommandConstPtr cmd);
+    void noveltiInfCallback(novelti::IntMapConstPtr ptr_map, CommandConstPtr ptr_cmd);
     void updatePdfAndPublish();
     bool doesNeedSmoothing(int cx, int cy, int smooth_rad);
     void smoothenPdf();

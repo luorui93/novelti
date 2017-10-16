@@ -6,7 +6,12 @@ namespace novelti {
         BestPoseFinder(),
         method_(method)
     { }
-    
+
+    QuasiOptPoseFinder::QuasiOptPoseFinder(Method method, string paramPrefix) :
+        BestPoseFinder(paramPrefix),
+        method_(method)
+    {}
+
     
     void QuasiOptPoseFinder::findCogOnPdf(novelti::FloatMapConstPtr pdf) { 
         //returns wrt to map

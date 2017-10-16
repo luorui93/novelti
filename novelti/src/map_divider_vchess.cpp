@@ -18,6 +18,10 @@ class VertChessMapDivider :  public MapDivider {
         VertChessMapDivider() :
             MapDivider() 
         { }
+
+        VertChessMapDivider(string paramPrefix) :
+            MapDivider(paramPrefix)
+        {}
         
         void divide() {
             measure();

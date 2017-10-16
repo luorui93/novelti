@@ -20,9 +20,10 @@
 
 using namespace novelti;
 
-BestPoseFinder::BestPoseFinder() :
-        SynchronizableNode()
+BestPoseFinder::BestPoseFinder(const std::string paramPrefix):
+    node("~")
 {
+    isNode = false;
     double max_vel, period, safety_coef;
     node.param<double>("max_vel", max_vel, 0.0);
     node.param<double>("safety_coef", safety_coef, 0.0);
@@ -32,8 +33,14 @@ BestPoseFinder::BestPoseFinder() :
     if (max_dist_float==0.0)
         throw ros::Exception("ERROR: At least one of the following node parameters (max_vel, period, safety_coef) is not specified or 0.0. All must be greater than zero.");
 }
+
+BestPoseFinder::BestPoseFinder():
+    BestPoseFinder("")
+{
+    isNode = true;
+}
     
-void BestPoseFinder::stop() {
+void BestPoseFinder::stopExp() {
     sub_pose_cur.shutdown();
     sub_pdf.shutdown();
     pub_pose_best.shutdown();
@@ -42,7 +49,7 @@ void BestPoseFinder::stop() {
     #endif
 }
 
-void BestPoseFinder::start(novelti::StartExperiment::Request& req) {
+void BestPoseFinder::startExp(novelti::StartExperiment::Request& req) {
     resolution = req.map.info.resolution;
     max_dist = (int)floor(max_dist_float/resolution);
 
@@ -73,7 +80,9 @@ void BestPoseFinder::start(novelti::StartExperiment::Request& req) {
     
     pub_pose_best = node.advertise<geometry_msgs::PoseStamped>("/pose_best", 1, true); //not latched
     sub_pose_cur  = node.subscribe("/pose_current", 1, &BestPoseFinder::poseCurCallback, this);
-    sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
+    if (isNode) {
+        sub_pdf       = node.subscribe("/pdf", 1, &BestPoseFinder::pdfCallback, this);
+    }
     #ifdef DEBUG_POSE_FINDER
         pub_reach_area = node.advertise<novelti::FloatMap>("/debug_reach_area", 1, false); //not latched
         pub_pose_debug = node.advertise<geometry_msgs::PoseStamped>("/debug_pose", 1, false); //not latched
@@ -97,7 +106,7 @@ void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf){
     //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
     pt.x+=r2a.x; pt.y+=r2a.y;
-    updatePose(pose_best, pt.x, pt.y);
+    SynchronizableNode::updatePose(pose_best, pt.x, pt.y, resolution);
     pub_pose_best.publish(pose_best);
     ros::spinOnce();
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
@@ -110,7 +119,7 @@ bool BestPoseFinder::getCurVertex(int& cx, int& cy) {
      * In this case, we just need to find the nearest accessible vertex.*/
     double px, py;
     pose_current_lock_.lock();
-        updateVertex(pose_current, cx, cy);
+        SynchronizableNode::updateVertex(pose_current, cx, cy, resolution);
         px = pose_current.position.x;
         py = pose_current.position.y;
     pose_current_lock_.unlock();
@@ -278,7 +287,7 @@ void BestPoseFinder::findBestPose(novelti::FloatMapConstPtr pdf1) { //no move
         }
         geometry_msgs::PoseStamped pose;
         pose.header.frame_id = "/map";
-        updatePose(pose, x, y);
+        SynchronizableNode::updatePose(pose, x, y, resolution);
         pub_pose_debug.publish(pose);
         ros::spinOnce();
         ROS_INFO("%s: published /debug_pose best vertex wrt to map: (%d,%d), published pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);

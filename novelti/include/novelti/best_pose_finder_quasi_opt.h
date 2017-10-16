@@ -12,6 +12,7 @@ public:
     Method method_;
     
     QuasiOptPoseFinder(Method method); 
+    QuasiOptPoseFinder(Method method, const std::string paramPrefix);
     void findCogOnPdf(novelti::FloatMapConstPtr pdf);
     void findBestPose(novelti::FloatMapConstPtr pdf);
     void findMaxprobInReachArea(novelti::FloatMapConstPtr pdf);

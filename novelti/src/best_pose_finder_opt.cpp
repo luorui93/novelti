@@ -23,6 +23,14 @@ public:
         if (method_ == GOPT)
             node.param<int>("glob_max_attempts", glob_max_attempts, 25);
     }
+
+    OptPoseFinder(Method method, const std::string paramPrefix) :
+        QuasiOptPoseFinder(RA_MAXPROB, paramPrefix),
+        method_(method)
+    {
+        if (method_ == GOPT)
+            node.param<int>("glob_max_attempts", glob_max_attempts, 25);
+    }
     
     double calcAvgDist(Point point) {
         //input (point) wrt to reach area
