@@ -243,6 +243,13 @@ target_link_libraries(inference_unit
 )
 add_dependencies(inference_unit ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
+add_executable(novelti_shared_control src/node_novelti_shared_control.cpp src/novelti_shared_control.cpp src/map_divider.cpp src/best_pose_finder.cpp src/best_pose_finder_quasi_opt.cpp src/inference_unit.cpp)
+target_compile_definitions(novelti_shared_control PRIVATE  ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO  CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_link_libraries(novelti_shared_control
+    ${catkin_LIBRARIES}
+    ${CWAVE_LIB_DIR}/libcwaveproc.a
+)
+add_dependencies(novelti_shared_control ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
 add_executable(robot_model src/node_robot_model.cpp)
 target_compile_definitions(robot_model PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)

@@ -38,12 +38,12 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
     isNode(false),
     node("~")
 {
-    node.param<float>("interest_area_coef", interest_area_thresh_, -1.0);
-    node.param<float>("thresh_high", thresh_high, 0.98);
-    node.param<float>("thresh_low", thresh_low, 0.5);
-    node.param<double>("eps", eps, 1.0e-12);
-    node.param<bool>("reset_pdf_on_new", reset_pdf_on_new_, false);
-    node.param<bool>("check_sync", check_sync_, true);
+    node.param<float>("inf/interest_area_coef", interest_area_thresh_, -1.0);
+    node.param<float>("inf/thresh_high", thresh_high, 0.98);
+    node.param<float>("inf/thresh_low", thresh_low, 0.5);
+    node.param<double>("inf/eps", eps, 1.0e-12);
+    node.param<bool>("inf/reset_pdf_on_new", reset_pdf_on_new_, false);
+    node.param<bool>("inf/check_sync", check_sync_, true);
 
     //ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
     
@@ -86,6 +86,7 @@ InferenceUnit::InferenceUnit():
     InferenceUnit("")
 {
     isNode = true;
+    ROS_INFO("Inference Unit is running as a node");
 }
 
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
@@ -515,11 +516,14 @@ void InferenceUnit::publishViewTf() {
 }
 
 void InferenceUnit::updatePdfAndPublish() {
-    if (check_sync_ && (state==INFERRED || pdf.header.seq-1 != cmd_detected->header.seq-1 || pdf.header.seq-1 != map_divided->header.seq)) {
-        ROS_FATAL("%s: SYNCHRONIZATION BROKEN! state%s=INFERRED (must not be equal to INFERRED), pdf.seq==%d, cmd_detected.seq==%d, map_divided.seq==%d.",
-                 getName().c_str(), (state==INFERRED ? "=" : "!"), pdf.header.seq, cmd_detected->header.seq, map_divided->header.seq);
-        ros::shutdown();
-        exit(1);
+    if (isNode) {
+        if (check_sync_ && (state == INFERRED || pdf.header.seq - 1 != cmd_detected->header.seq - 1 || pdf.header.seq - 1 != map_divided->header.seq))
+        {
+            ROS_FATAL("%s: SYNCHRONIZATION BROKEN! state%s=INFERRED (must not be equal to INFERRED), pdf.seq==%d, cmd_detected.seq==%d, map_divided.seq==%d.",
+                      getName().c_str(), (state == INFERRED ? "=" : "!"), pdf.header.seq, cmd_detected->header.seq, map_divided->header.seq);
+            ros::shutdown();
+            exit(1);
+        }
     }
     new_pdf_ = false;
     updatePdf();

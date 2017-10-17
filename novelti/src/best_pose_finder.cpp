@@ -25,10 +25,10 @@ BestPoseFinder::BestPoseFinder(const std::string paramPrefix):
 {
     isNode = false;
     double max_vel, period, safety_coef;
-    node.param<double>("max_vel", max_vel, 0.0);
-    node.param<double>("safety_coef", safety_coef, 0.0);
-    node.param<double>("period", period, 0.0);
-    node.param<int>("pose_to_vertex_tolerance", pose_to_vertex_tolerance, 2);
+    node.param<double>("pos/max_vel", max_vel, 0.0);
+    node.param<double>("pos/safety_coef", safety_coef, 0.0);
+    node.param<double>("pos/period", period, 0.0);
+    node.param<int>("pos/pose_to_vertex_tolerance", pose_to_vertex_tolerance, 2);
     max_dist_float = max_vel*safety_coef*period;
     if (max_dist_float==0.0)
         throw ros::Exception("ERROR: At least one of the following node parameters (max_vel, period, safety_coef) is not specified or 0.0. All must be greater than zero.");

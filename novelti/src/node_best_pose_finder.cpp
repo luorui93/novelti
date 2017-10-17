@@ -71,8 +71,9 @@ int main(int argc, char **argv) {
     
     ros::NodeHandle n("~");
     std::string method = "cog2lopt";
-    n.getParam("pos/method", method);
-    ROS_INFO("%s: started. method=%s", getName().c_str(), method.c_str());
+    if (n.getParam("pos/method", method)) {
+        ROS_INFO("%s: started. method=%s", getName().c_str(), method.c_str());
+    };
     
     BestPoseFinder* bpf = nullptr;
     if      (method=="no_move")

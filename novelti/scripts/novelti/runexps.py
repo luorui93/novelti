@@ -2,7 +2,7 @@
 
 from CommandVariator import *
 
-cmds = [("roslaunch novelti exp.launch  "
+cmds = [("roslaunch novelti single_node.launch  "
         "tries:=%(tries)d  map:=%(map)s  resol:=%(resol)f  path:=%(path)d  "
         "mx:=%(mx)s  period:=%(period)f  vel:=%(vel)f  trobot:=%(trobot)f  "
         "phigh:=%(phigh)f  plow:=%(plow)f  peps:=%(peps)e  "

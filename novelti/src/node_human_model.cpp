@@ -41,7 +41,7 @@ public:
     SimpleHumanModel() :
         SynchronizableNode()
     {
-        const std::string srv_name = "/inference_unit/new_goal";
+        const std::string srv_name = "/novelti_shared_control/new_goal";
         ros::service::waitForService(srv_name, -1);
         new_goal_client_ = node.serviceClient<std_srvs::Empty>(srv_name);
     }
@@ -73,8 +73,11 @@ public:
         intended_lock_.unlock();
 
         std_srvs::Empty srv;
+        if (!ros::service::exists(new_goal_client_.getService(), true)) {
+            ROS_ERROR("%s not available anymore",new_goal_client_.getService().c_str());
+        }
         if (!new_goal_client_.call(srv)) {
-            ROS_ERROR("Service call to new_goal FAILED ");
+            ROS_ERROR("[Human Model] Service call to %s FAILED ", new_goal_client_.getService().c_str());
             ros::shutdown();
         }
         ROS_INFO("%s: /pose_intended received, vertex=(%d,%d), pose=(%f,%f).", getName().c_str(), intended_x_, intended_y_, msg->pose.position.x, msg->pose.position.y);
