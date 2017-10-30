@@ -41,7 +41,8 @@ public:
     SimpleHumanModel() :
         SynchronizableNode()
     {
-        const std::string srv_name = "/novelti_shared_control/new_goal";
+        std::string srv_name;
+        node.param<std::string>("new_goal", srv_name, "/novelti_shared_control/new_goal");
         ros::service::waitForService(srv_name, -1);
         new_goal_client_ = node.serviceClient<std_srvs::Empty>(srv_name);
     }

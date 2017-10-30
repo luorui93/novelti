@@ -49,8 +49,8 @@ public:
     
     MapDivider();
     MapDivider(const std::string paramPrefix);
-    void stopExp();
-    void startExp(novelti::StartExperiment::Request& req);
+    virtual void stopExp();
+    virtual void startExp(novelti::StartExperiment::Request& req);
     void poseOptCallback(geometry_msgs::PoseStampedConstPtr pose);
     //void pdfCallback(novelti::FloatMapConstPtr& msg);
     //void pdfCallback(boost::shared_ptr<novelti::FloatMap const> msg){//novelti::FloatMapConstPtr& msg) {
