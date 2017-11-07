@@ -48,8 +48,11 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
     //ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
     
     std::vector<double> view_sizes;
-    node.getParam("view_sizes", view_sizes);
-    //ROS_INFO("%s: ---------------------------------------------------------------------- view_sizes.size()==%d", getName().c_str(), (int)view_sizes.size());
+    if (!node.hasParam("inf/view_sizes")) {
+        ROS_ERROR("Parameter view_sizes not configured");
+    }
+    node.getParam("inf/view_sizes", view_sizes);
+    ROS_INFO("%s: ---------------------------------------------------------------------- view_sizes.size()==%d", getName().c_str(), (int)view_sizes.size());
     if (view_sizes.size()==0) {
         view_sizes_ = {256};
     } else {
@@ -58,7 +61,7 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
     }
         
     std::vector<double> smooth_rads;
-    node.getParam("smooth_rads", smooth_rads);
+    node.getParam("inf/smooth_rads", smooth_rads);
         if (smooth_rads.size() != view_sizes_.size() && smooth_rads.size() != 0) {
             ROS_ERROR("ERROR: arrays view_sizes and smooth_rads must have the same length unless smooth_rads is empty");
             throw ros::Exception("Parameter error, see message above");
@@ -533,7 +536,7 @@ void InferenceUnit::updatePdfAndPublish() {
         if (max_prob >= thresh_high) {
             state = INFERRED;
             pubPoseInferred(max_prob_k);
-            ROS_INFO("%s: state INFERRING -> INFERRED, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
+            ROS_WARN("%s: state INFERRING -> INFERRED, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
             return;
         }
     } else { //state == INFERRING_NEW:

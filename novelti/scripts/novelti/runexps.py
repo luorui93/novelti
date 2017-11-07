@@ -2,7 +2,8 @@
 
 from CommandVariator import *
 
-cmds = [("roslaunch novelti single_node.launch  "
+cmds = [("roslaunch novelti novelti.launch  "
+        "single_node:=%(single_node)d  "
         "tries:=%(tries)d  map:=%(map)s  resol:=%(resol)f  path:=%(path)d  "
         "mx:=%(mx)s  period:=%(period)f  vel:=%(vel)f  trobot:=%(trobot)f  "
         "phigh:=%(phigh)f  plow:=%(plow)f  peps:=%(peps)e  "
@@ -27,6 +28,7 @@ cmds = [("roslaunch novelti single_node.launch  "
         ]
 
 varprms = {
+    'single_node' : 1,
     'dir' :"/home/yaphes/rosbag",
     'bagid': lambda: "lti-auto-nav-experiment-%s" % (datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
     'tries': 30,

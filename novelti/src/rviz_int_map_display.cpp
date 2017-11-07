@@ -72,7 +72,7 @@ IntMapDisplay::IntMapDisplay()
   , region0_color_ (255,245,6,255)
   , region1_color_ (117,6,235,255)
   , region2_color_ (232,136,12,255)
-  , region3_color_ (82,176,255,255)
+  , region3_color_ (255,0,0,255)
   , region4_color_ (0,255,65,255)
   , region5_color_ (255,0,0,255)
 {

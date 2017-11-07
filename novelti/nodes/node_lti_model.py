@@ -13,6 +13,15 @@ class StochHmiModel (SynchronizableNode):
     def __init__(self):
         self.cmd_intended = None
         #read parameters
+        """if period!=0, then 
+                the first cmd_detected message starts a thread that will publish /cmd_intended
+                at constant period T=period
+                the the delay parameter in this case is ignored 
+            otherwise (period==0):
+                then every time a cmd_detected received, the node sleeps for delay seconds
+                and publishes cmd_intended calcualted from cmd_detected and interface matrix
+        """        
+
         interface_matrix = rospy.get_param('~interface_matrix', [])
         rospy.loginfo("\n=========INTERFACE MATRIX:====== \n" + str(interface_matrix))
         self.period = rospy.get_param('~period', 0.0)

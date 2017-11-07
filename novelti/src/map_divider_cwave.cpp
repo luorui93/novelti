@@ -284,7 +284,6 @@ CWaveMapDivider::CWaveMapDivider(DivMethod method, string paramPrefix) : MapDivi
 }
 
 void CWaveMapDivider::startExp(novelti::StartExperiment::Request &req) {
-    ROS_INFO("BP1");
     new (&cmap_) CompoundMap(req.map.info.width, req.map.info.height);
     for (int x = 0; x < req.map.info.width; x++)
         for (int y = 0; y < req.map.info.height; y++)

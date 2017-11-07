@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - //pose_current1
       Splitter Ratio: 0.625
     Tree Height: 390
   - Class: rviz/Selection
@@ -87,7 +88,7 @@ Visualization Manager:
       Axes Length: 1
       Axes Radius: 0.1
       Class: rviz/Pose
-      Color: 145; 147; 5
+      Color: 0; 0; 0
       Enabled: true
       Head Length: 0.0001
       Head Radius: 0.1
@@ -142,6 +143,12 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: /map_divided
+      Region 0 color: 255; 245; 6
+      Region 1 color: 117; 6; 235
+      Region 2 color: 232; 136; 12
+      Region 3 color: 255; 0; 0
+      Region 4 color: 0; 255; 65
+      Region 5 color: 255; 0; 0
       Topic: /map_divided
       Value: true
     - Alpha: 1
@@ -150,6 +157,12 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: /map
+      Region 0 color: 255; 245; 6
+      Region 1 color: 117; 6; 235
+      Region 2 color: 232; 136; 12
+      Region 3 color: 255; 0; 0
+      Region 4 color: 0; 255; 65
+      Region 5 color: 255; 0; 0
       Topic: /map
       Value: true
     - Alpha: 0.7
@@ -158,6 +171,12 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: /debug_track_map
+      Region 0 color: 255; 245; 6
+      Region 1 color: 117; 6; 235
+      Region 2 color: 232; 136; 12
+      Region 3 color: 255; 0; 0
+      Region 4 color: 0; 255; 65
+      Region 5 color: 255; 0; 0
       Topic: /debug_track_map
       Value: false
     - Alpha: 1
@@ -245,11 +264,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 15
+      Scale: 91.2116
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 28.1995
-      Y: 18.3307
+      X: 17.5335
+      Y: 19.3897
     Saved: ~
 Window Geometry:
   Displays:
@@ -267,5 +286,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1153
-  X: 55
-  Y: 14
+  X: 560
+  Y: 100
