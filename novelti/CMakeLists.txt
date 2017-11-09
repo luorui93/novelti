@@ -251,7 +251,7 @@ target_link_libraries(novelti_shared_control
 )
 add_dependencies(novelti_shared_control ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
-add_executable(robot_model src/node_robot_model.cpp)
+add_executable(robot_model src/node_diff_drive_robot_model.cpp)
 target_compile_definitions(robot_model PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
 target_link_libraries(robot_model
    ${catkin_LIBRARIES}
