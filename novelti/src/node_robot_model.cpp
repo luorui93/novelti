@@ -27,7 +27,6 @@
 #include <novelti/common.cpp>
 
 #include <mutex>
-#include <vector>
 
 using namespace cwave;
 
@@ -54,16 +53,14 @@ public:
     Traj traj_;
     std::mutex traj_lock_;
     
-    double max_vel_, max_twist_, pub_period_, initial_orientation_;
-    vector<double> transition_time_list;
+    double max_vel_, max_vel_ang_, pub_period_;
 
     NoKinRobotModel() :
         SynchronizableNode()
     {
         node.param("max_vel", max_vel_,  0.5);
-        node.param("max_twist", max_twist_, 0.5);
+        node.param("max_vel_ang", max_vel_ang_, 0.5); //currently ignored
         node.param("pub_period", pub_period_, 0.01);
-        node.param("initial_orientation", initial_orientation_, 0.0);
         pose_.header.frame_id = "/map";
         active_ = false;
     }
@@ -71,7 +68,6 @@ public:
     void start(novelti::StartExperiment::Request& req) {
         pose_lock_.lock();
             pose_.pose  = req.init_pose;
-            pose_.pose.orientation = tf::createQuaternionMsgFromYaw(initial_orientation_);
         pose_lock_.unlock();
         
         traj_lock_.lock();
@@ -175,7 +171,6 @@ public:
             pose_lock_.lock();
                 pose_.pose.position.x = resolution * (cur.x + (nxt.x-cur.x)*gamma);
                 pose_.pose.position.y = resolution * (cur.y + (nxt.y-cur.y)*gamma);
-                pose_.pose.orientation = tf::createQuaternionMsgFromYaw (PI / 4);
             pose_lock_.unlock();
         }
         return arrived;
@@ -188,28 +183,6 @@ public:
             pub_pose_arrived_.publish(pose_);
         pose_lock_.unlock();
         ROS_INFO("%s: published /pose_arrived (%f,%f)", getName().c_str(), pose_.pose.position.x, pose_.pose.position.y);
-    }
-
-    void calculateMotionPeriodList(ros::Time t) {
-        double period, gamma, theta;
-        Point cur,nxt;
-        geometry_msgs::Quaternion orientation;
-        traj_lock_.lock();
-        orientation = pose_.pose.orientation;
-        transition_time_list.push_back(t);
-        for (int k = traj_.path.size() - 1; k>=1; k--) {
-            cur = traj_.path[k];
-            nxt = traj_.path[k-1];
-            //rotation period
-            theta = atan2(nxt.y-cur.y,nxt.x-cur.x) - tf::getYaw(orientation);
-            period = theta / max_twist;
-            transition_time_list.push_back(period + transition_time_list.back());
-            orientation = atan2(nxt.y-cur.y,nxt.x-cur.x) 
-            //translation period
-            period = sqrt( (nxt.x-cur.x)*(nxt.x-cur.x) + (nxt.y-cur.y)*(nxt.y-cur.y) )*resolution/max_vel;
-            transition_time_list.push_back(period + transition_time_list.back();
-        }
-        traj_lock_.unlock();
     }
     
     void run() {
