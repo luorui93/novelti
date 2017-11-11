@@ -112,7 +112,7 @@ public:
     }
     
     void desiredPoseCallback(geometry_msgs::PoseStampedConstPtr pose_des) {
-        ROS_WARN("robot_model: recieved desired pose: (%f,%f)", pose_des->pose.position.x, pose_des->pose.position.y);
+        // ROS_WARN("robot_model: recieved desired pose: (%f,%f)", pose_des->pose.position.x, pose_des->pose.position.y);
         Point des;
         pose_lock_.lock();
             updateVertex(pose_des->pose, des.x, des.y);
@@ -157,7 +157,7 @@ public:
                 trans_point.prim_id = TransitionPoint::Type::rotation;
                 trans_point.finish_time += period;
                 trans_point.period = period;
-                ROS_WARN("queue added period:%f",period);
+                // ROS_WARN("queue added period:%f",period);
                 trans_point.prev_orientation = trans_point.cur_orientation;
                 trans_point.cur_orientation = atan2(tstar.y-p.y,tstar.x-p.x);
                 trans_point_queue_.push(trans_point);
@@ -204,9 +204,8 @@ public:
                     T = tp.finish_time - t.toSec();
                     if (T >= 0) {
                         gamma = 1 - T / tp.period;
-                        ROS_WARN("current element: %d", tp.prim_id);
-                        ROS_WARN("period: %f",tp.period);
-                        // ROS_WARN("gamma: %f",gamma);
+                        // ROS_WARN("current element: %d", tp.prim_id);
+                        // ROS_WARN("period: %f",tp.period);
                         traj_moving = true;
                         type = tp.prim_id;
                         if (type == TransitionPoint::Type::rotation) {
