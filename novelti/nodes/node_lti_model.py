@@ -39,7 +39,7 @@ class StochHmiModel (SynchronizableNode):
         #rospy.loginfo("\n=========INTERFACE TTHR:====== \n" + str(self.interface_matrix_thresholds))
         # prepare additional vars
         for row in self.interface_matrix_thresholds:
-            #rospy.loginfo("======= %s====%d\n" % (str(row), len(row)))
+            # rospy.logwarn("======= %s====%d\n" % (str(row), len(row)))
             thresh = 0.0
             for k in xrange(self.n):
                 row[k] = thresh+row[k]

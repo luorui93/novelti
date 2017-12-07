@@ -32,9 +32,9 @@ class KeyboardCommander (SynchronizableNode):
         # self.sub_pose_intended = rospy.Subscriber('/pose_intended', PoseStamped, self.poseIntendedCallback)
 
     def stop(self):
-        self.map_divided_sub.unregister()
+        # self.map_divided_sub.unregister()
         # self.sub_pose_intended.unregister()
-        # self.pub_cmd_intended.unregister()
+        self.pub_cmd_intended.unregister()
 
 
 def getKey():

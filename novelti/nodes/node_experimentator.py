@@ -40,8 +40,12 @@ class Experimentator (SyncingNode):
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], self.vertex2pose(vx))
             self.onExperimentStarted()
             self.runs_left -= 1
-            nextVx = self.vxIter.next()
-        self.publishPose(nextVx)
+            try:
+                nextVx = self.vxIter.next()
+            except StopIteration:
+                rospy.loginfo("Last element in path!")
+            else:
+                self.publishPose(nextVx)
 
     def publishPose(self, vx):
         pose = PoseStamped()
@@ -62,12 +66,12 @@ class Experimentator (SyncingNode):
     def arePosesSame(self, p1, p2):
         return math.sqrt((p1.position.x-p2.position.x)**2 + (p1.position.y-p2.position.y)**2) < self.cfg['resolution']/20.0
     
-    def poseCurrentCallback(self, msg):
-        if self.state=="INFERRED" and self.arePosesSame(msg.pose, self.pose_inferred):
-            rospy.loginfo("%s: reached destination" % (rospy.get_name()))
-            self.state="INFERRING"
-            self.onInferredReached()
-            self.publishNextIntendedPose()
+    # def poseCurrentCallback(self, msg):
+    #     if self.state=="INFERRED" and self.arePosesSame(msg.pose, self.pose_inferred):
+    #         rospy.loginfo("%s: reached destination" % (rospy.get_name()))
+    #         self.state="INFERRING"
+    #         self.onInferredReached()
+    #         self.publishNextIntendedPose()
 
     def poseArrivedCallback(self, msg):
         rospy.loginfo("%s: received /pose_arrived, state==%s" % (rospy.get_name(), self.state))
