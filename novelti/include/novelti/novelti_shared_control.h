@@ -6,6 +6,7 @@
 #include <novelti/inference_unit.h>
 #include <novelti/best_pose_finder.h>
 #include <novelti/map_divider.h>
+#include <novelti/orientation_control.h>
 
 using namespace cwave;
 
@@ -16,6 +17,8 @@ public:
     InferenceUnit* iu;
     BestPoseFinder* bpf;
     MapDivider* mdiv;
+    IntMap* compass;
+    OrientationControl* oc;
     std::mutex inference_started_lock;
 
     ros::Subscriber     sub_cmd;
@@ -24,6 +27,7 @@ public:
     std::string divMethod;
     std::string posMethod;
     bool inference_started;
+    bool orientation_inference_started;
 
     NoveltiSharedControl(std::string divMethod, std::string posMethod);
     bool srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp);
@@ -32,6 +36,8 @@ public:
     void cmdCallback(CommandConstPtr cmd);
     bool isInferenceStarted();
     void setInferenceStarted(bool value);
+    bool isOrientationInferenceStarted();
+    void setOrientationInferenceStarted(bool value);
 };
 
 }

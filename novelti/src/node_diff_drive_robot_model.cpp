@@ -22,7 +22,7 @@
 #include "ros/ros.h"
 #include <math.h>
 #include <geometry_msgs/PoseStamped.h>
-
+#include <geometry_msgs/Quaternion.h>
 #include <novelti/StartExperiment.h>
 #include <novelti/common.cpp>
 
@@ -33,16 +33,18 @@ using namespace cwave;
 
 namespace novelti {
 
-class NoKinRobotModel : public SynchronizableNode {
+class DiffDriveRobotModel : public SynchronizableNode {
 public:
     ros::Publisher  pub_pose_current_;
     ros::Publisher  pub_pose_arrived_;
     ros::Subscriber sub_pose_desired_;
     ros::Subscriber sub_pose_inferred_;
+    ros::Subscriber sub_position_inferred_;
+    ros::Subscriber sub_orientation_desired_;
     std::mutex pub_lock_;
     std::atomic<bool> active_;
     
-    geometry_msgs::PoseStamped pose_;
+    geometry_msgs::PoseStamped pose_current_,pose_last_;
     std::mutex pose_lock_;
 
     CompoundMap cmap_;
@@ -65,21 +67,21 @@ public:
 
     double max_vel_, max_twist_, pub_period_, initial_orientation_;
 
-    NoKinRobotModel() :
+    DiffDriveRobotModel() :
         SynchronizableNode()
     {
         node.param("max_vel", max_vel_,  0.5);
         node.param("max_twist", max_twist_, 0.5);
         node.param("pub_period", pub_period_, 0.01);
         node.param("initial_orientation", initial_orientation_, 0.0);
-        pose_.header.frame_id = "/map";
+        pose_current_.header.frame_id = "/map";
         active_ = false;
     }
     
     void start(novelti::StartExperiment::Request& req) {
         pose_lock_.lock();
-            pose_.pose  = req.init_pose;
-            pose_.pose.orientation = tf::createQuaternionMsgFromYaw(initial_orientation_);
+            pose_current_.pose  = req.init_pose;
+            pose_current_.pose.orientation = tf::createQuaternionMsgFromYaw(initial_orientation_);
         pose_lock_.unlock();
         
         trans_lock_.lock();
@@ -94,8 +96,10 @@ public:
         pub_lock_.lock();
             pub_pose_current_  = node.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
             pub_pose_arrived_  = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, true); //latched
-            sub_pose_desired_  = node.subscribe("/pose_desired", 1, &NoKinRobotModel::desiredPoseCallback, this);
-            sub_pose_inferred_ = node.subscribe("/pose_inferred", 1, &NoKinRobotModel::desiredPoseCallback, this);
+            // sub_pose_desired_  = node.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
+            // sub_orientation_desired_ = node.subscribe("/orientation_desired", 1, &DiffDriveRobotModel::desiredOrientationCallback,this);
+            sub_position_inferred_ = node.subscribe("/position_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
+            sub_pose_inferred_ = node.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPoseCallback, this);
         pub_lock_.unlock();
         publishCurrentPose();
         active_ = true;
@@ -111,8 +115,8 @@ public:
         pub_pose_arrived_.shutdown();
     }
     
-    void desiredPoseCallback(geometry_msgs::PoseStampedConstPtr pose_des) {
-        // ROS_WARN("robot_model: recieved desired pose: (%f,%f)", pose_des->pose.position.x, pose_des->pose.position.y);
+    void desiredPositionCallback(geometry_msgs::PoseStampedConstPtr pose_des) {
+        ROS_WARN("robot_model: recieved desired position: (%f,%f)", pose_des->pose.position.x, pose_des->pose.position.y);
         Point des;
         pose_lock_.lock();
             updateVertex(pose_des->pose, des.x, des.y);
@@ -127,9 +131,9 @@ public:
             trans_point.finish_time = trans_point.start_time;
             trans_point.prim_id = TransitionPoint::Type::initial;
             Point p;
-            updateVertex(pose_.pose, p.x, p.y);
+            updateVertex(pose_current_.pose, p.x, p.y);
             trans_point.cur_pos = p;
-            trans_point.cur_orientation = tf::getYaw(pose_.pose.orientation);
+            trans_point.cur_orientation = tf::getYaw(pose_current_.pose.orientation);
             trans_point_queue_.push(trans_point);
 
             CWave2 cw(cmap_);
@@ -145,6 +149,8 @@ public:
                 tstar = cmap_.getTrackStar(track_star_id);
                 
                 //Rotation
+                if (tstar.y == p.y && tstar.x == p.x)
+                    break;
                 theta = atan2(tstar.y-p.y,tstar.x-p.x) - trans_point.cur_orientation;
                 //restrict theta to -pi to pi
                 if (theta > M_PI) {
@@ -172,18 +178,52 @@ public:
                 trans_point_queue_.push(trans_point);      //ROS_INFO("robot_model: added: %d,%d", p.x, p.y);
 
                 p = Point(tstar.x,tstar.y);
-            } while(track_star_id!=0);
-            trans_point_queue_.pop();    //pop out the initial value
-            // ROS_WARN("Last element in the queue: %d", trans_point_queue_.back().prim_id);
+            } while(track_star_id!=0);    
+            //pop out the initial value
+            trans_point_queue_.pop();    
+            //ROS_WARN("Last element in the queue: %d", trans_point_queue_.back().prim_id);
             cmap_.clearDist();
             traj_moving = true;
         trans_lock_.unlock();
     }
 
+    void desiredPoseCallback(geometry_msgs::PoseStampedConstPtr pose_des) {
+        desiredPositionCallback(pose_des);
+        ROS_WARN("robot_model: recieved desired orientation: %f",tf::getYaw(pose_des->pose.orientation));
+        //Do one more final rotation
+        TransitionPoint trans_point;
+        double theta,period;
+        trans_lock_.lock();
+        theta = tf::getYaw(pose_des->pose.orientation) - tf::getYaw(pose_last_.pose.orientation);
+        //ROS_WARN("theta: %f",theta);
+        //restrict theta to -pi to pi
+        if (theta > M_PI) {
+            theta = 2*M_PI - theta;
+        }
+        else if (theta < -M_PI) {
+            theta = 2*M_PI + theta;
+        }
+        period = abs(theta) / max_twist_;            
+        trans_point.prim_id = TransitionPoint::Type::rotation;
+        trans_point.start_time = trans_point_queue_.back().finish_time;
+        trans_point.finish_time =  trans_point.start_time+period;
+        trans_point.period = period;
+        trans_point.prev_orientation = trans_point_queue_.back().cur_orientation;
+        trans_point.cur_orientation = tf::getYaw(pose_des->pose.orientation);
+        trans_point_queue_.push(trans_point);      
+        ROS_WARN("Last element in the queue: %f", trans_point_queue_.back().cur_orientation);
+        traj_moving = true;
+        trans_lock_.unlock(); 
+    }
+
+    void desiredOrientationCallback(geometry_msgs::QuaternionConstPtr orientation_des) {
+
+    }
+
     void publishCurrentPose() {
         pose_lock_.lock();
-            pose_.header.stamp = ros::Time::now();
-            pub_pose_current_.publish(pose_);
+            pose_current_.header.stamp = ros::Time::now();
+            pub_pose_current_.publish(pose_current_);
             //ROS_INFO("robot_model: published currrent_pose: (%f,%f)", pose_.pose.position.x, pose_.pose.position.y);
         pose_lock_.unlock();
     }
@@ -201,6 +241,7 @@ public:
             if (need_update) {
                 if (!trans_point_queue_.empty()) {
                     tp = trans_point_queue_.front();
+                    //ROS_WARN("current tp orientation:%f",tp.cur_orientation);
                     T = tp.finish_time - t.toSec();
                     if (T >= 0) {
                         gamma = 1 - T / tp.period;
@@ -218,14 +259,14 @@ public:
                             else if (theta < -M_PI) {
                                 theta = 2 * M_PI + theta;
                             }
-                            pose_.pose.orientation = tf::createQuaternionMsgFromYaw(
+                            pose_current_.pose.orientation = tf::createQuaternionMsgFromYaw(
                                 tp.prev_orientation + theta * gamma);
                             pose_lock_.unlock();
                         }
                         else if (type == TransitionPoint::Type::translation) {
                             pose_lock_.lock();
-                            pose_.pose.position.x = resolution * (tp.prev_pos.x + (tp.cur_pos.x - tp.prev_pos.x) * gamma);
-                            pose_.pose.position.y = resolution * (tp.prev_pos.y + (tp.cur_pos.y - tp.prev_pos.y) * gamma);
+                            pose_current_.pose.position.x = resolution * (tp.prev_pos.x + (tp.cur_pos.x - tp.prev_pos.x) * gamma);
+                            pose_current_.pose.position.y = resolution * (tp.prev_pos.y + (tp.cur_pos.y - tp.prev_pos.y) * gamma);
                             pose_lock_.unlock();
                         }
                     }
@@ -246,10 +287,11 @@ public:
     
     void publishPoseArrived() {
         pose_lock_.lock();
-            pose_.header.stamp = ros::Time::now();
-            pub_pose_arrived_.publish(pose_);
+            pose_current_.header.stamp = ros::Time::now();
+            pose_last_ = pose_current_;
+            pub_pose_arrived_.publish(pose_current_);
         pose_lock_.unlock();
-        ROS_INFO("%s: published /pose_arrived (%f,%f)", getName().c_str(), pose_.pose.position.x, pose_.pose.position.y);
+        ROS_INFO("%s: published /pose_arrived (%f,%f)", getName().c_str(), pose_current_.pose.position.x, pose_current_.pose.position.y);
     }
 
     void run() {
@@ -275,7 +317,7 @@ using namespace novelti;
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "robot_model");
-    NoKinRobotModel rm;
+    DiffDriveRobotModel rm;
     rm.run();
     return 0;
 }

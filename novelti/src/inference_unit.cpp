@@ -41,9 +41,10 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
     node.param<float>("inf/interest_area_coef", interest_area_thresh_, -1.0);
     node.param<float>("inf/thresh_high", thresh_high, 0.98);
     node.param<float>("inf/thresh_low", thresh_low, 0.5);
-    node.param<double>("inf/eps", eps, 1.0e-12);
+    node.param<float>("inf/eps", eps, std::numeric_limits<float>::epsilon());
     node.param<bool>("inf/reset_pdf_on_new", reset_pdf_on_new_, false);
     node.param<bool>("inf/check_sync", check_sync_, true);
+    node.param<float>("ori/orientation_resolution", orientation_resol, 5.0);
 
     //ROS_INFO("%s: ---------------------------------------------------------------------- smoothen=%d", getName().c_str(), smoothen_ ? 1 :0);
     
@@ -93,13 +94,15 @@ InferenceUnit::InferenceUnit():
 }
 
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
-    state = INFERRING_NEW;
-    ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
+    state = INFERRING; //_NEW;
+    // ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
     if (reset_pdf_on_new_) {
         resetPdf();
     } else {
-        denullifyPdf();//??
+        denullifyPdf(pdf.data);
     }
+    setUniformOrientationPdf();
+    updateInferenceState();
     //ROS_INFO("%s: new_pdf == %s", getName().c_str(), new_pdf_ ? "True" : "False");
     pubPdf();
     return true;
@@ -109,6 +112,7 @@ void InferenceUnit::stopExp() {
     sub_map_div.shutdown();
     sub_cmd.shutdown();
     pub_pdf.shutdown();
+    pub_position_inf.shutdown();
     pub_pose_inf.shutdown();
 
 }
@@ -124,10 +128,14 @@ void InferenceUnit::startExp(novelti::StartExperiment::Request& req) {
     pdf.info.origin.position.x = -0.5*req.map.info.resolution;
     pdf.info.origin.position.y = -0.5*req.map.info.resolution;
     pdf.data = std::vector<float>(pdf.info.width*pdf.info.height, PDF_UNREACHABLE);
+    opdf = OrientationPdf();
+    opdf.header.frame_id = "/orientation_display";
+    opdf.data = std::vector<float>(360 / orientation_resol,0.0);
+    norm_pdf = pdf;
     int k;
-    
-    //determine reachable vertices
     long int total_vx = 0;
+
+    //determine reachable vertices
     for (int x=0; x<req.map.info.width-1; x++) {
         for (int y=0; y<req.map.info.height-1; y++) {
             k = x + y*req.map.info.width;
@@ -140,10 +148,13 @@ void InferenceUnit::startExp(novelti::StartExperiment::Request& req) {
 
     //set uniform pdf over reachable vertices
     uniform_prob_ = 1.0/total_vx;
-    interest_area_thresh_ *= uniform_prob_;
+    // interest_area_thresh_ *= uniform_prob_;
     resetPdf(); //Already reset in start
+    setUniformOrientationPdf();
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
-    pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false); //not latched
+    pub_opdf     = node.advertise<OrientationPdf>("/opdf", 1, true);
+    pub_position_inf = node.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, false); //not latched
+    pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false);
     if (isNode) {
         sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
         sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
@@ -166,8 +177,12 @@ void InferenceUnit::resetPdf() {
 
 void InferenceUnit::setUniformPdf() {
     for (int k=pdf.data.size()-1;k>=0; k--)
-        if (pdf.data[k] >=0 )
+        if (pdf.data[k] >=0 ) {
             pdf.data[k] = uniform_prob_;
+            norm_pdf.data[k] = pdf.data[k];
+            max_prob_k = k;
+        }
+    max_prob = uniform_prob_;
 }
 
 void InferenceUnit::setStaticPredictedPdf() {
@@ -190,48 +205,35 @@ void InferenceUnit::setStaticPredictedPdf() {
                     p += poi_k * exp(-d/(2*poi_sigma*poi_sigma));
                 }
                 pdf.data[k] = p;
+                norm_pdf.data[k] = pdf.data[k];
                 total += p;
             }
         }
     }
     
-//     for (int y=0, k=0; y<pdf.info.height-1; y++) {
-//         for (int x=0; x<pdf.info.width-1; x++, k++) {
-//             if (pdf.data[k]>=0) {
-//                 p = 0.0;
-//                 //pois_: x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...
-//                 for (int i=0; i<pois_.size(); i+=4) {
-//                     poi_x = pois_[i];
-//                     poi_y = pois_[i+1];
-//                     poi_sigma = pois_[i+2];
-//                     poi_k = pois_[i+3];
-//                     d = (x-poi_x)*(x-poi_x) + (y-poi_y)*(y-poi_y);
-//                     p += poi_k * exp(-d/(2*poi_sigma*poi_sigma));
-//                 }
-//                 pdf.data[k] = p;
-//                 total += p;
-//             }
-//         }
-//         k++;
-//     }
     
     //normalize
     double total2 = 0.0;
+    max_prob = 0;
     for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
         p = pdf.data[k];
         if (p >=0 ) {
             pdf.data[k] = p/total;
             total2 += pdf.data[k];
+            if (pdf.data[k]>=max_prob) {
+                max_prob = pdf.data[k];
+                max_prob_k = k;
+            }
         }
     }
-    ROS_WARN("%s: Accumulated probability of the whole PDF = %f, total before normalization=%f", getName().c_str(), total2, total);
+    ROS_INFO("%s: Accumulated probability of the whole PDF = %f, total before normalization=%f", getName().c_str(), total2, total);
 }
 
-void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and normalizes
+void InferenceUnit::denullifyPdf(std::vector<float>& pdf) { //replaces small probs (<eps) with eps, and normalizes
     double p, sc=0.0, sa=0.0;
     //ROS_INFO("++++++++++++++++ eps=%f", eps);
-    for (int k=pdf.data.size()-1; k>=0; k--) { //replace small probs (<eps) with eps 
-        p = pdf.data[k];
+    for (int k=pdf.size()-1; k>=0; k--) { //replace small probs (<eps) with eps 
+        p = pdf[k];
         if (p >=0 && p < eps) {
             sc += eps;
             sa += p;
@@ -239,17 +241,17 @@ void InferenceUnit::denullifyPdf() { //replaces small probs (<eps) with eps, and
     }
     double c=(1.0-sc)/(1.0-sa);
     //ROS_INFO("++++++++++++++++ c=%f", c);
-    for (int k=pdf.data.size()-1; k>=0; k--) { //normalize
-        p = pdf.data[k];
+    for (int k=pdf.size()-1; k>=0; k--) { //normalize
+        p = pdf[k];
         if (p >=0) {
-            pdf.data[k] = p<eps ? eps : c*p;
+            pdf[k] = p<eps ? eps : c*p;
         }
     }
     
     double min_prob = 1.0;
-    for (int k=pdf.data.size()-1; k>=0; k--) //find min prob
-        if (pdf.data[k]>=0.0 && pdf.data[k]<min_prob)
-            min_prob = pdf.data[k];
+    for (int k=pdf.size()-1; k>=0; k--) //find min prob
+        if (pdf[k]>=0.0 && pdf[k]<min_prob)
+            min_prob = pdf[k];
     //ROS_INFO("++++++++++++++++ min_prob=%f", min_prob*1000000);
 }
 
@@ -267,12 +269,12 @@ void InferenceUnit::calcUpdCoefs() {
     double total = 0.0;
     for (int k=0; k<n_cmds; k++) {
         //ROS_INFO(">>>>>>>>>>>>>>> mx=%f, pr=%f", interface_matrix[cmd_detected->cmd + k*n_cmds], priors[k]);
-        posteriors[k] += interface_matrix[cmd_detected->cmd + k*n_cmds] * priors[k]; //TODO double check
+        posteriors[k] = interface_matrix[cmd_detected->cmd + k*n_cmds] * priors[k]; 
         total += posteriors[k];
     }
     //ROS_INFO("%s: calculated posteriors before normalization: [%f, %f, %f, %f]", getName().c_str(), posteriors[0], posteriors[1], posteriors[2], posteriors[3]);
     
-    //normalize posteriors (not sure if needed)
+    //normalize posteriors 
     for (int k=0; k<n_cmds; k++)
         posteriors[k] = posteriors[k]/total;
     ROS_INFO("%s: calculated posteriors after normalization: [%f, %f, %f, %f]", getName().c_str(), posteriors[0], posteriors[1], posteriors[2], posteriors[3]);
@@ -299,13 +301,7 @@ void InferenceUnit::mapDivCallback(novelti::IntMapConstPtr msg){
 void InferenceUnit::cmdCallback(CommandConstPtr msg){
     ROS_INFO("%s: received cmd_detected = %d (SEQ=%d)", getName().c_str(), msg->cmd, msg->header.seq);
     cmd_detected = msg;
-    if (fast_state==RCVD_MAPDIV) {
-        fast_state = RCVD_NONE;
-        updatePdfAndPublish();
-    } else {
-        fast_state = RCVD_CMD;
-        //ROS_INFO("%s: fast_state := RCVD_CMD", getName().c_str());
-    }
+
 }
 
 void InferenceUnit::noveltiInfCallback(novelti::IntMapConstPtr ptr_map, CommandConstPtr ptr_cmd){
@@ -318,6 +314,7 @@ void InferenceUnit::noveltiInfCallback(novelti::IntMapConstPtr ptr_map, CommandC
 void InferenceUnit::updatePdf() {
     calcUpdCoefs();
     max_prob = 0.0;
+    min_prob = 1.0;
     double total_prob = 0.0;
     double p;
     for (int k=0; k<pdf.data.size(); k++) {
@@ -326,9 +323,12 @@ void InferenceUnit::updatePdf() {
             pdf.data[k]=p*coefs[map_divided->data[k]];
             total_prob += pdf.data[k];
             ///ROS_INFO("%s: updating pdf[%d]: %f->%f", getName().c_str(), k, p, pdf.data[k]);
-            if (p >= max_prob) {
-                max_prob   = p;
+            if (pdf.data[k] >= max_prob) {
+                max_prob   = pdf.data[k];
                 max_prob_k = k;
+            }
+            if (pdf.data[k] <= min_prob) {
+                min_prob = pdf.data[k];
             }
         }
     }
@@ -415,12 +415,12 @@ void InferenceUnit::smoothenPdf() {
 }
 
 void InferenceUnit::publishViewTf() {
-    // find rectangle that encompasses all vertices with probability >= interest_area_thresh
+    float thresh = interest_area_thresh_*(max_prob-min_prob)+min_prob;
     int xmin=std::numeric_limits<int>::max(), xmax=std::numeric_limits<int>::min();
     int ymin=std::numeric_limits<int>::max(), ymax=std::numeric_limits<int>::min();
     for (int y=0, k=0; y<pdf.info.height-1; y++) {
         for (int x=0; x<pdf.info.width-1; x++, k++) {
-            if (pdf.data[k] >= interest_area_thresh_) {
+            if (pdf.data[k] >= thresh) {
                 if (x<xmin) 
                     xmin = x;
                 if (y<ymin)
@@ -440,7 +440,6 @@ void InferenceUnit::publishViewTf() {
         ymax = pdf.info.height-1;
     }
         
-    
     //calculate TF from where the interest area will be completely visible
     int view_size;
     int d = std::max({xmax-xmin, ymax-ymin});
@@ -453,7 +452,6 @@ void InferenceUnit::publishViewTf() {
     if (view_size_id_>=view_sizes_.size())
         view_size_id_--;
     int cr = view_sizes_[view_size_id_]/2;
-    //printf("x=%d, y=%d, init cr=%d\n", x,y,cr);
     
     int view_x = (int)(round(x/cr)*cr);
     int view_y = (int)(round(y/cr)*cr);
@@ -493,7 +491,6 @@ void InferenceUnit::publishViewTf() {
     int view_y = (bottom+top)/2;
     view_size_ = cd;*/
     //view_size_ = cr*2;
-    ROS_INFO("%s:[xmin, xmax]=[%d,%d], [ymin,ymax]=[%d,%d], view_x=%d, view_y=%d, view_size_id=%d, view_size=%d", getName().c_str(), xmin,xmax,ymin,ymax, view_x,view_y, view_size_id_, view_sizes_[view_size_id_]);
     
 //     double w = pdf.info.resolution*pdf.info.width;
 //     double h = pdf.info.resolution*pdf.info.height;
@@ -530,46 +527,132 @@ void InferenceUnit::updatePdfAndPublish() {
     }
     new_pdf_ = false;
     updatePdf();
-    denullifyPdf();
+    denullifyPdf(pdf.data);
+    updateInferenceState();
+    pubPdf();
+}
+
+void InferenceUnit::updateInferenceState() {
     if (state==INFERRING) {
-        ROS_DEBUG("%s: state INFERRING, thresh_high=%f", getName().c_str(), thresh_high);
+        ROS_WARN("%s: state INFERRING, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);
         if (max_prob >= thresh_high) {
             state = INFERRED;
-            pubPoseInferred(max_prob_k);
+            pubPositionInferred(max_prob_k);
             ROS_WARN("%s: state INFERRING -> INFERRED, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
             return;
         }
     } else { //state == INFERRING_NEW:
-        ROS_DEBUG("%s: state INFERRING_NEW", getName().c_str());
+        ROS_WARN("%s: state INFERRING_NEW, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);
         if (max_prob <= thresh_low) {
             state = INFERRING;
             ROS_INFO("%s: state INFERRING_NEW -> INFERRING, max_prob=%f", getName().c_str(), max_prob);
         }
     }
-    pubPdf();
 }
 
 void InferenceUnit::pubPdf() {
     if (interest_area_thresh_ > 0.0)
         publishViewTf();
     pdf.header.stamp = ros::Time::now();
-    //pdf.info.origin.position.z = 0.5;
-    //ROS_INFO("%s: before published pdf (SEQ=%d)", getName().c_str(), pdf.header.seq);
-    //pub_pdf.publish(pdf);
-    //ros::spinOnce();
-    //ROS_INFO("%s: before published 1 pdf (SEQ=%d)", getName().c_str(), pdf.header.seq);
     pub_pdf.publish(pdf);
+    //normalizePdf();
     ros::spinOnce();
     ROS_INFO("%s: =========== published pdf (SEQ=%d), max_prob=%f", getName().c_str(), pdf.header.seq, max_prob);
     pdf.header.seq++;
 }
 
-void InferenceUnit::pubPoseInferred(int k) {
-    int y = k / map_divided->info.width;
-    int x = k % map_divided->info.width;
-    geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "/map";
-    SynchronizableNode::updatePose(pose, x, y, pdf.info.resolution);
-    pub_pose_inf.publish(pose);
-    ROS_INFO("%s: published /pose_inferred, vertex=(%d,%d), pose=(%f,%f)", getName().c_str(), x, y, pose.pose.position.x, pose.pose.position.y);
+void InferenceUnit::pubPositionInferred(int k) {
+    int y = k / pdf.info.width;
+    int x = k % pdf.info.width;
+    pose_inferred.header.frame_id = "/map";
+    SynchronizableNode::updatePose(pose_inferred, x, y, pdf.info.resolution);
+    pub_position_inf.publish(pose_inferred);
+    ROS_INFO("%s: published /pose_inferred, vertex=(%d,%d), pose=(%f,%f)", getName().c_str(), x, y, pose_inferred.pose.position.x, pose_inferred.pose.position.y);
+}
+
+// Normalize pdf to show in rviz
+void InferenceUnit::normalizePdf() {
+    double max_prob = 0;
+    double min_prob = 1;
+    long int imax = 0;
+    long int imin = 0;
+    for (std::size_t i=0;i < pdf.data.size();i++) {
+        if (pdf.data[i] > max_prob) {
+            max_prob = pdf.data[i];
+            imax = i;
+        }
+        if (pdf.data[i] < min_prob && pdf.data[i] > 0) {
+            min_prob = pdf.data[i];
+            imin = i;
+        }
+    }
+    for (std::size_t i=0;i < pdf.data.size();i++) {
+        if(max_prob == min_prob) {
+            ROS_WARN("MAX==MIN");
+            return;
+        }
+        norm_pdf.data[i] = (100 - 0) / (max_prob) * pdf.data[i];
+    }
+}
+
+void InferenceUnit::orientationInfCallback(std::vector<int>& unit_color, CommandConstPtr ptr_cmd) {
+    cmd_detected = ptr_cmd;
+    orientation_divided = unit_color;
+    updateOrientationPdfAndPublish();
+}
+
+void InferenceUnit::setUniformOrientationPdf() {
+    float uniform_prob = 1.0 / opdf.data.size(); 
+    for (int i = 0;i < opdf.data.size();i++) {
+        opdf.data[i] = uniform_prob;
+    }
+    ROS_WARN("uniform orientation prob:%f",uniform_prob);
+}
+
+void InferenceUnit::updateOrientationPdfAndPublish() {
+    //calculate priors
+    std::fill(priors.begin(),priors.end(),0.0);
+    for (int k=0;k < opdf.data.size();k++) {
+        if(orientation_divided[k] >= 0) {
+            priors[orientation_divided[k]] += opdf.data[k];
+        }
+    }
+    ROS_WARN("orientation priors: [%f,%f,%f,%f]", priors[0],priors[1],priors[2],priors[3]);
+
+    //calculate coef
+    calcUpdCoefs();
+
+    max_oprob = 0.0;
+    double total_oprob = 0.0;
+    double p;
+    for (int k=0; k<opdf.data.size(); k++) {
+        p = opdf.data[k];
+        if (p>=0) {
+            opdf.data[k]=p*coefs[orientation_divided[k]];
+            total_oprob += opdf.data[k];
+            ///ROS_INFO("%s: updating pdf[%d]: %f->%f", getName().c_str(), k, p, pdf.data[k]);
+            if (p >= max_oprob) {
+                max_oprob   = p;
+                max_oprob_k = k;
+            }
+        }
+    }
+    //smoothenPdf();
+
+    denullifyPdf(opdf.data);
+
+    //State??
+    if (max_oprob > thresh_high) {
+        state = ORIENTATION_INFERRED;
+        orientation_inferred = max_oprob_k*orientation_resol*M_PI/180;
+        ROS_WARN("Orientation Inferred: %f",orientation_inferred);
+        pose_inferred.pose.orientation = tf::createQuaternionMsgFromYaw(orientation_inferred);
+        pub_pose_inf.publish(pose_inferred);
+    }
+    //publish opdf
+    opdf.header.stamp = ros::Time::now();
+    pub_opdf.publish(opdf);
+    ros::spinOnce();
+    ROS_INFO("%s: =========== published opdf (SEQ=%d), max_oprob=%f", getName().c_str(), opdf.header.seq, max_oprob);
+    opdf.header.seq++;
 }
