@@ -37,7 +37,11 @@ class NoveltiExpRecord:
         self.cwave_cmdline_path = cwave_cmdline_path
         self.bag_path = bag_path
         self.readMetaData(bag_path)
+        self.pdf_topic = "/pdf"
+        self.current_pose_topic = "/pose_current"
+        self.coordinator = "/experimentator"
         self.readData(bag_path)
+        
     
     def getRecord(self):
         return {
@@ -82,12 +86,13 @@ class NoveltiExpRecord:
             if "firstPdfStamp" not in meta and topic=="/pdf":
                 meta['firstPdfStamp'] = msg.header.stamp
                 #info("    firstPdfStamp=%f" % msg.header.stamp.to_sec())
+            #'map' is not being used, replaced by map_inflated
             if "map" not in meta and topic=="/map":
                 info("        reading map")
                 meta['map'] = self.makeMap(msg)
                 meta['width'] = msg.info.resolution*msg.info.width
                 meta['height'] = msg.info.resolution*msg.info.height
-            if "map_inflated" not in meta and topic=="/map_inflated":
+            if "map_inflated" not in meta and topic=="/map":
                 info("        reading map_inflated")
                 meta['map_inflated'] = self.makeMapInflated(msg)
                 meta['map_inflated_resolution'] = msg.info.resolution
@@ -101,8 +106,11 @@ class NoveltiExpRecord:
                 meta['goal'] = msg.pose
             if topic=="/pose_intended_goal2":
                 meta['goal2'] = msg.pose
-            if "poseInferredStamp" in meta and topic=="/rosout" and msg.name=="/node_mediator":
-                if msg.msg == "Arrived to the destination":
+            if topic=="/pose_inferred":
+                meta['inferred'] = msg.pose
+                
+            if "poseInferredStamp" in meta and topic=="/rosout" and msg.name=="/experimentator":
+                if msg.msg == "/experimentator: reached destination":
                     pass
                 elif msg.msg.startswith("Didn't arrive to destination"):
                     warn("Failed to arrive to the inferred destination: %s" % msg.msg)
@@ -125,10 +133,16 @@ class NoveltiExpRecord:
         #This function is ugly, probably this whole class should be written in C++
         
         #prepare command line parameters to calculate CWave distance
+        #Edit back later : rui
         if "goal2" in self.meta:
             goal = self.meta['goal2']
-        else:
+        elif "goal" in self.meta:
             goal = self.meta['goal']
+        else:
+            goal = self.meta['inferred']  #delete this line later Rui
+            # goal.position.x = 25.6
+            # goal.position.y = 18.0
+
         src = [str(v) for v in self.pose2vertex(goal.position.x, goal.position.y)]
         pts = [i for sub in   [self.pose2vertex(self.poses['x'][k], self.poses['y'][k])  for k in xrange(len(self.poses['x']))]    for i in sub]
         popen_cmd = [self.cwave_cmdline_path] + ["one2many"] + list(src) + [str(val) for val in pts]
@@ -167,20 +181,20 @@ class NoveltiExpRecord:
         self.entropy = { 't':[], 'v':[] }
         self.poses = { 't':[0.0], 'x':[self.initPose['x']], 'y':[self.initPose['y']], 'a':[self.initPose['yaw']] }
         for topic, msg, t in rosbag.Bag(bag_path).read_messages():
-            if topic=="/pdf"  and  msg.header.stamp>=self.meta['firstPdfStamp']  and  msg.header.stamp<=self.meta['arrivedStamp']:
+            if topic==self.pdf_topic and  msg.header.stamp>=self.meta['firstPdfStamp']  and  msg.header.stamp<=self.meta['arrivedStamp']:
                 t = (msg.header.stamp - self.meta['firstPdfStamp']).to_sec()
                 if self.entropy['t']:
                     self.entropy['t'].append(t)
                     self.entropy['v'].append(self.entropy['v'][-1])
                 self.entropy['t'].append(t)
                 self.entropy['v'].append(self.calcPdfEntropy(msg))
-            if topic=="/amcl_pose" and msg.header.stamp>=self.meta['firstPdfStamp']  and  msg.header.stamp<=self.meta['arrivedStamp']:
+            if topic==self.current_pose_topic and msg.header.stamp>=self.meta['firstPdfStamp']  and  msg.header.stamp<=self.meta['arrivedStamp']:
                 #print "first pose in path has time stamp = : %f" % msg.header.stamp.to_sec()
                 t = (msg.header.stamp - self.meta['firstPdfStamp']).to_sec()
                 self.poses['t'].append(t)
-                self.poses['x'].append(msg.pose.pose.position.x)
-                self.poses['y'].append(msg.pose.pose.position.y)
-                (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])
+                self.poses['x'].append(msg.pose.position.x)
+                self.poses['y'].append(msg.pose.position.y)
+                (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w])
                 self.poses['a'].append(y)
     
     def calcEucDist(self):
@@ -335,12 +349,12 @@ class RecordByStamp:
         self.time2file = []
         for filename in os.listdir(self.bagDir):
             if filename.endswith(".bag") and os.path.isfile(os.path.join(self.bagDir, filename)):
-                t = datetime.strptime(filename, '%Y-%m-%d-%H-%M-%S.bag')
+                t = datetime.strptime(filename, '_%Y-%m-%d-%H-%M-%S.bag')
                 self.time2file.append((t,filename))
         self.time2file.sort(key=lambda tup: tup[0]) 
 
     def getRecord(self, timeStr):
-        t = datetime.strptime(timeStr, '%Y-%m-%d_%H-%M-%S_EST-0500')
+        t = datetime.strptime(timeStr, '_%Y-%m-%d-%H-%M-%S')
         for tup in self.time2file:
             if tup[0]>=t:
                 bagFileName = tup[1]
@@ -413,7 +427,7 @@ class PlottableBagRecord:
         axes.autoscale(True)
         #axes.set_title("PDF entropy evolution over time", y=1.00)
         axes.set_ylabel("PDF entropy, bits", fontsize=16)
-        axes.set_xlabel("Time, sec", fontsize=16)
+        axes.set_xlabel("Time, sec", fontsize=10)
         return l
     
     def plotDistance(self, axes, color):
@@ -426,7 +440,7 @@ class PlottableBagRecord:
         axes.autoscale(True)
         #axes.set_title("Distance to destination over time", y=1.00)
         axes.set_ylabel("Distance to goal, m", fontsize=16)
-        axes.set_xlabel("Time, sec", fontsize=16)
+        axes.set_xlabel("Time, sec", fontsize=10)
         return l
     
     def plotPath(self, axes, color):
