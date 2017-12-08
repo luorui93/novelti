@@ -79,7 +79,6 @@ OrientationPdfConstPtr orientationPdfToPtr (OrientationPdf pdf) {
 }
 void NoveltiSharedControl::start(novelti::StartExperiment::Request& req) {
     ROS_INFO("Starting....");
-    setInferenceStarted(false);
     iu->startExp(req);
     ROS_INFO("Inference Unit Started...");
     bpf->startExp(req);
@@ -110,61 +109,27 @@ bool NoveltiSharedControl::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::E
     mdiv->noveltiMapCallback(floatMapToPtr(iu->pdf),poseStampedToPtr(bpf->pose_best));
 
     ROS_INFO("Orientation Control Initiated...");
-    setInferenceStarted(true);
     return true;
 }
 
 void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
-    if (isInferenceStarted()) {
+    if (iu->state == InferenceUnit::INFERRING_POSITION) {
         iu->noveltiInfCallback(intMapToPtr(mdiv->map_divided),cmd);
-        if (iu->state == InferenceUnit::INFERRED) { //Edit state name
-            setInferenceStarted(false);
-            ROS_INFO("Desired Pose Inferred.");
-            setOrientationInferenceStarted(true);
+        if (iu->state == InferenceUnit::INFERRING_ORIENTATION) { //Edit state name
+            ROS_INFO("Desired Position Inferred.");
             oc->orientationPdfCallback(orientationPdfToPtr(iu->opdf));
             return;
         }
-        //posecurcallback?
         bpf->pdfCallback(floatMapToPtr(iu->pdf));
         mdiv->noveltiMapCallback(floatMapToPtr(iu->pdf),poseStampedToPtr(bpf->pose_best));
     }
 
-    if (isOrientationInferenceStarted()) {
+    else if (iu->state == InferenceUnit::INFERRING_ORIENTATION) {
         iu->orientationInfCallback(oc->unit_color, cmd);
-        if (iu->state == InferenceUnit::ORIENTATION_INFERRED) {
-            setOrientationInferenceStarted(false);
+        if (iu->state == InferenceUnit::INFERRED) {
             ROS_INFO("Desired Orientation Inferred.");
             return;
         }
         oc->orientationPdfCallback(orientationPdfToPtr(iu->opdf));
     }
-}
-
-void NoveltiSharedControl::setInferenceStarted(bool value) {
-    inference_started_lock.lock();
-    inference_started = value;
-    inference_started_lock.unlock();
-}
-
-bool NoveltiSharedControl::isInferenceStarted() {
-    bool value;
-    inference_started_lock.lock();
-    value = inference_started;
-    inference_started_lock.unlock();
-    return value;
-}
-
-//set a flag to indicate the inference of orientation has started
-void NoveltiSharedControl::setOrientationInferenceStarted(bool value) {
-    inference_started_lock.lock();
-    orientation_inference_started = value;
-    inference_started_lock.unlock();
-}
-
-bool NoveltiSharedControl::isOrientationInferenceStarted() {
-    bool value;
-    inference_started_lock.lock();
-    value = orientation_inference_started;
-    inference_started_lock.unlock();
-    return value;
 }

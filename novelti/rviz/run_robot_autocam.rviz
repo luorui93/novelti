@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
       Splitter Ratio: 0.641667
-    Tree Height: 359
+    Tree Height: 500
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -246,22 +246,6 @@ Visualization Manager:
       Topic: /pose_arrived
       Unreliable: false
       Value: false
-    - Alpha: 1
-      Class: rviz/Map
-      Color Scheme: map
-      Draw Behind: false
-      Enabled: false
-      Name: Map
-      Topic: /map
-      Unreliable: false
-      Value: false
-    - Class: rviz/Axes
-      Enabled: false
-      Length: 1
-      Name: Axes
-      Radius: 0.1
-      Reference Frame: autocam
-      Value: false
   Enabled: true
   Global Options:
     Background Color: 202; 202; 202
@@ -314,5 +298,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1032
-  X: 822
+  X: 812
   Y: 14

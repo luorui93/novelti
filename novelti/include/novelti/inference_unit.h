@@ -38,7 +38,7 @@ class InferenceUnit{
 public:
     const float PDF_UNREACHABLE = -10.0;
     
-    enum State { INFERRING, INFERRED, INFERRING_NEW, ORIENTATION_INFERRED};
+    enum State { DEINFERENCE, INFERRING_POSITION, INFERRING_ORIENTATION, INFERRED};
     enum FastState { RCVD_NONE, RCVD_CMD, RCVD_MAPDIV };
     State state;
     FastState fast_state;

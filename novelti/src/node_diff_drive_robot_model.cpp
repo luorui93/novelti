@@ -38,8 +38,7 @@ public:
     ros::Publisher  pub_pose_current_;
     ros::Publisher  pub_pose_arrived_;
     ros::Subscriber sub_pose_desired_;
-    ros::Subscriber sub_pose_inferred_;
-    ros::Subscriber sub_position_inferred_;
+    ros::Subscriber sub_position_desired_;
     ros::Subscriber sub_orientation_desired_;
     std::mutex pub_lock_;
     std::atomic<bool> active_;
@@ -96,10 +95,8 @@ public:
         pub_lock_.lock();
             pub_pose_current_  = node.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
             pub_pose_arrived_  = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, true); //latched
-            // sub_pose_desired_  = node.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
-            // sub_orientation_desired_ = node.subscribe("/orientation_desired", 1, &DiffDriveRobotModel::desiredOrientationCallback,this);
-            sub_position_inferred_ = node.subscribe("/position_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
-            sub_pose_inferred_ = node.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPoseCallback, this);
+            sub_position_desired_ = node.subscribe("/position_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
+            sub_pose_desired_ = node.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPoseCallback, this);
         pub_lock_.unlock();
         publishCurrentPose();
         active_ = true;
@@ -110,7 +107,7 @@ public:
             active_ = false;
         pub_lock_.unlock();
         sub_pose_desired_.shutdown();
-        sub_pose_inferred_.shutdown();
+        sub_position_desired_.shutdown();
         pub_pose_current_.shutdown();
         pub_pose_arrived_.shutdown();
     }
@@ -272,6 +269,10 @@ public:
                     }
 
                     else {
+                        pose_lock_.lock();
+                        pose_current_.pose.position.x = resolution * (tp.cur_pos.x);
+                        pose_current_.pose.position.y = resolution * (tp.cur_pos.y);
+                        pose_lock_.unlock();                        
                         trans_point_queue_.pop(); //pop out the top element if the stage has completed
                     }
                 }

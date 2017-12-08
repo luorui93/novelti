@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="bagpath" default="/tmp/tmp.bag" />
+    <arg name="bagpath" default="/home/yaphes/bag/" />
     
     <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  altertile equidist extremal extredist vchess-->
     <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
@@ -9,8 +9,8 @@
     <arg name="dst2" default="storage1" />
     <arg name="vel"   default="1.0" />       <!-- robot velocity in m/s -->
     <arg name="twist" default="0.52" />       <!-- robot rotation speed in rad/s -->
-    <arg name="delay" default="3.0" />        <!-- interface delay -->
-    <arg name="period" default="0.0" />       <!-- interface cmd generation period-->
+    <arg name="wait_for_cmd" default="1" />
+    <arg name="period" default="3.0" />       <!-- interface cmd generation period-->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     <arg name="reset_pdf"    default="true" /> 
@@ -18,23 +18,25 @@
 
     <arg name="use_pois" default="0" />
     <arg name="iarea_k" default="0.5" />
-    <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
-    <arg name="smooth_rads" default="[0,0,1,2,2]" />
+    <arg name="view_sizes" default="[32, 64, 128, 256, 512]" />
+    <arg name="smooth_rads" default="[]" /> <!--0,0,1,2,2,2]" /--> 
     <arg name="show_goal" default="false" />
 
-    <arg name="prob_thresh_high" default="0.95" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
+    <arg name="prob_thresh_high" default="0.90" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
     <arg name="prob_eps"         default="1.0e-8" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
-    <arg name="ksafe" default="0.9" />
+    <arg name="ksafe" default="1.2" />
     <arg name="trobot" default="0.025" />
     
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
     <arg name="path"  default="2" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
+    <arg name="start_pose_name" default="office1"/>  <!--kitchen1,office1-->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
-    <arg name="tries" default="2" />
+    <arg name="tries" default="1" />
     
+    <arg name="ori_resol" default="5.0"/>
 
-    <arg name="bag" default="1" />
+    <arg name="bag" default="0" />
     <arg name="record_video" default="0" /> 
     <arg name="by_key" default="0" />
    
@@ -52,8 +54,6 @@
     
     <arg name="new_goal_topic" default="/novelti_shared_control/new_goal" if="$(arg single_node)"/>
     <arg name="new_goal_topic" default="/inference_unit/new_goal" unless="$(arg single_node)" />
-
-
 
     <!--arg name="monitor" default="1" /- ->
     <!- -arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
@@ -85,58 +85,10 @@
 
     <rosparam>
         predefined_poses: 
-            door1:      
-                x: 11.78
-                y: 1.85
-                yaw: 1.57079
-            livroom1:   
-                x: 8.7
-                y: 20.0
-                yaw: 1.57079
-            livroom2:   
-                x: 7.71
-                y: 17.15
-                yaw: -1.57079
-            office1:   
-                x: 17.1
-                y: 15.5
-                yaw: 0.0
-            bathroom1:   
-                x: 3.4
-                y: 1.9
-                yaw: 1.57079
-            music1:   
-                x: 13.8
-                y: 23.4
-                yaw: 0.0
-            bedroom1:   
-                x: 14.5
-                y: 19.4
-                yaw: 3.14159
-            door2:
-                x: 9.0
-                y: 3.4
-                yaw: 1.57079
-            kitchen1:
-                x: 8.41
-                y: 9.13
-                yaw: -1.57079
-            storage1:
-                x: 13.01
-                y: 9.71
-                yaw: 1.57079
-            storage2:
-                x: 15.26
-                y: 10.26
-                yaw: 0.0
-            storage3:
-                x: 15.27
-                y: 8.66
-                yaw: -1.57079
-            out:
-                x: 1000.0
-                y: 1000.0
-                yaw: 0.0
+            kitchen1: [[188, 296, 0]]      <!--This nested list is to keep the compatibility of node_experimentator implementation -->
+            livroom1: [[87, 139, 0]]
+            office1: [[256, 180, 0]]
+            bedroom1: [[448, 64, 0]]
     </rosparam>
     
     <node if="$(arg record_video)" name="vlc_recorded" pkg="novelti" type="record_screen.sh" />
@@ -145,7 +97,7 @@
     <node if="$(arg real_robot)" name="robot_rviz" pkg="rviz" type="rviz"  output="screen" args="-d $(find novelti)/rviz/robot.rviz" />
     <!-- Recording -->
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args="-O $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived">
+            args="-o $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /opdf">
     </node>
     <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
     <node if="$(arg bag)"  pkg="novelti" type="node_param_publisher.py" name="node_param_publisher">
@@ -161,6 +113,7 @@
         <param name="commit"     command="git --git-dir=$(find novelti)/../.git --work-tree=$(find novelti)/..  log --format='%H' -n 1" />
         <param name="commit_log" command="git --git-dir=$(find novelti)/../.git --work-tree=$(find novelti)/..  log -n 1" />
         <param name="comp_id" command="cat /var/lib/dbus/machine-id" /> <!-- http://0pointer.de/blog/projects/ids.html -->
+        <param name="start_pose_name" value="$(arg start_pose_name)" />
     </node>
 
     <!-- Real robot or model-->
@@ -208,12 +161,20 @@
         <arg name="map_file" value="$(find ak_labs)/pgm/AH.yaml" />
     </include>
     
-    <node unless="$(arg real_robot)" pkg="novelti" type="robot_model" name="robot_model" output="screen" required="true" >
-        <remap from="/pose_desired" to="/pose_best" />
+    <arg name="debug_diff_drive_robot_model" default="1" />
+    <arg     if="$(arg debug_diff_drive_robot_model)" name="prefix_diff_drive_robot_model" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_diff_drive_robot_model - -args" />
+    <arg unless="$(arg debug_diff_drive_robot_model)" name="prefix_diff_drive_robot_model" default="" />    
+    <node unless="$(arg real_robot)" pkg="novelti" type="diff_drive_robot_model" name="robot_model" output="screen" required="true"  launch-prefix="$(arg prefix_diff_drive_robot_model)" >
+        <!-- <remap from="/position_desired" to="/position_inferred" /> -->
+        <!-- <remap from="/pose_desired" to="/pose_inferred" /> -->
         <param name="max_vel"     value="$(arg vel)" />
         <param name="max_twist"   value="$(arg twist)"/>
         <param name="pub_period"  value="$(arg trobot)" />
     </node>
+
+    <node pkg="topic_tools" type="relay" name="position_topic_relay" output="screen" required="true" args="/position_inferred /position_desired"/>
+    <node pkg="topic_tools" type="relay" name="pose_topic_relay" output="screen" required="true" args="/pose_inferred /pose_desired"/>
+
 
     <!-- Real human or model -->
     <node unless="$(arg real_human)" pkg="novelti" type="human_model" name="human_model" output="screen" required="true" > 
@@ -231,8 +192,9 @@
     <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" unless="$(arg real_interface)">
         <remap from="~interface_matrix" to="/$(arg mx)"/>
         <param unless="$(arg real_human)"     name="delay" value="0.0"/>
-        <param if="$(arg real_human)" name="delay" value="$(arg delay)"/>
-        <param name="period" value="$(arg period)" />
+        <param if="$(arg real_human)" name="delay" value="$(arg period)"/>
+        <param     if="$(arg wait_for_cmd)" name="period" value="0" />
+        <param unless="$(arg wait_for_cmd)" name="period" value="$(arg period)" />
     </node>
     
     
@@ -271,7 +233,7 @@
             <param name="pos/max_vel"     value="$(arg vel)" />
             <param name="pos/max_twist"   value="$(arg twist)" />
             <param name="pos/safety_coef" value="$(arg ksafe)" />
-            <param name="pos/period"      value="$(arg delay)" />
+            <param name="pos/period"      value="$(arg period)" />
         </node>
         <node pkg="novelti" type="map_divider" name="map_divider" output="screen" required="true">
             <remap from="~probs_optimal"    to="/probs_optimal/$(arg popt)"/>
@@ -279,8 +241,11 @@
         </node>
     </group>
 
+    <arg name="debug_novelti_shared_control" default="0" />
+    <arg     if="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_novelti_shared_control - -args" />
+    <arg unless="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="" />    
     <group if="$(arg single_node)">
-        <node pkg="novelti" type="novelti_shared_control" name="novelti_shared_control" output="screen" required="true">
+        <node pkg="novelti" type="novelti_shared_control" name="novelti_shared_control" output="screen" required="true" launch-prefix="$(arg prefix_novelti_shared_control)">
             <param name="inf/thresh_high"       value="$(arg prob_thresh_high)" />
             <param name="inf/thresh_low"        value="$(arg prob_thresh_low)" />
             <param name="inf/eps"               value="$(arg prob_eps)" />
@@ -292,8 +257,10 @@
             <param name="pos/max_vel"           value="$(arg vel)" />
             <param name="pos/max_twist"         value="$(arg twist)" />
             <param name="pos/safety_coef"       value="$(arg ksafe)" />
-            <param name="pos/period"            value="$(arg delay)" />
+            <param name="pos/period"            value="$(arg period)" />
+            <remap from="pose_best"             to="position_desired" />
             <param name="div/method"            value="$(arg div)" />
+            <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
             <remap from="~probs_optimal"        to="/probs_optimal/$(arg popt)"/>
             <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
                 [   #x1,y1,  sigma1, k1,
@@ -313,9 +280,12 @@
         </node>
     </group>
 
+
+
     <node if="$(arg experiment)" pkg="novelti" type="node_experimentator.py" name="experimentator" output="screen" required="true">
         <param name="map" value="$(find novelti)/map/$(arg map).map" />
-        <remap from="~poses" to="/paths/$(arg path)"/>
+        <!-- <remap from="~poses" to="/paths/$(arg path)"/> -->
+        <remap from="~poses" to="/predefined_poses/$(arg start_pose_name)"/>
         <param name="resol" value="$(arg resol)" />
         <param name="n_runs" value="$(arg tries)" />
         <param name="success_file" value="$(arg bagpath).success" />
@@ -329,6 +299,9 @@
     </node>    
     
     <!-- Visualization -->
+    <node name="rviz_pdf" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find novelti)/rviz/pdf.rviz" required="true"/>
+    <include file="$(find novelti)/launch/rviz_orientation_control.launch"/>
     <include file="$(find novelti)/launch/rviz_$(arg rviz).launch"/>
     
 

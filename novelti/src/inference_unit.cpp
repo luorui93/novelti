@@ -94,11 +94,12 @@ InferenceUnit::InferenceUnit():
 }
 
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
-    state = INFERRING; //_NEW;
-    // ROS_INFO("%s: new_goal service request received. State INFERRING -> INFERRING_NEW", getName().c_str());
+    // ROS_INFO("%s: new_goal service request received. State INFERRING_POSITION -> DEINFERENCE", getName().c_str());
     if (reset_pdf_on_new_) {
+        state = DEINFERENCE;
         resetPdf();
     } else {
+        state = INFERRING_POSITION;
         denullifyPdf(pdf.data);
     }
     setUniformOrientationPdf();
@@ -118,7 +119,7 @@ void InferenceUnit::stopExp() {
 }
 
 void InferenceUnit::startExp(novelti::StartExperiment::Request& req) {
-    state = INFERRING;
+    state = INFERRING_POSITION;
     fast_state = RCVD_NONE;
     pdf = FloatMap();
     pdf.header.frame_id = "/map";
@@ -153,8 +154,8 @@ void InferenceUnit::startExp(novelti::StartExperiment::Request& req) {
     setUniformOrientationPdf();
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_opdf     = node.advertise<OrientationPdf>("/opdf", 1, true);
-    pub_position_inf = node.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, false); //not latched
-    pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false);
+    pub_position_inf = node.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, true); //latched
+    pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, true);
     if (isNode) {
         sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
         sub_cmd      = node.subscribe("/cmd_detected", 1, &InferenceUnit::cmdCallback, this);
@@ -533,19 +534,19 @@ void InferenceUnit::updatePdfAndPublish() {
 }
 
 void InferenceUnit::updateInferenceState() {
-    if (state==INFERRING) {
-        ROS_WARN("%s: state INFERRING, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);
+    if (state==INFERRING_POSITION) {
+        ROS_WARN("%s: state INFERRING_POSITION, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);
         if (max_prob >= thresh_high) {
-            state = INFERRED;
+            state = INFERRING_ORIENTATION;
             pubPositionInferred(max_prob_k);
-            ROS_WARN("%s: state INFERRING -> INFERRED, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
+            ROS_WARN("%s: state INFERRING_POSITION -> INFERRING_ORIENTATION, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
             return;
         }
-    } else { //state == INFERRING_NEW:
-        ROS_WARN("%s: state INFERRING_NEW, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);
+    } else { //state == DEINFERENCE:
+        ROS_WARN("%s: state DEINFERENCE, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);
         if (max_prob <= thresh_low) {
-            state = INFERRING;
-            ROS_INFO("%s: state INFERRING_NEW -> INFERRING, max_prob=%f", getName().c_str(), max_prob);
+            state = INFERRING_POSITION;
+            ROS_INFO("%s: state DEINFERENCE -> INFERRING_POSITION, max_prob=%f", getName().c_str(), max_prob);
         }
     }
 }
@@ -643,7 +644,7 @@ void InferenceUnit::updateOrientationPdfAndPublish() {
 
     //State??
     if (max_oprob > thresh_high) {
-        state = ORIENTATION_INFERRED;
+        state = INFERRED;
         orientation_inferred = max_oprob_k*orientation_resol*M_PI/180;
         ROS_WARN("Orientation Inferred: %f",orientation_inferred);
         pose_inferred.pose.orientation = tf::createQuaternionMsgFromYaw(orientation_inferred);
