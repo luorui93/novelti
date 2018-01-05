@@ -92,6 +92,8 @@ add_message_files(
   Command.msg
   FloatMap.msg
   IntMap.msg
+  OrientationDisplay.msg
+  OrientationPdf.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -243,21 +245,22 @@ target_link_libraries(inference_unit
 )
 add_dependencies(inference_unit ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
 
-add_executable(novelti_shared_control src/node_novelti_shared_control.cpp src/novelti_shared_control.cpp src/map_divider.cpp src/best_pose_finder.cpp src/best_pose_finder_quasi_opt.cpp src/inference_unit.cpp)
+add_executable(novelti_shared_control src/node_novelti_shared_control.cpp src/novelti_shared_control.cpp src/map_divider.cpp src/best_pose_finder.cpp src/best_pose_finder_quasi_opt.cpp src/inference_unit.cpp src/orientation_control.cpp src/opt_orientation_selector.cpp)
 target_compile_definitions(novelti_shared_control PRIVATE  ROSCONSOLE_MIN_SEVERITY=ROSCONSOLE_SEVERITY_INFO  CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
 target_link_libraries(novelti_shared_control
     ${catkin_LIBRARIES}
     ${CWAVE_LIB_DIR}/libcwaveproc.a
+    ${CWAVE_LIB_DIR}/libcwavesector.a
 )
-add_dependencies(novelti_shared_control ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a)
+add_dependencies(novelti_shared_control ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a ${CWAVE_LIB_DIR}/libcwavesector.a)
 
-add_executable(robot_model src/node_diff_drive_robot_model.cpp)
-target_compile_definitions(robot_model PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
-target_link_libraries(robot_model
+add_executable(diff_drive_robot_model src/node_robot_model_diff_drive.cpp)
+target_compile_definitions(diff_drive_robot_model PRIVATE CWAVE2_FLOAT_STARS=1 CWAVE2_PROC=1 CWAVE2_TRACK=1 -DCWAVE2_FLOAT_MERGE)
+target_link_libraries(diff_drive_robot_model
    ${catkin_LIBRARIES}
    ${CWAVE_LIB_DIR}/libcwaveproc.a
 )
-add_dependencies(robot_model ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(diff_drive_robot_model ${PROJECT_NAME}_generate_messages_cpp)
 
 
 add_executable(human_model src/node_human_model.cpp)
