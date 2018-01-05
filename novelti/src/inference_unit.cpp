@@ -154,7 +154,7 @@ void InferenceUnit::startExp(novelti::StartExperiment::Request& req) {
     setUniformOrientationPdf();
     pub_pdf      = node.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_opdf     = node.advertise<OrientationPdf>("/opdf", 1, true);
-    pub_position_inf = node.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, true); //latched
+    pub_position_inf = node.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, true); //latched to make sure topic_tools relay can receive the message.
     pub_pose_inf = node.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, true);
     if (isNode) {
         sub_map_div  = node.subscribe("/map_divided", 1, &InferenceUnit::mapDivCallback, this);
@@ -540,7 +540,6 @@ void InferenceUnit::updateInferenceState() {
             state = INFERRING_ORIENTATION;
             pubPositionInferred(max_prob_k);
             ROS_WARN("%s: state INFERRING_POSITION -> INFERRING_ORIENTATION, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
-            return;
         }
     } else { //state == DEINFERENCE:
         ROS_WARN("%s: state DEINFERENCE, thresh_high=%f, max_prob=%f", getName().c_str(), thresh_high, max_prob);

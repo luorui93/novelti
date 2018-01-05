@@ -23,6 +23,7 @@
 #include <std_srvs/Empty.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/String.h>
 
 #include <novelti/IntMap.h>
 #include <novelti/FloatMap.h>
@@ -49,6 +50,7 @@ public:
     ros::Publisher      pub_pose_inf;
     ros::Publisher      pub_position_inf;
     ros::Publisher      pub_norm_pdf;
+    ros::Publisher      pub_state;
     ros::Subscriber     sub_map_div;
     ros::Subscriber     sub_cmd;
     ros::ServiceServer  srv_new_goal;

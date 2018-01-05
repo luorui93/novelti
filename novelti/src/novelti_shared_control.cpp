@@ -56,6 +56,15 @@ NoveltiSharedControl::NoveltiSharedControl (std::string divMethod, std::string p
 
      iu = new InferenceUnit("inf");
      oc = new OrientationControl();
+     oos = new OptOrientationSelector();
+}
+
+NoveltiSharedControl::~NoveltiSharedControl () {
+    delete iu;
+    delete oc;
+    delete oos;
+    delete bpf;
+    delete mdiv;
 }
 
 FloatMapConstPtr floatMapToPtr (FloatMap map) {
@@ -86,6 +95,9 @@ void NoveltiSharedControl::start(novelti::StartExperiment::Request& req) {
     mdiv->startExp(req);
     ROS_INFO("Map Divider Started...");
     oc->initDisplay(orientationPdfToPtr(iu->opdf));
+    ROS_INFO("Orientation Control Started...");
+    oos->start();
+    ROS_INFO("Opt Orientation Selector Started...");
 
     sub_cmd = node.subscribe("/cmd_detected", 1, &NoveltiSharedControl::cmdCallback, this);
     srv_new_goal = node.advertiseService("new_goal", &NoveltiSharedControl::srvNewGoal, this);    
@@ -130,6 +142,7 @@ void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
             ROS_INFO("Desired Orientation Inferred.");
             return;
         }
+        oos->orientationPdfCallback(orientationPdfToPtr(iu->opdf),poseStampedToPtr(iu->pose_inferred));
         oc->orientationPdfCallback(orientationPdfToPtr(iu->opdf));
     }
 }
