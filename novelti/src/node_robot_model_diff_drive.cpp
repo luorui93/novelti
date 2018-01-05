@@ -207,14 +207,12 @@ public:
         trans_point.period = period;
         trans_point.prev_orientation = trans_point_queue_.back().cur_orientation;
         trans_point.cur_orientation = tf::getYaw(pose_des->pose.orientation);
+        trans_point.cur_pos = trans_point_queue_.back().cur_pos;
+        trans_point.prev_pos = trans_point_queue_.back().prev_pos;
         trans_point_queue_.push(trans_point);      
         ROS_WARN("Last element in the queue: %f", trans_point_queue_.back().cur_orientation);
         traj_moving = true;
         trans_lock_.unlock(); 
-    }
-
-    void desiredOrientationCallback(geometry_msgs::QuaternionConstPtr orientation_des) {
-
     }
 
     void publishCurrentPose() {
