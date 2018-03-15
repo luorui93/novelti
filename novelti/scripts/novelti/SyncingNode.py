@@ -90,5 +90,5 @@ class SyncingNode:
         p = Pose()
         p.position.x = vx[0]*self.cfg['resolution']
         p.position.y = vx[1]*self.cfg['resolution']
-        p.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -pi/2, 0.0))
+        p.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, vx[2]))
         return p

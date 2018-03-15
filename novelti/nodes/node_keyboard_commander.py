@@ -14,6 +14,8 @@ from novelti.msg import Command
 from std_srvs.srv import Empty
 from novelti.SynchronizableNode import SynchronizableNode
 
+import signal
+
 
 class KeyboardCommander (SynchronizableNode):
     def __init__(self):
@@ -44,8 +46,17 @@ def getKey():
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
+settings = None
+
+def exitGracefully(signum, frame):
+    rospy.logwarn("Caught SIGINT, gracefully dying...")
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    exit(0)
 
 if __name__ == "__main__":
+    global settings
+    signal.signal(signal.SIGINT, exitGracefully)
+
     settings = termios.tcgetattr(sys.stdin)
     rospy.init_node("keyboard_commander")
     kc = KeyboardCommander()

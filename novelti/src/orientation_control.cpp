@@ -60,7 +60,7 @@ void OrientationControl::updateOptimalPdf(int cur_color) {  //Try to divide regi
 
 }
 
-void OrientationControl::markUnitColor() {   //update color for minimal unit (resolution)
+void OrientationControl::0() {   //update color for minimal unit (resolution)
     int cur_color = 0;
     std::fill(cur_color_pdf.begin(),cur_color_pdf.end(),0.0);
     for (int i=0; i<opdf_ptr->data.size();i++) {

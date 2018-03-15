@@ -106,6 +106,7 @@ bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::R
     updateInferenceState();
     //ROS_INFO("%s: new_pdf == %s", getName().c_str(), new_pdf_ ? "True" : "False");
     pubPdf();
+    // pubOpdf();
     return true;
 }
 
@@ -539,6 +540,7 @@ void InferenceUnit::updateInferenceState() {
         if (max_prob >= thresh_high) {
             state = INFERRING_ORIENTATION;
             pubPositionInferred(max_prob_k);
+            pubOpdf();
             ROS_WARN("%s: state INFERRING_POSITION -> INFERRING_ORIENTATION, pdf NOT published, /pose_inferred published max_prob=%f", getName().c_str(), max_prob);
         }
     } else { //state == DEINFERENCE:
@@ -598,7 +600,8 @@ void InferenceUnit::normalizePdf() {
 void InferenceUnit::orientationInfCallback(std::vector<int>& unit_color, CommandConstPtr ptr_cmd) {
     cmd_detected = ptr_cmd;
     orientation_divided = unit_color;
-    updateOrientationPdfAndPublish();
+    updateOrientationPdf();
+    pubOpdf();
 }
 
 void InferenceUnit::setUniformOrientationPdf() {
@@ -609,7 +612,7 @@ void InferenceUnit::setUniformOrientationPdf() {
     ROS_WARN("uniform orientation prob:%f",uniform_prob);
 }
 
-void InferenceUnit::updateOrientationPdfAndPublish() {
+void InferenceUnit::updateOrientationPdf() {
     //calculate priors
     std::fill(priors.begin(),priors.end(),0.0);
     for (int k=0;k < opdf.data.size();k++) {
@@ -649,7 +652,9 @@ void InferenceUnit::updateOrientationPdfAndPublish() {
         pose_inferred.pose.orientation = tf::createQuaternionMsgFromYaw(orientation_inferred);
         pub_pose_inf.publish(pose_inferred);
     }
-    //publish opdf
+}
+
+void InferenceUnit::pubOpdf() {
     opdf.header.stamp = ros::Time::now();
     pub_opdf.publish(opdf);
     ros::spinOnce();

@@ -191,7 +191,7 @@ public:
         TransitionPoint trans_point;
         double theta,period;
         trans_lock_.lock();
-        theta = tf::getYaw(pose_des->pose.orientation) - tf::getYaw(pose_last_.pose.orientation);
+        theta = tf::getYaw(pose_des->pose.orientation) - trans_point_queue_.back().cur_orientation;
         //ROS_WARN("theta: %f",theta);
         //restrict theta to -pi to pi
         if (theta > M_PI) {

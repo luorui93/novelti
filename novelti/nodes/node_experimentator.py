@@ -15,16 +15,21 @@ class Experimentator (SyncingNode):
             'resolution':   rospy.get_param('~resolution', 0.1),
             'n_runs':       rospy.get_param('~n_runs', 1),
             'poses':        rospy.get_param('~poses', []),
+            #"intended_goal": rospy.get_param('~intended_goal', []),
             'success_file': rospy.get_param('~success_file', None),
         })
         #rospy.loginfo("=======================================%s" % str( self.cfg['poses']))
         self.vxIter = iter([]) #self.cfg['poses'])
+        self.goalIter = iter([]) #self.cfg['intended_goal']
         self.state = "INFERRING"
         self.runs_left = self.cfg['n_runs']
-        self.pub_pose_intended = rospy.Publisher('/pose_intended', PoseStamped, queue_size=1, latch=True)
+        self.pub_pose_intended = rospy.Publisher('/pose_intended_goal', PoseStamped, queue_size=1, latch=True)
+        self.pub_position_arrived = rospy.Publisher('/final_position_arrived',PoseStamped,queue_size=1, latch=True)
         self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
-        #self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
+        self.sub_position_inferred = rospy.Subscriber('/position_inferred', PoseStamped, self.positionInferredCallback)
+        self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
         self.sub_pose_arrived  = rospy.Subscriber('/pose_arrived',  PoseStamped, self.poseArrivedCallback)
+        self.dst_first_arrival = True
     
     def publishNextIntendedPose(self):
         nextVx = next(self.vxIter, None)
@@ -36,6 +41,7 @@ class Experimentator (SyncingNode):
                 rospy.signal_shutdown("finished")
                 return
             self.vxIter = iter(self.cfg['poses'])
+            #temporary 
             vx = self.vxIter.next()
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], self.vertex2pose(vx))
             self.onExperimentStarted()
@@ -57,8 +63,8 @@ class Experimentator (SyncingNode):
         rospy.loginfo("%s:  ============ published /pose_intended vertex=(%d,%d), pose=(%f,%f)  ============ " % (rospy.get_name(), vx[0], vx[1], pose.pose.position.x, pose.pose.position.y))
 
     def poseInferredCallback(self, msg):
-        if self.state=="INFERRING":
-            rospy.loginfo("%s: INFERRING->INFERRED detected" % (rospy.get_name()))
+        if self.state=="POSITION_INFERRED":
+            rospy.loginfo("%s: POSITION_INFERRED->INFERRED detected" % (rospy.get_name()))
             self.pose_inferred = msg.pose
             self.state="INFERRED"
             self.onPoseInferred()
@@ -66,12 +72,18 @@ class Experimentator (SyncingNode):
     def arePosesSame(self, p1, p2):
         return math.sqrt((p1.position.x-p2.position.x)**2 + (p1.position.y-p2.position.y)**2) < self.cfg['resolution']/20.0
     
-    # def poseCurrentCallback(self, msg):
-    #     if self.state=="INFERRED" and self.arePosesSame(msg.pose, self.pose_inferred):
-    #         rospy.loginfo("%s: reached destination" % (rospy.get_name()))
-    #         self.state="INFERRING"
-    #         self.onInferredReached()
-    #         self.publishNextIntendedPose()
+    def positionInferredCallback(self, msg):
+        if self.state=="INFERRING":
+            rospy.loginfo("%s: INFERRING->POSITION_INFERRED detected" % (rospy.get_name()))
+            self.position_inferred = msg.pose
+            self.state="POSITION_INFERRED"
+            self.onPoseInferred()
+
+    def poseCurrentCallback(self, msg):
+        if self.state=="POSITION_INFERRED" or self.state=="INFERRED":
+            if self.arePosesSame(msg.pose, self.position_inferred) and self.dst_first_arrival:
+                self.publishPositionArrived(msg)
+                self.dst_first_arrival = False
 
     def poseArrivedCallback(self, msg):
         rospy.loginfo("%s: received /pose_arrived, state==%s" % (rospy.get_name(), self.state))
@@ -80,6 +92,9 @@ class Experimentator (SyncingNode):
             self.state="INFERRING"
             self.onInferredReached()
             self.publishNextIntendedPose()
+
+    def publishPositionArrived(self, msg):
+        self.pub_position_arrived.publish(msg)
 
     def onExperimentStarted(self):
         pass

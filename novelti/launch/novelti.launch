@@ -3,14 +3,15 @@
     <arg name="bagpath" default="/home/yaphes/bag/" />
     
     <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  altertile equidist extremal extredist vchess-->
-    <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   no_move, ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="os_method"   default="still" />   <!--opt_orientation_selector method: still opt -->
     <arg name="start" default="door1" />
     <arg name="dst" default="music1" />
     <arg name="dst2" default="storage1" />
     <arg name="vel"   default="1.0" />       <!-- robot velocity in m/s -->
     <arg name="twist" default="0.52" />       <!-- robot rotation speed in rad/s -->
     <arg name="wait_for_cmd" default="1" />
-    <arg name="period" default="3.0" />       <!-- interface cmd generation period-->
+    <arg name="period" default="1.0" />       <!-- interface cmd generation period-->
     <arg name="mx"    default="mx85" />      <!-- name of interface matrix (see below)-->   
     <arg name="popt"  default="equal" />     <!-- name of the list with optimal probabilities (see probs_optimal below) -->
     <arg name="reset_pdf"    default="true" /> 
@@ -18,19 +19,19 @@
 
     <arg name="use_pois" default="0" />
     <arg name="iarea_k" default="0.5" />
-    <arg name="view_sizes" default="[32, 64, 128, 256, 512]" />
+    <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
     <arg name="smooth_rads" default="[]" /> <!--0,0,1,2,2,2]" /--> 
     <arg name="show_goal" default="false" />
 
     <arg name="prob_thresh_high" default="0.90" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
     <arg name="prob_eps"         default="1.0e-8" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
-    <arg name="ksafe" default="1.2" />
+    <arg name="ksafe" default="2" />
     <arg name="trobot" default="0.025" />
     
     <arg name="map"   default="ak500inflated" /> <!-- base name of the map from the map directory (without extension .map) -->
-    <arg name="path"  default="2" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
-    <arg name="start_pose_name" default="office1"/>  <!--kitchen1,office1-->
+    <arg name="path"  default="0" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file -->
+    <arg name="start_pose_name" default="rs3"/>  <!--kitchen1,office1-->
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
     <arg name="tries" default="1" />
     
@@ -85,10 +86,30 @@
 
     <rosparam>
         predefined_poses: 
-            kitchen1: [[188, 296, 0]]      <!--This nested list is to keep the compatibility of node_experimentator implementation -->
-            livroom1: [[87, 139, 0]]
-            office1: [[256, 180, 0]]
-            bedroom1: [[448, 64, 0]]
+            rs1:
+                x: 19.5
+                y: 32.9
+                yaw: 0.0
+            rd1:
+                x: 25.6
+                y: 14.4
+                yaw: 0.785
+            rs2:
+                x: 14.7
+                y: 27.2
+                yaw: 0
+            rd2:
+                x: 9.6
+                y: 8.0
+                yaw: 3.14
+            rs3:
+                x: 39.4
+                y: 12.3
+                yaw: 0
+            rd3:
+                x: 40.0
+                y: 11.2
+                yaw: 2.355
     </rosparam>
     
     <node if="$(arg record_video)" name="vlc_recorded" pkg="novelti" type="record_screen.sh" />
@@ -97,7 +118,7 @@
     <node if="$(arg real_robot)" name="robot_rviz" pkg="rviz" type="rviz"  output="screen" args="-d $(find novelti)/rviz/robot.rviz" />
     <!-- Recording -->
     <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
-            args="-o $(arg bagpath) /rosout /map /pose_intended /pose_current /pose_best /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /opdf">
+            args="-o $(arg bagpath) /rosout /map /pose_intended_goal /pose_current /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /opdf /position_inferred /final_position_arrived">
     </node>
     <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
     <node if="$(arg bag)"  pkg="novelti" type="node_param_publisher.py" name="node_param_publisher">
@@ -161,7 +182,7 @@
         <arg name="map_file" value="$(find ak_labs)/pgm/AH.yaml" />
     </include>
     
-    <arg name="debug_diff_drive_robot_model" default="1" />
+    <arg name="debug_diff_drive_robot_model" default="0" />
     <arg     if="$(arg debug_diff_drive_robot_model)" name="prefix_diff_drive_robot_model" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_diff_drive_robot_model - -args" />
     <arg unless="$(arg debug_diff_drive_robot_model)" name="prefix_diff_drive_robot_model" default="" />    
     <node unless="$(arg real_robot)" pkg="novelti" type="diff_drive_robot_model" name="robot_model" output="screen" required="true"  launch-prefix="$(arg prefix_diff_drive_robot_model)" >
@@ -259,8 +280,10 @@
             <param name="pos/safety_coef"       value="$(arg ksafe)" />
             <param name="pos/period"            value="$(arg period)" />
             <remap from="pose_best"             to="position_desired" />
+            <remap from="orientation_desired"   to="pose_desired" />
             <param name="div/method"            value="$(arg div)" />
             <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
+            <param name="ori/method"            value="$(arg os_method)" />
             <remap from="~probs_optimal"        to="/probs_optimal/$(arg popt)"/>
             <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
                 [   #x1,y1,  sigma1, k1,
@@ -284,8 +307,8 @@
 
     <node if="$(arg experiment)" pkg="novelti" type="node_experimentator.py" name="experimentator" output="screen" required="true">
         <param name="map" value="$(find novelti)/map/$(arg map).map" />
-        <!-- <remap from="~poses" to="/paths/$(arg path)"/> -->
-        <remap from="~poses" to="/predefined_poses/$(arg start_pose_name)"/>
+        <remap from="~poses" to="/paths/$(arg path)"/>
+        <!-- <remap from="~poses" to="/predefined_poses/$(arg start_pose_name)"/> -->
         <param name="resol" value="$(arg resol)" />
         <param name="n_runs" value="$(arg tries)" />
         <param name="success_file" value="$(arg bagpath).success" />

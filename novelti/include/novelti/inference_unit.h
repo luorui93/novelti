@@ -105,12 +105,13 @@ public:
     void noveltiInfCallback(novelti::IntMapConstPtr ptr_map, CommandConstPtr ptr_cmd);
     void orientationInfCallback(std::vector<int>& unit_color, CommandConstPtr ptr_cmd);
     void updatePdfAndPublish();
-    void updateOrientationPdfAndPublish();
+    void updateOrientationPdf();
     bool doesNeedSmoothing(int cx, int cy, int smooth_rad);
     void smoothenPdf();
     void publishViewTf();
     void calcPriors();
     void pubPdf();
+    void pubOpdf();
     void pubPositionInferred(int k);
     void normalizePdf();
     

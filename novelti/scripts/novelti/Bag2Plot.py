@@ -22,12 +22,12 @@ def info(msg):
 
 def warn(msg):
     sys.stderr.write("WARNING: %s\n" % msg)
-    
+
 def err(msg):
     sys.stderr.write("ERROR:   %s\n" % msg)
 
 class NoveltiExpRecord:
-    
+
     def __init__(self, bag_path, cwave_cmdline_path, **cfg):
         info("Reading bag from %s" % bag_path)
         self.cfg = {
@@ -36,10 +36,11 @@ class NoveltiExpRecord:
         self.cfg.update(cfg)
         self.cwave_cmdline_path = cwave_cmdline_path
         self.bag_path = bag_path
-        self.readMetaData(bag_path)
         self.pdf_topic = "/pdf"
         self.current_pose_topic = "/pose_current"
         self.coordinator = "/experimentator"
+        self.opdf_topic = "/opdf"
+        self.readMetaData(bag_path)
         self.readData(bag_path)
         
     
@@ -54,6 +55,14 @@ class NoveltiExpRecord:
             #"dist"      : self.calcEucDist(),
             "dist"      : self.calcObstDist(),
             "entropy"   : self.entropy,
+            "ang_dist"  : self.calcAngDist(),
+            "ang_entropy": self.ang_entropy,
+            "navigation_time": self.meta['navigation_time'],   #the time spent in position control only
+            "rotation_time": self.meta['rotation_time'],       #the time spent in orientation control only
+            "overall_time": self.meta['overall_time'],         #the time spent in overall navigation
+            "first_opdf_pose": self.change_point,
+            "actual_dst": self.meta['actual_dst'],
+            "intended_dst": self.meta['intended_dst']
         }
 
 
@@ -78,7 +87,7 @@ class NoveltiExpRecord:
         info("    Reading meta data")
         meta = {}
         for topic, msg, t in rosbag.Bag(bag_path).read_messages():
-            if topic=="/parameters":
+            if topic == "/parameters":
                 self.prms=ast.literal_eval(msg.data)
                 self.initPoseName = self.prms['node_param_publisher']['start_pose_name']
                 self.initPose = self.prms['predefined_poses'][self.initPoseName]
@@ -86,7 +95,8 @@ class NoveltiExpRecord:
             if "firstPdfStamp" not in meta and topic=="/pdf":
                 meta['firstPdfStamp'] = msg.header.stamp
                 #info("    firstPdfStamp=%f" % msg.header.stamp.to_sec())
-            #'map' is not being used, replaced by map_inflated
+            if "firstOPdfStamp" not in meta and topic=="/opdf":
+                meta['firstOPdfStamp'] = msg.header.stamp
             if "map" not in meta and topic=="/map":
                 info("        reading map")
                 meta['map'] = self.makeMap(msg)
@@ -103,12 +113,26 @@ class NoveltiExpRecord:
             if "poseInferredStamp" not in meta and topic=="/pose_inferred":
                 meta['poseInferredStamp'] = msg.header.stamp
             if topic=="/pose_intended_goal":
-                meta['goal'] = msg.pose
+                pose = msg.pose
+                (r, p, y) = tf_conversions.transformations.euler_from_quaternion(
+                    [pose.orientation.x, 
+                     pose.orientation.y, 
+                     pose.orientation.z, 
+                     pose.orientation.w])
+                angle = y
+                meta['goal'] = pose
+                meta['intended_dst'] = (pose.position.x,pose.position.y,angle)
             if topic=="/pose_intended_goal2":
                 meta['goal2'] = msg.pose
             if topic=="/pose_inferred":
                 meta['inferred'] = msg.pose
-                
+            if topic=="/position_inferred":
+                meta['position_inferred'] = msg.pose
+            if topic=="/final_position_arrived":
+                meta['dstArrivalStamp'] = msg.header.stamp 
+                (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w])
+                meta['angleOnArrival'] = y
+                meta['navigation_time'] = (msg.header.stamp - meta['firstPdfStamp']).to_sec()
             if "poseInferredStamp" in meta and topic=="/rosout" and msg.name=="/experimentator":
                 if msg.msg == "/experimentator: reached destination":
                     pass
@@ -117,6 +141,18 @@ class NoveltiExpRecord:
                 else:
                     continue
                 meta['arrivedStamp'] = msg.header.stamp
+                meta['rotation_time'] = (msg.header.stamp - meta['dstArrivalStamp']).to_sec()
+                meta['overall_time'] = (msg.header.stamp - meta['firstPdfStamp']).to_sec()
+            if 'arrivedStamp' in meta and topic==self.current_pose_topic:
+                pose = msg.pose
+                (r, p, y) = tf_conversions.transformations.euler_from_quaternion(
+                    [pose.orientation.x, 
+                     pose.orientation.y, 
+                     pose.orientation.z, 
+                     pose.orientation.w])
+                angle = y
+                meta['actual_dst'] = (pose.position.x,pose.position.y,angle)
+                
         self.meta = meta
 
     def calcPdfEntropy(self, pdf):
@@ -126,6 +162,13 @@ class NoveltiExpRecord:
                 e += -p*log(p,2)
         return e
     
+    def calcOPdfEntropy(self, opdf):
+        e = 0.0
+        for p in opdf.data:
+            if p>0: #if p==0,   p*log(p,2) tends to 0
+                e += -p*log(p,2)
+        return e     
+
     def pose2vertex(self, x, y):
         return ( int(round(x / self.meta['map_inflated_resolution'])),  int(round(y / self.meta['map_inflated_resolution']))) 
     
@@ -172,14 +215,33 @@ class NoveltiExpRecord:
         }
         #print dist
         return dist
+
+    def calcAngDist(self):
+        if 'goal' in self.meta:
+            goal = self.meta['goal']
+        else:
+            goal = self.meta['inferred']
+        (r, p, y) = tf_conversions.transformations.euler_from_quaternion([goal.orientation.x, goal.orientation.y, goal.orientation.z, goal.orientation.w])
+        inferred_angle = y
+        # print 'roll:{},pitch{},yaw{}'.format(r,p,y)
+        ang_dist = {
+            't': self.orientations['t'],
+            'v': [self.calcAngDiff(inferred_angle,e) for e in self.orientations['v']]
+        }
+        return ang_dist
     
+    def calcAngDiff(self, inferred, current):
+        return abs(inferred - current) if abs(inferred - current) < pi else 2*pi - abs(inferred - current)
+
     def calcDistToGoal(self, pose):
         return sqrt(  (pose.pose.position.x-self.meta['goal'].position.x)**2   +   (pose.pose.position.y-self.meta['goal'].position.y)**2   )
     
     def readData(self, bag_path):
         info("    Reading data")
         self.entropy = { 't':[], 'v':[] }
+        self.ang_entropy = { 't':[], 'v':[]}
         self.poses = { 't':[0.0], 'x':[self.initPose['x']], 'y':[self.initPose['y']], 'a':[self.initPose['yaw']] }
+        self.orientations = { 't':[0.0], 'v':[self.meta['angleOnArrival']]}
         for topic, msg, t in rosbag.Bag(bag_path).read_messages():
             if topic==self.pdf_topic and  msg.header.stamp>=self.meta['firstPdfStamp']  and  msg.header.stamp<=self.meta['arrivedStamp']:
                 t = (msg.header.stamp - self.meta['firstPdfStamp']).to_sec()
@@ -196,6 +258,22 @@ class NoveltiExpRecord:
                 self.poses['y'].append(msg.pose.position.y)
                 (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w])
                 self.poses['a'].append(y)
+            if topic==self.opdf_topic and msg.header.stamp>=self.meta['firstOPdfStamp'] and msg.header.stamp<=self.meta['arrivedStamp']:
+                t = (msg.header.stamp - self.meta['firstOPdfStamp']).to_sec()
+                if self.ang_entropy['t']:
+                    self.ang_entropy['t'].append(t)
+                    self.ang_entropy['v'].append(self.ang_entropy['v'][-1])
+                self.ang_entropy['t'].append(t)
+                self.ang_entropy['v'].append(self.calcOPdfEntropy(msg))
+            if topic==self.current_pose_topic and msg.header.stamp>=self.meta['firstOPdfStamp']  and  msg.header.stamp<=self.meta['arrivedStamp']:
+                #print "first pose in path has time stamp = : %f" % msg.header.stamp.to_sec()
+                if 'is_change_point_recorded' not in self.meta:
+                    self.change_point = (msg.pose.position.x, msg.pose.position.y)
+                    self.meta['is_change_point_recorded'] = True
+                t = (msg.header.stamp - self.meta['firstOPdfStamp']).to_sec()
+                self.orientations['t'].append(t)
+                (r, p, y) = tf_conversions.transformations.euler_from_quaternion([msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w])
+                self.orientations['v'].append(y)
     
     def calcEucDist(self):
         dist = { 't':[], 'v':[] }
@@ -234,111 +312,6 @@ class NoveltiExpRecord:
                 path['a'].append(a)
                 next_t += dt
         return path
-
-
-#class NoveltiExpPlot:
-    #"""
-    #Usage pattern:
-        #p = NoveltiExpPlot()
-        #p.plotBagRecord(bagRecord1, color1)
-        #p.plotBagRecord(bagRecord2, color2)
-        #...
-        #p.show()
-    #"""
-    
-    #def __init__(self):
-        ##self.baseDir = baseDir
-        ##if baseDir is not None:
-            ##self.readListOfAllBagFiles()
-        
-        #self.colors = [  'blue',  'red', '#5F9ED1', '#ABABAB','#FF800E', '#006B40', 
-                    #'#FFBC79', '#CFCFCF', '#C85200', '#A2C8EC', '#898989']
-        #self.styles = ['-', '--', '.-', '-.']
-        #self.fig = plt.figure(facecolor='white')
-        #self.ax_map = plt.subplot(121)
-        #self.ax_dist = plt.subplot(222)
-        #self.ax_entr = plt.subplot(224, sharex=self.ax_dist)
-        #self.firstBagRecord = True
-        #self.bagsDisplayed = 0
-
-    
-    #def plotBagRecord(self, bagRecord, color):
-        #if self.bagsDisplayed == 0:
-            #self.plotMaps(
-                #bagRecord['width'], 
-                #bagRecord['height'], 
-                #bagRecord['map_inflated'], 
-                #bagRecord['map']
-            #)
-        #self.plotDistance(bagRecord["dist"], color)
-        #self.plotEntropy(bagRecord["entropy"], color)
-        #self.plotPath(bagRecord["path"], color)
-        #self.bagsDisplayed += 1
-    
-    #def plotMaps(self, width, height, map1, map_inflated):
-        #"""
-            #width and height are sizes of map in meters
-            #map1 and map_inflated are 2D matrices
-        #"""
-        #info("    Drawing map")
-        #self.ax_map.matshow(map_inflated, 
-                            #origin="lower", 
-                            #cmap=plt.cm.gray, 
-                            #vmin=0, vmax=1, norm=None,
-                            #extent=(0,width,0,height))
-        #self.ax_map.matshow(map1, 
-                            #origin="lower", 
-                            #alpha=0.3, 
-                            #cmap=plt.cm.gray, 
-                            #vmin=0, vmax=1, norm=None,
-                            #extent=(0,width,0,height))
-    
-    #def plotEntropy(self, entropy, color):
-        #info("    Drawing entropy plot")
-        #self.ax_entr.plot(entropy['t'], entropy['v'], 
-                          #color=color, 
-                          #linestyle=self.styles[0]
-                          #)
-        #self.ax_entr.grid(True)
-        #self.ax_entr.autoscale(True)
-        #self.ax_entr.set_title("PDF entropy evolution over time", y=1.00)
-        #self.ax_entr.set_ylabel("Entropy, bits")
-        #self.ax_entr.set_xlabel("Time, sec")
-    
-    #def plotDistance(self, dist, color):
-        #info("    Drawing distance plot")
-        #self.ax_dist.plot(dist['t'], dist['v'], 
-                          #color=color, 
-                          #linestyle=self.styles[0]
-                          #)
-        #self.ax_dist.grid(True)
-        #self.ax_dist.autoscale(True)
-        #self.ax_dist.set_title("Distance to destination over time", y=1.00)
-        #self.ax_dist.set_ylabel("Distance, m")
-    
-    #def plotPath(self, path, color):
-        #for k,t in enumerate(path['t']):
-            #self.drawArrow(path['x'][k], path['y'][k], path['a'][k], color)
-
-    #def drawArrow(self, x,y,a, color):
-        #arr_length  = 0.2
-        #head_length = 0.07
-        #head_width  = 0.07
-        #self.ax_map.arrow(x, y, arr_length*cos(a), arr_length*sin(a), 
-                   #length_includes_head = True,
-                   #head_width=head_width, 
-                   #head_length=head_length,
-                   #linewidth=0.001,
-                   #joinstyle='miter', #['miter' | 'round' | 'bevel']
-                   #capstyle='butt', #['butt' | 'round' | 'projecting']   http://stackoverflow.com/a/10297860/5787022
-                   #fc=color, 
-                   #ec=color)
-    
-    #def show(self):
-        #plt.tight_layout() 
-        #plt.show()
-
-
 
 class RecordByStamp:
     
@@ -429,6 +402,18 @@ class PlottableBagRecord:
         axes.set_ylabel("PDF entropy, bits", fontsize=16)
         axes.set_xlabel("Time, sec", fontsize=10)
         return l
+
+    def plotAngEntropy(self, axes, color,label):
+        l = axes.plot(self.bagRecord['ang_entropy']['t'], self.bagRecord['ang_entropy']['v'], 
+                          color=color, 
+                          linestyle='-',
+                          label=label
+                          )
+        axes.grid(True)
+        axes.autoscale(True)
+        axes.set_ylabel("Orientation PDF entropy (bits)", fontsize=10)
+        axes.set_xlabel("Time, sec", fontsize=10)
+        return l
     
     def plotDistance(self, axes, color):
         #info("    Drawing distance plot")
@@ -443,6 +428,18 @@ class PlottableBagRecord:
         axes.set_xlabel("Time, sec", fontsize=10)
         return l
     
+    def plotAngDistance(self, axes, color,label):
+        l = axes.plot(self.bagRecord['ang_dist']['t'], self.bagRecord['ang_dist']['v'], 
+                          color=color, 
+                          linestyle='-',
+                          label=label
+                 )
+        axes.grid(True)
+        axes.autoscale(True)
+        axes.set_ylabel("Angular distance to goal (rad)", fontsize=10)
+        axes.set_xlabel("Time, sec", fontsize=10)
+        return l
+
     def plotPath(self, axes, color):
         for k,t in enumerate(self.bagRecord['path']['t']):
             self.drawArrow(axes, self.bagRecord['path']['x'][k], self.bagRecord['path']['y'][k], self.bagRecord['path']['a'][k], color)
@@ -453,8 +450,13 @@ class PlottableBagRecord:
         line_entr = self.plotEntropy(ax_entr, color)
         return (line_dist, line_entr)
     
-    
-    
+    def plotAngleDistEntropy(self, ax_map, ax_ang, ax_entr, color, label):
+        #Plot orientation panel here
+        self.plotPath(ax_map, color) 
+        angle_dist = self.plotAngDistance(ax_ang, color, label)
+        angle_entr = self.plotAngEntropy(ax_entr, color, label)
+        return (angle_dist, angle_entr)
+
 
 class GroupPlot:
     
