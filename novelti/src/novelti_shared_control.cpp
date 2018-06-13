@@ -113,30 +113,30 @@ void NoveltiSharedControl::stop() {
 }
 
 bool NoveltiSharedControl::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
-    ROS_INFO("new_goal advertised");
+    ROS_INFO("new_goal service request received");
     iu->srvNewGoal(req, resp);
+    //ros::Duration(60).sleep();
     //udpate pose_beset
-    bpf->pdfCallback(floatMapToPtr(iu->pdf));
+    bpf->pdfCallback(floatMapToPtr(iu->pdf),iu->state);
     //update map_divided
     mdiv->noveltiMapCallback(floatMapToPtr(iu->pdf),poseStampedToPtr(bpf->pose_best));
-
-    ROS_INFO("Orientation Control Initiated...");
+    oc->resetCanvas();
     return true;
 }
 
 void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
     if (iu->state == InferenceUnit::INFERRING_POSITION) {
+        mdiv->highlightSelection(cmd);
         iu->noveltiInfCallback(intMapToPtr(mdiv->map_divided),cmd);
         if (iu->state == InferenceUnit::INFERRING_ORIENTATION) { //Edit state name
             ROS_INFO("Desired Position Inferred.");
             oc->orientationPdfCallback(orientationPdfToPtr(iu->opdf));
             return;
         }
-        bpf->pdfCallback(floatMapToPtr(iu->pdf));
+        bpf->pdfCallback(floatMapToPtr(iu->pdf),iu->state);
         mdiv->noveltiMapCallback(floatMapToPtr(iu->pdf),poseStampedToPtr(bpf->pose_best));
-    }
-
-    else if (iu->state == InferenceUnit::INFERRING_ORIENTATION) {
+    } else if (iu->state == InferenceUnit::INFERRING_ORIENTATION) {
+        oc->highlightSelection(cmd);
         iu->orientationInfCallback(oc->unit_color, cmd);
         if (iu->state == InferenceUnit::INFERRED) {
             ROS_INFO("Desired Orientation Inferred.");

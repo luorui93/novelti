@@ -1,16 +1,17 @@
 #!/bin/bash
 
-start=office1   # door1   livroom1   office1   bathroom1   music1   bedroom1   door2   kitchen1   storage1   storage2   storage3   livroom2
-dst=livroom1
+start=rs1   #rs1, rs2, rs3 corresponding to path0,1,2
+path=0 #path = 0,1,2
 
-subject_name=rui
-div_method=extredist
-mx=mx85   #mx100 mx91 mx85 mx70
-oc_strategy=still  #stll max_prob intermediate_angle
+subject_name=test
+pos_method=nearcog_obst  #nearcog_obst, no_move
+div_method=extredist  #extredist, altertile
+mx=mx100 #mx100 mx91 mx85 mx70
+os_strategy=opt #stll opt
 record=1
 
 mkdir /home/yaphes/bag/$subject_name
-cmd="roslaunch novelti novelti.launch start_pose_name:=$start_pose_name div:=$div_method mx:=$mx bag:=$record bagpath:=/home/yaphes/bag/$subject_name/ ori_method:=$oc_strategy"
+cmd="roslaunch novelti novelti.launch start_pose_name:=$start pos:=$pos_method div:=$div_method mx:=$mx bag:=$record bagpath:=/home/yaphes/bag/$subject_name/ os_method:=$os_strategy path:=$path"
 
 echo "Starting subject experiment..."
 echo "Running: '$cmd'"

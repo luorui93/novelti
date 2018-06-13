@@ -17,7 +17,7 @@
 */
 
 #include <novelti/map_divider.h>
-
+#include <time.h>
 
 using namespace novelti;
 
@@ -25,9 +25,21 @@ MapDivider::MapDivider(const std::string paramPrefix) :
     node("~"),
     isNode(false)
 {
-    node.getParam("probs_optimal", probs_optimal);
+    std::vector<double> interface_matrix;
+    node.getParam("interface_matrix", interface_matrix);
+    InferenceMatrix inf(interface_matrix);
+    inf.findOptimalPriors(probs_optimal);
+    node.setParam("/probs_optimal",probs_optimal);
+    for (const auto i:probs_optimal) {
+        std::cout<< i << " ";
+    }
     if (probs_optimal.size()==0)
         throw ros::Exception("ERROR: probs_optimal parameter should be specified and have length>0");
+    float total = 0.0;
+    for (auto p: probs_optimal)
+        total+=p;
+    if (fabs(total-1.0)>0.001)
+        throw ros::Exception("ERROR: probs_optimal parameter sums up to " +to_string(total) + " (should be 1.0)");
 }
 
 MapDivider::MapDivider():
@@ -58,8 +70,11 @@ void MapDivider::startExp(novelti::StartExperiment::Request& req) {
     map_divided.info.origin.position.x = -0.5*req.map.info.resolution;
     map_divided.info.origin.position.y = -0.5*req.map.info.resolution;
     map_divided.data = std::vector<int>(map_divided.info.width*map_divided.info.height, 255);
-    
+    selection_highlight = map_divided;
+    transparent_map = map_divided;
+
     pub_map_div   = node.advertise<novelti::IntMap>("/map_divided", 1, true); //latched
+    pub_selection_highlight = node.advertise<novelti::IntMap>("/highlight_map",1,false);
     if (isNode) {
         sub_pose_opt  = node.subscribe("/pose_best", 1, &MapDivider::poseOptCallback, this);
         sub_pdf       = node.subscribe("/pdf", 1, &MapDivider::pdfCallback, this);
@@ -101,6 +116,19 @@ void MapDivider::noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_
     divideAndPublish();
 }
 
+void MapDivider::highlightSelection(novelti::CommandConstPtr msg){
+    int cmd = msg->cmd;
+
+    selection_highlight.data = map_divided.data;
+    for (std::vector<int>::iterator it=selection_highlight.data.begin(); it != selection_highlight.data.end(); it++) {
+        if (*it == cmd)
+            continue;
+        else *it = 255;
+    }
+    pub_selection_highlight.publish(selection_highlight);
+    usleep(0.2*1000000);
+    pub_selection_highlight.publish(transparent_map);
+}
 
 void MapDivider::divideAndPublish() {
     if (isNode) {
@@ -119,7 +147,7 @@ void MapDivider::divideAndPublish() {
     ROS_INFO("%s: probs_actual: [%f, %f, %f, %f]", getName().c_str(), probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
     map_divided.header.stamp = ros::Time::now();
     pub_map_div.publish(map_divided);
-    ros::spinOnce();
+    //ros::spinOnce();
     ROS_INFO("%s: published divided map", getName().c_str());
     map_divided.header.seq++;
 }

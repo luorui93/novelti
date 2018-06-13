@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.11.2)
 project(novelti)
 
 #This is how you compile it with debug info
@@ -30,8 +30,12 @@ find_package(catkin REQUIRED COMPONENTS
 
 ########### rviz plugin for IntMap and FloatMap displays ##############
 ## This plugin includes Qt widgets, so we must include Qt like so:
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-include(${QT_USE_FILE})
+# find_package(Qt5 COMPONENTS Core Gui REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
+# set variable names already used with Qt4
+set(QT_LIBRARIES Qt5::Widgets)
+set(QTVERSION ${Qt5Widgets_VERSION})
+# include(${QT_USE_FILE})
 
 ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
@@ -39,7 +43,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 ## Here we specify which header files need to be run through "moc",
 ## Qt's meta-object compiler.
-qt4_wrap_cpp(MOC_FILES
+qt5_wrap_cpp(MOC_FILES
   include/${PROJECT_NAME}/rviz_int_map_display.h
   include/${PROJECT_NAME}/rviz_float_map_display.h
 )

@@ -43,9 +43,11 @@ import math
 import actionlib
 from actionlib_msgs.msg import *
 import rospy
+import dynamic_reconfigure.client
 
 import tf_conversions
 from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
+from tf.transformations import euler_from_quaternion
 from nav_msgs.msg import OccupancyGrid
 from novelti.SyncingNode import SyncingNode
 
@@ -56,7 +58,7 @@ class Mediator (SyncingNode):
                      "ACTIVE          = 1   # The goal is currently being processed by the action server",
                      "PREEMPTED       = 2   # The goal received a cancel request after it started executing and has since completed its execution (Terminal State)",
                      "SUCCEEDED       = 3   # The goal was achieved successfully by the action server (Terminal State)",
-                     "ABORTED         = 4   # The goal was aborted during execution by the action server due to some failure (Terminal State)",
+                     "ABORTED         = 4   # The goal was aborted during exe   cution by the action server due to some failure (Terminal State)",
                     "REJECTED        = 5   # The goal was rejected by the action server without being processed, because the goal was unattainable or invalid (Terminal State)",
                     "PREEMPTING      = 6   # The goal received a cancel request after it started executing and has not yet completed execution",
                     "RECALLING       = 7   # The goal received a cancel request before it started executing, but the action server has not yet confirmed that the goal is canceled",
@@ -73,7 +75,7 @@ class Mediator (SyncingNode):
             'pub_random_goal':   rospy.get_param('~pub_random_goal', False),
         })
         
-        self.inferenceState="INFERRING"
+        self.inferenceState="INFERRING_POSITION"
         if self.cfg['real_robot']:
             rospy.loginfo("Starting novelti with a real robot")
             self.action_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
@@ -83,16 +85,18 @@ class Mediator (SyncingNode):
             self.pub_pose_current = rospy.Publisher('/pose_current', PoseStamped, queue_size=1, latch=True)
             #self.pub_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1, latch=True)
             
+            self.sub_position_desired = rospy.Subscriber('/position_desired', PoseStamped, self.positionDesiredCallback)
             self.sub_pose_desired  = rospy.Subscriber('/pose_desired',  PoseStamped, self.poseDesiredCallback)
             self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
             self.sub_pose_amcl     = rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.poseAmclCallback)
         else:
             rospy.loginfo("Starting novelti without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
-        self.pub_pose_goal = rospy.Publisher('/pose_intended_goal', PoseStamped, queue_size=1, latch=True)
+        self.pub_pose_start = rospy.Publisher('/pose_start', PoseStamped, queue_size=1, latch=True)
+        self.pub_pose_goal1 = rospy.Publisher('/pose_intended_goal1', PoseStamped, queue_size=1, latch=True)
         self.pub_pose_goal2 = rospy.Publisher('/pose_intended_goal2', PoseStamped, queue_size=1, latch=True)
-        self.publishGoal()
-        self.publishGoal2()
+        self.pub_pose_goal3 = rospy.Publisher('/pose_intended_goal3', PoseStamped, queue_size=1, latch=True)
+        
     
     def publishRandomGoal(self):
         init_vx = self.grid.genRandUnblockedVertex()
@@ -103,15 +107,25 @@ class Mediator (SyncingNode):
         p.pose = init_pose
         self.pub_pose_goal.publish(p)
     
-    def publishGoal(self):
+    def publishStart(self):
         p = PoseStamped()
         p.header.stamp = rospy.Time.now()
         p.header.frame_id = "/map"
-        p.pose.position.x = rospy.get_param('~goal_x', 0.0)
-        p.pose.position.y = rospy.get_param('~goal_y', 0.0)
-        rospy.get_param('~goal_y', 0.0),
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
-        self.pub_pose_goal.publish(p)
+        p.pose.position.x = rospy.get_param('~start_x', 0.0)
+        p.pose.position.y = rospy.get_param('~start_y', 0.0)
+        goal_yaw = rospy.get_param('~start_yaw', 0.0)
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
+        self.pub_pose_start.publish(p)
+
+    def publishGoal1(self):
+        p = PoseStamped()
+        p.header.stamp = rospy.Time.now()
+        p.header.frame_id = "/map"
+        p.pose.position.x = rospy.get_param('~goal1_x', 0.0)
+        p.pose.position.y = rospy.get_param('~goal1_y', 0.0)
+        goal_yaw = rospy.get_param('~goal1_yaw', 0.0)
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
+        self.pub_pose_goal1.publish(p)
     
     def publishGoal2(self):
         p = PoseStamped()
@@ -119,9 +133,19 @@ class Mediator (SyncingNode):
         p.header.frame_id = "/map"
         p.pose.position.x = rospy.get_param('~goal2_x', 0.0)
         p.pose.position.y = rospy.get_param('~goal2_y', 0.0)
-        rospy.get_param('~goal2_y', 0.0),
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
+        goal_yaw = rospy.get_param('~goal2_yaw', 0.0)
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
         self.pub_pose_goal2.publish(p)
+
+    def publishGoal3(self):
+        p = PoseStamped()
+        p.header.stamp = rospy.Time.now()
+        p.header.frame_id = "/map"
+        p.pose.position.x = rospy.get_param('~goal3_x', 0.0)
+        p.pose.position.y = rospy.get_param('~goal3_y', 0.0)
+        goal_yaw = rospy.get_param('~goal3_yaw', 0.0)
+        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
+        self.pub_pose_goal3.publish(p)
     
     def startNovelti(self, init_pose):
         rospy.loginfo("Starting novelti")
@@ -130,7 +154,10 @@ class Mediator (SyncingNode):
             rospy.loginfo("RANDOM GOAL ENABLED")
             self.publishRandomGoal()
         else:
-            self.publishGoal()
+            self.publishGoal1()
+            self.publishGoal2()     
+            self.publishGoal3()   
+            self.publishStart()
         
     def cancelAllGoals(self):
         self.action_client.cancel_goals_at_and_before_time(rospy.Time.now()) # don't know why this does not work 
@@ -143,13 +170,13 @@ class Mediator (SyncingNode):
         
     def setNewGoalInAnotherThread(self, msg):
         rospy.loginfo("New goal received, canceling all previous goals")
-        self.cancelAllGoals()
+        #self.cancelAllGoals()
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.frame_id = "/map"
         goal.target_pose.header.stamp = rospy.Time.now()
 
         goal.target_pose.pose = msg.pose
-        goal.target_pose.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, 0.0))
+        #goal.target_pose.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, 0.0))
 
         rospy.loginfo("Sending destination goal to move_base")
         self.action_client.send_goal(goal, feedback_cb=self.actionFeedbackCallback, done_cb=self.actionDoneCallback)
@@ -165,29 +192,42 @@ class Mediator (SyncingNode):
             rospy.loginfo("Arrived to the destination")
         else:
             rospy.loginfo("Didn't arrive to destination, goal status=%d: '%s'" % (status, self.GOAL_STATUSES[status]))
-        if self.inferenceState=="INFERRED" and self.cfg['pub_random_goal']:
+        if self.inferenceState=="POSE_INFERRED" and self.cfg['pub_random_goal']:
             rospy.logwarn("PUBLISHING A NEW RANDOM GOAL")
             self.publishRandomGoal()
-            self.inferenceState="INFERRING"
+            self.inferenceState="INFERRING_POSITION"
         
     def poseAmclCallback(self, msg):
         p = PoseStamped()
         p.header.stamp = msg.header.stamp
         p.header.frame_id = msg.header.frame_id
         p.pose = msg.pose.pose
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, -math.pi/2, 0.0))
+        #p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, 0.0))
         self.pub_pose_current.publish(p)
         if self.state == "WAIT4START":
             self.state = "RUNNING"
             self.startNovelti(msg)
-    
+
+    def positionDesiredCallback(self, msg):
+        rospy.loginfo("Received position desired: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
+        self.setNewGoal(msg)
+
     def poseDesiredCallback(self, msg):
-        rospy.loginfo("Received pose desired: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
+        if self.inferenceState == "INFERRING_POSITION":
+            self.inferenceState = "INFERRING_POSE"
+            #dynamic reconfigure the yaw_goal_tolerance
+            client = dynamic_reconfigure.client.Client('/move_base/DWAPlannerROS')
+            params = { 'yaw_goal_tolerance' : '0.01' }
+            config = client.update_configuration(params)
+
+        (roll,pitch,yaw) = euler_from_quaternion(
+            [msg.pose.orientation.x,msg.pose.orientation.y,msg.pose.orientation.z,msg.pose.orientation.w])
+        rospy.loginfo("Received pose desired: (%f,%f,%f)" % (msg.pose.position.x, msg.pose.position.y, yaw))
         self.setNewGoal(msg)
 
     def poseInferredCallback(self, msg):
         rospy.loginfo("Received pose inferred: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
-        self.inferenceState="INFERRED"
+        self.inferenceState="POSE_INFERRED"
         self.setNewGoal(msg)
     
     def actionFeedbackCallback(self, msg):

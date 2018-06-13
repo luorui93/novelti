@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <novelti/IntMap.h>
 #include <novelti/OrientationPdf.h>
+#include <novelti/Command.h>
 #include <vector>
 
 namespace novelti {
@@ -34,11 +35,13 @@ public:
     void divideAndPublish();
     void drawSector();
     void resetArc();
-
+    void highlightSelection(novelti::CommandConstPtr msg);
+    void resetCanvas();
+    
     ros::NodeHandle node;
-    ros::Publisher pub_canvas;
+    ros::Publisher pub_canvas,pub_selection_highlight;
 
-    IntMap canvas;
+    IntMap canvas,selection_highlight,transparent_canvas;
     novelti::OrientationPdfConstPtr opdf_ptr;
     double radius;
     int n_cmd;

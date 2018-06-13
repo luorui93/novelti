@@ -5,8 +5,8 @@ Ubuntu 14.04 + ROS_Indigo Build Step
 2. copy repos to workspace/src
 
 3. install SDL2: 
-    wget http://www.libsdl.org/release/SDL2-2.0.4.zip
-    unpcak
+    wget http://www.libsdl.org/release/SDL2-2.0.8.zip
+    unpack
     ./configure
     make 
     sudo make install

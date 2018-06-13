@@ -130,6 +130,7 @@ class GridMap:
         gridInflated = self.__class__(self.width, self.height, [self.__class__.FREE]*(self.width*self.height))
         r = int(radius+1)
         for cy in range(self.height):
+            sys.stderr.write("%d%%, "% (100*cy/self.height))
             for cx in range(self.width):
                 if not self.isFree(cx,cy):
                     for x in range(max(0,cx-r-1), min(self.width,cx+r+1)):

@@ -73,11 +73,12 @@ class SyncingNode:
         stamp = rospy.Time.now()
         name = "Experiment %d" % self.seq
         mapa = IntMap()
-        mapa.header.frame_id = "/map"
+        mapa.header.frame_id = "/map_inflated"
         mapa.data = [(0 if v==self.grid.FREE else 1) for v in self.grid.data]
         mapa.info.width = self.grid.width
         mapa.info.height = self.grid.height
         mapa.info.resolution = resolution
+        # rospy.logwarn('%s'%(mapa.header.frame_id))
         rospy.loginfo("============================== Starting experiment '%s' ===   init_pose=(%f,%f) =========================="%(name, init_pose.position.x,init_pose.position.y))
         for srv in self.startSrvs:
             try:

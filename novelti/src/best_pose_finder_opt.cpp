@@ -32,25 +32,26 @@ public:
             node.param<int>("glob_max_attempts", glob_max_attempts, 25);
     }
     
-    double calcAvgDist(Point point) {
+    double calcProbCost(Point point) {
         //input (point) wrt to reach area
         meanDist = 0.0;
         CWave2 cw(cmap);
         cw.setProcessor(this);
         cw.calc(Point(point.x+r2a.x, point.y+r2a.y));
-        ROS_DEBUG("%s: calculated avgDist(%d,%d)=%f", getName().c_str(), point.x, point.y, meanDist);
+        ROS_DEBUG("%s: calculated probCost(%d,%d)=%f", getName().c_str(), point.x, point.y, meanDist);
         cmap.clearDist();
         return meanDist;
     }
     
-    bool getMeanDist(Point point, double& dist) {
+    bool getProbCost(Point point, double& dist) {
         // input (point) wrt to reach area
-        // returns true if the mean distance has not been previously calculated for point (= reach_area had REACH_AREA_UNASSIGNED value for vertex point)
+        // returns true if the mean distance has not been previously calculated
+        // for point (i.e., reach_area had REACH_AREA_UNASSIGNED value for vertex point)
         int k = point.x + point.y*reach_area.info.width;
         bool was_unassigned = (reach_area.data[k]==REACH_AREA_UNASSIGNED);
         if (was_unassigned) { //means not visited
             n_unassigned--;
-            reach_area.data[k] = calcAvgDist(point);
+            reach_area.data[k] = calcProbCost(point);
         }
         dist = reach_area.data[k];
         return was_unassigned;
@@ -60,20 +61,22 @@ public:
         /*  moves p to local minimum
             * returns mean distance in optimal pose */
         double dist, min_dist;
-        getMeanDist(pt, min_dist);
+        getProbCost(pt, min_dist);
         ROS_DEBUG("%s: Started slideToLocalMin at pt=(%d,%d), avgdist=%f, r2a=(%d,%d)", getName().c_str(), pt.x, pt.y, min_dist, r2a.x, r2a.y);
         int best_nb;
         while (true) {
             best_nb = -1; //best neighbour
             ROS_DEBUG("%s: looking for best neighbour around pt=(%d,%d)", getName().c_str(), pt.x, pt.y);
             for (int nb=0; nb<8; nb++) { //iterate over neighbours
-                pt.x += NEIGHBOURS[nb][0];  pt.y += NEIGHBOURS[nb][1];
-                if (getMeanDist(pt, dist) && dist>0 && dist < min_dist) {
+                pt.x += NEIGHBOURS[nb][0];  
+                pt.y += NEIGHBOURS[nb][1];
+                if (getProbCost(pt, dist) && dist>0 && dist < min_dist) {
                     min_dist = dist;
                     best_nb = nb;
                 }
                 ROS_DEBUG("%s: tried pt=(%d,%d), dist=%f, min_dist=%f", getName().c_str(), pt.x, pt.y, dist, min_dist);
-                pt.x -= NEIGHBOURS[nb][0];  pt.y -= NEIGHBOURS[nb][1];
+                pt.x -= NEIGHBOURS[nb][0];  
+                pt.y -= NEIGHBOURS[nb][1];
             }
             if (best_nb>=0) {
                 pt.x+=NEIGHBOURS[best_nb][0]; pt.y+=NEIGHBOURS[best_nb][1];

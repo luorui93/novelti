@@ -23,6 +23,9 @@ void OrientationControl::initDisplay(OrientationPdfConstPtr opdf) {
     canvas.info.origin.position.y = 0.0;
     canvas.data = std::vector<int>(canvas.info.width*canvas.info.height, 255);
     pub_canvas = node.advertise<novelti::IntMap>("/orientation_divided", 1, true);
+    pub_selection_highlight = node.advertise<novelti::IntMap>("/highlight_orientation",1,false);
+    selection_highlight = canvas;
+    transparent_canvas = canvas;
 
     unit_color = std::vector<int>(opdf->data.size(),-1);
     arc_vector = std::vector<novelti::Arc>(n_cmd);
@@ -39,10 +42,28 @@ void OrientationControl::initDisplay(OrientationPdfConstPtr opdf) {
     drawSector();
 }   
 
+void OrientationControl::resetCanvas() {
+    pub_canvas.publish(transparent_canvas);
+}
+
 void OrientationControl::orientationPdfCallback(OrientationPdfConstPtr opdf) {
     opdf_ptr = opdf;
     divideAndPublish();
 }   
+
+void OrientationControl::highlightSelection(novelti::CommandConstPtr msg){
+    int cmd = msg->cmd;
+
+    selection_highlight.data = canvas.data;
+    for (std::vector<int>::iterator it=selection_highlight.data.begin(); it != selection_highlight.data.end(); it++) {
+        if (*it == cmd)
+            continue;
+        else *it = 255;
+    }
+    pub_selection_highlight.publish(selection_highlight);
+    usleep(0.2*1000000);
+    pub_selection_highlight.publish(transparent_canvas);
+}
 
 void OrientationControl::setColor(int x, int y, int color) {
     canvas.data[x + y*canvas.info.width] = color;
@@ -60,7 +81,7 @@ void OrientationControl::updateOptimalPdf(int cur_color) {  //Try to divide regi
 
 }
 
-void OrientationControl::0() {   //update color for minimal unit (resolution)
+void OrientationControl::markUnitColor() {   //update color for minimal unit (resolution)
     int cur_color = 0;
     std::fill(cur_color_pdf.begin(),cur_color_pdf.end(),0.0);
     for (int i=0; i<opdf_ptr->data.size();i++) {

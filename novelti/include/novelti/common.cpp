@@ -58,7 +58,7 @@ public:
         pose.header.stamp = ros::Time::now();
         pose.pose.position.x = x*resol;
         pose.pose.position.y = y*resol;
-        pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
+        pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, 0.0, 0.0);
     }
 
     void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y) {

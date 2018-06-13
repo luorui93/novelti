@@ -79,11 +79,13 @@ class Experimentator (SyncingNode):
             self.state="POSITION_INFERRED"
             self.onPoseInferred()
 
-    def poseCurrentCallback(self, msg):
-        if self.state=="POSITION_INFERRED" or self.state=="INFERRED":
-            if self.arePosesSame(msg.pose, self.position_inferred) and self.dst_first_arrival:
-                self.publishPositionArrived(msg)
-                self.dst_first_arrival = False
+    # It's not good to use current pose to determine if the robot has arrived the final position because move_base has position tolerance
+    # Use information from move_base to determine the time
+    # def poseCurrentCallback(self, msg):
+    #     if self.state=="POSITION_INFERRED" or self.state=="INFERRED":
+    #         if self.arePosesSame(msg.pose, self.position_inferred) and self.dst_first_arrival:
+    #             self.publishPositionArrived(msg)
+    #             self.dst_first_arrival = False
 
     def poseArrivedCallback(self, msg):
         rospy.loginfo("%s: received /pose_arrived, state==%s" % (rospy.get_name(), self.state))
@@ -93,8 +95,8 @@ class Experimentator (SyncingNode):
             self.onInferredReached()
             self.publishNextIntendedPose()
 
-    def publishPositionArrived(self, msg):
-        self.pub_position_arrived.publish(msg)
+    # def publishPositionArrived(self, msg):
+    #     self.pub_position_arrived.publish(msg)
 
     def onExperimentStarted(self):
         pass

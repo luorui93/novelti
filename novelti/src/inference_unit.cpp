@@ -30,6 +30,7 @@
 #include <novelti/inference_unit.h>
 #include <limits>
 #include <tf/transform_broadcaster.h>
+#include <cmath>
 
 using namespace novelti;
 
@@ -72,6 +73,7 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
         }
     node.getParam("pois", pois_);
     node.getParam("interface_matrix", interface_matrix);
+    ROS_INFO("interface matrix:%f,%f,%f,%f",interface_matrix[0],interface_matrix[1],interface_matrix[2],interface_matrix[3]);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
     if (interface_matrix.size()==0 && n_cmds*n_cmds==interface_matrix.size()) {
         ROS_ERROR("ERROR: interface_matrix parameter should be specified, have length>0, and its length has to be a square of an integer number (number of commands)");
@@ -284,7 +286,7 @@ void InferenceUnit::calcUpdCoefs() {
     //caluclate update coefficients
     for (int k=0; k<n_cmds; k++) 
          coefs[k] = priors[k] != 0.0 ? posteriors[k]/priors[k] : 0.0;
-    //ROS_INFO("%s: coefs: [%f, %f, %f, %f]", getName().c_str(), coefs[0], coefs[1], coefs[2], coefs[3]);
+    ROS_INFO("%s: coefs: [%f, %f, %f, %f]", getName().c_str(), coefs[0], coefs[1], coefs[2], coefs[3]);
 }
 
 
@@ -307,6 +309,7 @@ void InferenceUnit::cmdCallback(CommandConstPtr msg){
 }
 
 void InferenceUnit::noveltiInfCallback(novelti::IntMapConstPtr ptr_map, CommandConstPtr ptr_cmd){
+    ROS_INFO("noveltiInfCallback: %s: received cmd_detected = %d (SEQ=%d)", getName().c_str(), ptr_cmd->cmd, ptr_cmd->header.seq);
     map_divided = ptr_map;
     cmd_detected = ptr_cmd;
     calcPriors();
@@ -323,11 +326,16 @@ void InferenceUnit::updatePdf() {
         p = pdf.data[k];
         if (p>=0) {
             pdf.data[k]=p*coefs[map_divided->data[k]];
+            if (pdf.data[k]>1.0)
+                ROS_ERROR("%s: PROBLEM WITH PDF. pdf.data[%d]=%f > 1.0, map_divided->data[%d]=%d, p=%f", getName().c_str(), k, pdf.data[k],k,map_divided->data[k],p);
             total_prob += pdf.data[k];
             ///ROS_INFO("%s: updating pdf[%d]: %f->%f", getName().c_str(), k, p, pdf.data[k]);
             if (pdf.data[k] >= max_prob) {
                 max_prob   = pdf.data[k];
                 max_prob_k = k;
+                if (max_prob > 1) {
+                    ROS_ERROR("Invalid pdf.data[%d]:%f",k,max_prob);
+                }
             }
             if (pdf.data[k] <= min_prob) {
                 min_prob = pdf.data[k];
@@ -364,17 +372,6 @@ void InferenceUnit::smoothenPdf() {
     if (smooth_rad==0)
         return;
     FloatMap pdf_copy = pdf;
-    //int smooth_rad = (int)(round(6.464102 + (-0.4641016 - 6.464102)/(1 + pow((view_size_/64.0),1.899969))));
-    //int smooth_rad = (int)(round(220.8386 + (-203.4252 - 220.8386)/(1 + pow((view_size_/79986.57),0.009532408))));
-    //int smooth_rad = (int)(round(3.523462 + (-0.1923772 - 3.523462)/(1 + pow((view_size_/102.2199),1.923313))));
-    /*int smooth_rad = 0;
-    switch (view_size_) {
-        case  16: smooth_rad=0; break;
-        case  32: smooth_rad=0; break;
-        case  64: smooth_rad=1; break;
-        case 128: smooth_rad=1; break;
-        case 256: smooth_rad=1; break;
-    }*/
     
     int i,n;
     float p, p_avg;
@@ -474,33 +471,6 @@ void InferenceUnit::publishViewTf() {
     if (view_y==0) 
         view_y=cr;
 
-
-    /*
-     * //[xmin, xmax]=[158,173], [ymin,ymax]=[152,158], view_x=160, view_y=152, view_size_id=0, view_size=16
-     * int cd = view_sizes_[sid];
-    int left   = ((x-cd/2)/(cd/2))*(cd/2);
-    int right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
-    int bottom = ((y-cd/2)/(cd/2))*(cd/2);
-    int top    = ((y+cd/2)/(cd/2) +1)*(cd/2);
-    if ( ((top-bottom)>cd || (right-left)>cd) && sid < view_sizes_.size()-1) {
-        cd = view_sizes_[sid+1];
-        left   = ((x-cd/2)/(cd/2))*(cd/2);
-        right  = ((x+cd/2)/(cd/2) +1)*(cd/2);
-        bottom = ((y-cd/2)/(cd/2))*(cd/2);
-        top    = ((y+cd/2)/(cd/2) +1)*(cd/2);
-    }
-    int view_x = (left+right)/2;
-    int view_y = (bottom+top)/2;
-    view_size_ = cd;*/
-    //view_size_ = cr*2;
-    
-//     double w = pdf.info.resolution*pdf.info.width;
-//     double h = pdf.info.resolution*pdf.info.height;
-//     ///#limits=(w/2, w, h/2, h)
-//     ///#c = ((limits[0]+limits[1])*pdf.info.resolution/2, (limits[2]+limits[3])*pdf.info.resolution/2)
-//     const int min_number_of_vertices_in_interest_area = 20;
-//     double max_area_size = pdf.info.resolution*std::max({xmax-xmin, ymax-ymin, min_number_of_vertices_in_interest_area});
-//     ROS_INFO("%s: max_area_size=%f", getName().c_str(), max_area_size);
     double cam_distance = (1.5  -  0.35*(view_sizes_[view_size_id_]-20)/250.0)*view_sizes_[view_size_id_]*pdf.info.resolution;//2+2*(int(max_area_size*0.2)/2);
     double cam_x = pdf.info.resolution*view_x;
     double cam_y = pdf.info.resolution*view_y;

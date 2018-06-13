@@ -17,7 +17,8 @@
 #include <novelti/StartExperiment.h>
 #include <novelti/common.cpp>
 #include <CWave2.h>
-
+#include <novelti/Command.h>
+#include <novelti/inference_matrix.cpp>
 
 namespace novelti {
 
@@ -29,6 +30,7 @@ public:
     State state;
     ros::NodeHandle node;
     ros::Publisher pub_map_div;
+    ros::Publisher pub_selection_highlight;
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     
@@ -36,6 +38,7 @@ public:
     geometry_msgs::PoseStampedConstPtr pose_best;
     Point                              pt_best;
     novelti::IntMap                  map_divided;
+    novelti::IntMap                  transparent_map, selection_highlight;
     
     std::vector<double> probs_optimal;
     std::vector<double> probs_actual;
@@ -54,10 +57,9 @@ public:
     void poseOptCallback(geometry_msgs::PoseStampedConstPtr pose);
     //void pdfCallback(novelti::FloatMapConstPtr& msg);
     //void pdfCallback(boost::shared_ptr<novelti::FloatMap const> msg){//novelti::FloatMapConstPtr& msg) {
-    void pdfCallback(novelti::FloatMapConstPtr msg);/*{//novelti::FloatMapConstPtr& msg) {
-        pdf=msg;
-    }*/
+    void pdfCallback(novelti::FloatMapConstPtr msg);
     void noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose);
+    void highlightSelection(CommandConstPtr msg);
     void divideAndPublish();
 
     std::vector<double> probs_scaled;

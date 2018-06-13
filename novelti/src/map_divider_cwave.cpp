@@ -235,10 +235,16 @@ class CWaveProcPassTwo : public CWave2Processor
                 std::swap(dx,dy);
                 dx = -dx;
             }*/
-            float pangle = (star.id != 0 && (dy >= 0 && dx > 0))
-                               ? calcPseudoangle_m2to2(dx, dy)
-                               : calcPseudoangle_0to4(dx, dy);
+            // float pangle = (star.id != 0 && (dy >= 0 && dx > 0))
+            //                    ? calcPseudoangle_m2to2(dx, dy)
+            //                    : calcPseudoangle_0to4(dx, dy);
 
+            float pangle = calcPseudoangle_0to4(dx, dy);
+            if (dy==0 && dx>0 && star.id!=0) {
+                int parent_star_id = track_map_[star.c.x+star.c.y * cmap_.width()];
+                if (cmap_.track_stars[parent_star_id].y>star.c.y)
+                    pangle = 6;
+            }
             ROS_DEBUG("s=%d, p=(%d,%d), (dx,dy)=(%d,%d) -> pangle=%f", star.id, p.x, p.y, dx, dy, pangle);
             star_vertices_[star.id][indexes_[star.id]] = {k, pangle, star.idist};
             if (indexes_[star.id] >= star_vertices_[star.id].size())

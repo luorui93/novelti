@@ -62,7 +62,6 @@ void BestPoseFinder::startExp(novelti::StartExperiment::Request& req) {
     reach_area.info.resolution = resolution;
     reach_area.data = vector<float>(reach_area.info.width*reach_area.info.height, REACH_AREA_UNREACHABLE);
     
-
     
     new (&cmap) CompoundMap(req.map.info.width, req.map.info.height);
     for (int x=0; x<req.map.info.width; x++)
@@ -108,6 +107,28 @@ void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf){
     pt.x+=r2a.x; pt.y+=r2a.y;
     SynchronizableNode::updatePose(pose_best, pt.x, pt.y, resolution);
     pub_pose_best.publish(pose_best);
+    ros::spinOnce();
+    ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
+    pose_best.header.seq++;
+}
+
+
+void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state){
+    ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
+    if (!calcReachArea()) //if we failed to calculate reachability area
+        return;
+    //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
+    findBestPose(pdf); //outputs to pt wrt reach_area
+    if (iu_state == InferenceUnit::INFERRING_ORIENTATION || isOnBorder(pt)) {
+        pt.x+=r2a.x; pt.y+=r2a.y;
+        SynchronizableNode::updatePose(pose_best, pt.x, pt.y, resolution);
+        pub_pose_best.publish(pose_best);
+    }
+    else {
+        pose_best.header.stamp = ros::Time::now();
+        pose_best.pose = pose_current;
+        pub_pose_best.publish(pose_best);
+    }
     ros::spinOnce();
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
     pose_best.header.seq++;
@@ -166,14 +187,17 @@ bool BestPoseFinder::calcReachArea() {
     n_unassigned = 0;
     
     for (int x=ra_min.x; x<ra_max.x; x++)
-        for (int y=ra_min.y; y<ra_max.y; y++)
+        for (int y=ra_min.y; y<ra_max.y; y++) {
             if (cmap.getPoint(x+r2a.x, y+r2a.y) != MAP_POINT_UNEXPLORED) {
                 reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNASSIGNED;
                 n_unassigned++;
             } else {
                 reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
             }
+        }
     cmap.clearDist();
+    //Set reach_area outside of the whole map as REACH_AREA_UNREACHABLE
+    //In some cases, part of reach_area may be outside of the map on the four sides
     for (int x=1; x<ra_min.x; x++)
         for (int y=1; y<ra_size; y++)
             reach_area.data[x + y*reach_area.info.width] = REACH_AREA_UNREACHABLE;
@@ -278,6 +302,19 @@ void BestPoseFinder::findBestPose(novelti::FloatMapConstPtr pdf1) { //no move
         return;
     pt.x -= r2a.x;
     pt.y -= r2a.y;
+}
+
+// check if 8-neighborhood of point p contains unreachable point to determine if 
+// point p is on the border 
+bool BestPoseFinder::isOnBorder(Point p) {
+    for (int row = p.x-1;row <= p.x+1;row++) {
+        for (int col = p.y-1;col <= p.y+1;col++) {
+            if (reach_area.data[row+col*reach_area.info.width] == REACH_AREA_UNREACHABLE) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 #ifdef DEBUG_POSE_FINDER

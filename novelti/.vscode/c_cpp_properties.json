@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/yaphes/novelti_ws/devel/include",
+                    "/opt/ros/indigo/include",
+                    "/home/yaphes/novelti_ws/src/novelti/novelti/include",
+                    "/usr/include"
+                ]
+            },
+            "includePath": [
+                "/home/yaphes/novelti_ws/devel/include",
+                "/opt/ros/indigo/include",
+                "/home/yaphes/novelti_ws/src/novelti/novelti/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 3
+}
