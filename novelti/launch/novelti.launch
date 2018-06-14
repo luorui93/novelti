@@ -48,7 +48,7 @@
     <arg name="real_robot" default="0" />
     <arg name="real_human" default="1" />
     <arg name="real_bci" default="false" />
-
+    <arg name="control_ui" default="keyboard"/>
     <arg name="single_node" default="1" />
     
     <arg name="new_goal_srv" default="/novelti_shared_control/new_goal" if="$(arg single_node)"/>
@@ -75,8 +75,7 @@
     <!-- add /robot_model to synced_nodes if using diff_drive_model, needs to be orgnized later-->
     <rosparam if="$(arg single_node)">
         synced_nodes: 
-            <!-- real_robot: ['/novelti_shared_control', '/lti_model', '/keyboard_commander', ] -->
-            real_robot:  ['/novelti_shared_control', '/sync_emotiv_commander', '/lti_model', '/keyboard_commander']
+            real_robot:  ['/novelti_shared_control', '/commander_sync_interface']
             <!-- robot_model: ['/novelti_shared_control', '/lti_model', '/keyboard_commander','/robot_model'] -->
     </rosparam>
     <rosparam unless="$(arg single_node)">
@@ -136,10 +135,8 @@
     </node>
     <node unless="$(arg real_bci)" pkg="novelti" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
         <rosparam>
-            key_mappings: ['y','b','g']   <!-- yellow, blue, green, red -->
-            new_goal_key: '`'
+            key_mappings: ['y','b','g','`']   <!-- yellow, blue, green, red -->
         </rosparam>
-        <param name="new_goal"      value="$(arg new_goal_srv)"/>
     </node>
 
     <!-- Real interface or model -->
@@ -149,6 +146,7 @@
         <param if="$(arg real_human)" name="delay" value="$(arg period)"/>
         <param     if="$(arg wait_for_cmd)" name="period" value="0" />
         <param unless="$(arg wait_for_cmd)" name="period" value="$(arg period)" />
+        <param name="control_ui" value="$(arg control_ui)"/>
     </node>
     
     <!-- Shared Control -->

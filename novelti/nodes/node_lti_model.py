@@ -7,9 +7,7 @@ from numpy import array, eye, random, sqrt
 
 from novelti.msg import Command
 
-from novelti.SynchronizableNode import SynchronizableNode
-
-class StochHmiModel (SynchronizableNode):
+class StochHmiModel:
     def __init__(self):
         self.cmd_intended = None
         #read parameters
@@ -26,9 +24,12 @@ class StochHmiModel (SynchronizableNode):
         rospy.loginfo("\n=========INTERFACE MATRIX:====== \n" + str(interface_matrix))
         self.period = rospy.get_param('~period', 0.0)
         self.random_if_missed = rospy.get_param('~random_if_missed', False)
+        self.control_ui = rospy.get_param('~control_ui','keyboard')
         self.delay  = rospy.get_param('~delay', 0.0)
         self.n = int(sqrt(len(interface_matrix)))
-
+        self.cmd_detected = Command()
+        self.sub = rospy.Subscriber('/'+self.control_ui+'_cmd_intended', Command, self.cmdIntendedCallback)
+        self.pub = rospy.Publisher('/'+self.control_ui+'_cmd', Command, queue_size=1, latch=True)
         k=0
         self.interface_matrix_thresholds = []
         for r in range(self.n):
@@ -44,20 +45,12 @@ class StochHmiModel (SynchronizableNode):
             for k in xrange(self.n):
                 row[k] = thresh+row[k]
                 thresh = row[k]
-        SynchronizableNode.__init__(self)
-    
-    def start(self, req):
-        self.cmd_detected = Command()
-        self.sub = rospy.Subscriber('/cmd_intended', Command, self.cmdIntendedCallback)
-        self.pub = rospy.Publisher('/cmd_detected', Command, queue_size=1, latch=True)
-    
-    def stop(self):
-        self.sub.unregister()
-        self.pub.unregister()
     
     def randomize(self, intended):
         """ randomize output according to interfce matrix """
         r = random.random()
+        if intended >= len(self.interface_matrix_thresholds):
+            return intended
         thresholds = self.interface_matrix_thresholds[intended]
         for index, thr in enumerate(thresholds):
             if r<thr:
@@ -98,4 +91,4 @@ class StochHmiModel (SynchronizableNode):
 if __name__=="__main__":
     rospy.init_node('stoch_hmi_model')
     hm = StochHmiModel()
-    hm.run()
+    rospy.spin()
