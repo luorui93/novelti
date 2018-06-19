@@ -15,8 +15,8 @@
     <arg name="period" default="1.0" />       <!-- interface cmd generation period-->
     <arg name="reset_pdf"    default="true" /> 
     <arg name="pub_random_goal"    default="false" /> 
+    <arg name="pose_to_vertex_tolerance" default="5" />
 
-    <arg name="use_pois" default="0" />
     <arg name="iarea_k" default="0.5" />
     <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
     <arg name="smooth_rads" default="[]" /> <!--0,0,1,2,2,2]" /--> 
@@ -64,7 +64,7 @@
     
     <!--predefined selectable parameters -->
     <!-- <rosparam command="load" file="$(find novelti)/map/$(arg map).paths"/> -->
-    <rosparam param="$(arg confusion_matrix_name)" command="load" file="$(find emotiv_epoc_driver)/confusion_matrix/$(arg confusion_matrix_name).yaml" />
+    <rosparam param="$(arg confusion_matrix_name)" command="load" file="$(env HOME)/humane_data/confusion_matrix/$(arg confusion_matrix_name).yaml" />
     <!-- load predefined poses -->
     <!-- <rosparam command="load" file="$(arg predefined_pose_file)"/> -->
     <rosparam>
@@ -91,18 +91,6 @@
 
     <!-- Real robot or model-->
     <node if="$(arg real_robot)" pkg="novelti" type="node_mediator.py" name="node_mediator" output="screen" required="true">
-        <remap from="~start_x" to="/predefined_poses/$(arg start)/x" />
-        <remap from="~start_y" to="/predefined_poses/$(arg start)/y" />
-        <remap from="~start_yaw" to="/predefined_poses/$(arg start)/yaw" />
-        <remap from="~goal1_x" to="/predefined_poses/$(arg dst1)/x" />
-        <remap from="~goal1_y" to="/predefined_poses/$(arg dst1)/y" />
-        <remap from="~goal1_yaw" to="/predefined_poses/$(arg dst1)/yaw" />
-        <remap from="~goal2_x" to="/predefined_poses/$(arg dst2)/x" />
-        <remap from="~goal2_y" to="/predefined_poses/$(arg dst2)/y" />
-        <remap from="~goal2_yaw" to="/predefined_poses/$(arg dst2)/yaw" />
-        <remap from="~goal3_x" to="/predefined_poses/$(arg dst3)/x" />
-        <remap from="~goal3_y" to="/predefined_poses/$(arg dst3)/y" />
-        <remap from="~goal3_yaw" to="/predefined_poses/$(arg dst3)/yaw" />
         <param name="pub_random_goal" value="$(arg pub_random_goal)" />
         <param name="map"        value="$(arg map)" />
         <param name="resolution" value="$(arg resol)" />
@@ -163,21 +151,6 @@
             <param name="inf/interest_area_coef" value="$(arg iarea_k)" />
             <rosparam param="inf/view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
             <rosparam param="inf/smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
-            <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
-                [   #x1,y1,  sigma1, k1,
-                    87,200,  0.8,    2.0,   #livroom1
-                    118,19,  1.1,    1.7,   #door1
-                    171,155, 1.3,    2.4,   #office1
-                    34,19,   0.9,    2.1,   #bathroom1
-                    138,234, 1.0,    1.9,   #music1
-                    145,194, 1.3,    1.7,   #bedroom1
-                    90,34,   1.2,    1.5,   #door2
-                    84,91,   1.2,    2.1,   #kitchen1
-                    130,97,  0.9,    1.8,   #storage1
-                    153,103, 0.9,    1.6,   #storage2
-                    153,87,  0.9,    1.6    #storage3
-                ] 
-            </rosparam>
         </node>
         <node pkg="novelti" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
             <param name="pos/method"      value="$(arg pos)" />
@@ -210,26 +183,12 @@
             <param name="pos/safety_coef"       value="$(arg ksafe)" />
             <param name="pos/period"            value="$(arg period)" />
             <remap from="pose_best"             to="position_desired" />
+            <param name="pos/pose_to_vertex_tolerance" value="$(arg pose_to_vertex_tolerance)"/>
             <remap from="orientation_desired"   to="pose_desired" />
             <param name="div/method"            value="$(arg div)" />
             <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
             <param name="ori/method"            value="$(arg os_method)" />
             <param name="ori/command_number"    value="$(arg command_number)"/>
-            <rosparam if="$(arg use_pois)" param="pois" > <!-- x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...     118, 19, 5.0, 1.0,    171,155, 15.0, 2.5,     34,19, 20.0, 1.5,     138,234, 25.0, 3.0,     145,194, 10.0, 2.0,] -->
-                [   #x1,y1,  sigma1, k1,
-                    87,200,  0.8,    2.0,   #livroom1
-                    118,19,  1.1,    1.7,   #door1
-                    171,155, 1.3,    2.4,   #office1
-                    34,19,   0.9,    2.1,   #bathroom1
-                    138,234, 1.0,    1.9,   #music1
-                    145,194, 1.3,    1.7,   #bedroom1
-                    90,34,   1.2,    1.5,   #door2
-                    84,91,   1.2,    2.1,   #kitchen1
-                    130,97,  0.9,    1.8,   #storage1
-                    153,103, 0.9,    1.6,   #storage2
-                    153,87,  0.9,    1.6    #storage3
-                ] 
-            </rosparam>
         </node>
     </group>
 

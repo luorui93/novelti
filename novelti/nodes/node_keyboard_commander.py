@@ -59,8 +59,8 @@ if __name__ == "__main__":
                 msg.cmd = intended
                 kc.pub_keyboard_cmd.publish(msg)
             else:
-                #Type ctrl+D to end the transmission and stop keyboard commander
-                if (key == '\x04'):
+                #\x03 is ctrl+c
+                if (key == '\x03'):
                     break
     except BaseException as e:
         print e

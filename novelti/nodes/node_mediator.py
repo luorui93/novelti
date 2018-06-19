@@ -92,10 +92,6 @@ class Mediator (SyncingNode):
         else:
             rospy.loginfo("Starting novelti without a real robot")
             self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], None)
-        self.pub_pose_start = rospy.Publisher('/pose_start', PoseStamped, queue_size=1, latch=True)
-        self.pub_pose_goal1 = rospy.Publisher('/pose_intended_goal1', PoseStamped, queue_size=1, latch=True)
-        self.pub_pose_goal2 = rospy.Publisher('/pose_intended_goal2', PoseStamped, queue_size=1, latch=True)
-        self.pub_pose_goal3 = rospy.Publisher('/pose_intended_goal3', PoseStamped, queue_size=1, latch=True)
         
     
     def publishRandomGoal(self):
@@ -107,57 +103,9 @@ class Mediator (SyncingNode):
         p.pose = init_pose
         self.pub_pose_goal.publish(p)
     
-    def publishStart(self):
-        p = PoseStamped()
-        p.header.stamp = rospy.Time.now()
-        p.header.frame_id = "/map"
-        p.pose.position.x = rospy.get_param('~start_x', 0.0)
-        p.pose.position.y = rospy.get_param('~start_y', 0.0)
-        goal_yaw = rospy.get_param('~start_yaw', 0.0)
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
-        self.pub_pose_start.publish(p)
-
-    def publishGoal1(self):
-        p = PoseStamped()
-        p.header.stamp = rospy.Time.now()
-        p.header.frame_id = "/map"
-        p.pose.position.x = rospy.get_param('~goal1_x', 0.0)
-        p.pose.position.y = rospy.get_param('~goal1_y', 0.0)
-        goal_yaw = rospy.get_param('~goal1_yaw', 0.0)
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
-        self.pub_pose_goal1.publish(p)
-    
-    def publishGoal2(self):
-        p = PoseStamped()
-        p.header.stamp = rospy.Time.now()
-        p.header.frame_id = "/map"
-        p.pose.position.x = rospy.get_param('~goal2_x', 0.0)
-        p.pose.position.y = rospy.get_param('~goal2_y', 0.0)
-        goal_yaw = rospy.get_param('~goal2_yaw', 0.0)
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
-        self.pub_pose_goal2.publish(p)
-
-    def publishGoal3(self):
-        p = PoseStamped()
-        p.header.stamp = rospy.Time.now()
-        p.header.frame_id = "/map"
-        p.pose.position.x = rospy.get_param('~goal3_x', 0.0)
-        p.pose.position.y = rospy.get_param('~goal3_y', 0.0)
-        goal_yaw = rospy.get_param('~goal3_yaw', 0.0)
-        p.pose.orientation = Quaternion(*tf_conversions.transformations.quaternion_from_euler(0.0, 0.0, goal_yaw))
-        self.pub_pose_goal3.publish(p)
-    
     def startNovelti(self, init_pose):
         rospy.loginfo("Starting novelti")
         self.runExperiment(self.cfg['map_file'], self.cfg['resolution'], init_pose.pose.pose)
-        if self.cfg['pub_random_goal']:
-            rospy.loginfo("RANDOM GOAL ENABLED")
-            self.publishRandomGoal()
-        else:
-            self.publishGoal1()
-            self.publishGoal2()     
-            self.publishGoal3()   
-            self.publishStart()
         
     def cancelAllGoals(self):
         self.action_client.cancel_goals_at_and_before_time(rospy.Time.now()) # don't know why this does not work 

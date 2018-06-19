@@ -35,6 +35,13 @@
 
 namespace novelti {
 
+struct POI {
+   double x;
+   double y;
+   double sigma;
+   double k; //weight in the sum of gaussians
+};
+
 class InferenceUnit{
 public:
     const float PDF_UNREACHABLE = -10.0;
@@ -64,7 +71,7 @@ public:
     geometry_msgs::PoseStamped pose_inferred;
     
     std::vector<double> interface_matrix;
-    std::vector<float> pois_;
+    std::vector<POI> pois_;
     std::vector<double> priors;
     std::vector<double> posteriors;
     std::vector<double> coefs;
