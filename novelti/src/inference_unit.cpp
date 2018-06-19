@@ -43,7 +43,7 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
     node.param<float>("inf/thresh_high", thresh_high, 0.98);
     node.param<float>("inf/thresh_low", thresh_low, 0.5);
     node.param<float>("inf/eps", eps, std::numeric_limits<float>::epsilon());
-    node.param<bool>("inf/reset_pdf_on_new", reset_pdf_on_new_, false);
+    node.param<bool>("inf/reset_pdf_on_new", reset_pdf_on_new_, true);
     node.param<bool>("inf/check_sync", check_sync_, true);
     node.param<float>("ori/orientation_resolution", orientation_resol, 5.0);
 
@@ -71,7 +71,20 @@ InferenceUnit::InferenceUnit(const std::string paramPrefix) :
             for (int k=0; k<smooth_rads.size(); k++)
             smooth_rads_.push_back(smooth_rads[k]);
         }
-    node.getParam("pois", pois_);
+    
+    //read POIs
+    XmlRpc::XmlRpcValue pois;
+    node.getParam("inf/pois", pois);
+    if (pois.getType() == XmlRpc::XmlRpcValue::TypeStruct) {
+        //ROS_ASSERT(pois.getType() == XmlRpc::XmlRpcValue::TypeStruct);
+        for(XmlRpc::XmlRpcValue::ValueStruct::const_iterator it = pois.begin(); it != pois.end(); ++it) {
+            auto poi = it->second;
+            ROS_ASSERT(poi.getType() == XmlRpc::XmlRpcValue::TypeStruct);
+            //ROS_ERROR("POI added");
+            pois_.push_back({poi["x"],poi["y"],poi["sigma"],poi["k"]});
+        }
+    }
+
     node.getParam("interface_matrix", interface_matrix);
     ROS_INFO("interface matrix:%f,%f,%f,%f",interface_matrix[0],interface_matrix[1],interface_matrix[2],interface_matrix[3]);
     n_cmds = (int)floor(sqrt(interface_matrix.size()));
@@ -98,13 +111,15 @@ InferenceUnit::InferenceUnit():
 bool InferenceUnit::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
     // ROS_INFO("%s: new_goal service request received. State INFERRING_POSITION -> DEINFERENCE", getName().c_str());
     if (reset_pdf_on_new_) {
-        state = DEINFERENCE;
-        resetPdf();
+        if (state == INFERRED) {
+            state = INFERRING_POSITION;
+            resetPdf();
+            setUniformOrientationPdf();
+            denullifyPdf(pdf.data);
+        }
     } else {
-        state = INFERRING_POSITION;
-        denullifyPdf(pdf.data);
+        state = DEINFERENCE;+
     }
-    setUniformOrientationPdf();
     updateInferenceState();
     //ROS_INFO("%s: new_pdf == %s", getName().c_str(), new_pdf_ ? "True" : "False");
     pubPdf();
@@ -192,29 +207,23 @@ void InferenceUnit::setUniformPdf() {
 void InferenceUnit::setStaticPredictedPdf() {
     int k;
     double total = 0.0;
-    float p, d, poi_x, poi_y, poi_sigma, poi_k;
+    float p, d, resol=pdf.info.resolution;
     for (int x=0; x<pdf.info.width-2; x++) {
         for (int y=0; y<pdf.info.height-2; y++) {
             k = x + y*pdf.info.width;
             //k = x + y*(pdf.info.width-1);
             if (pdf.data[k]>=0) {
                 p = 0.0;
-                //pois_: x1, y1, sigma1, k1,    x2, y2, sigma2, k2, ...
-                for (int i=0; i<pois_.size(); i+=4) {
-                    poi_x = pois_[i];
-                    poi_y = pois_[i+1];
-                    poi_sigma = pois_[i+2];
-                    poi_k = pois_[i+3];
-                    d = (x-poi_x)*(x-poi_x) + (y-poi_y)*(y-poi_y);
-                    p += poi_k * exp(-d/(2*poi_sigma*poi_sigma));
+                for (auto& poi: pois_) {
+                    d = (resol*x-poi.x)*(resol*x-poi.x) + (resol*y-poi.y)*(resol*y-poi.y);
+                    p += poi.k * exp(-d/(2*poi.sigma*poi.sigma));
                 }
                 pdf.data[k] = p;
                 norm_pdf.data[k] = pdf.data[k];
                 total += p;
             }
         }
-    }
-    
+    }   
     
     //normalize
     double total2 = 0.0;
