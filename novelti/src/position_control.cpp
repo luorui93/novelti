@@ -55,7 +55,7 @@ PositionControl::~PositionControl() {
 }
 
 
-void PositionControl::startExp(StartExperiment::Request& req) {
+void PositionControl::start(StartExperiment::Request& req) {
     pdf_ = FloatMap();
     pdf_.header.frame_id = "/map";
     pdf_.info.width = req.map.info.width+1;
@@ -87,14 +87,14 @@ void PositionControl::startExp(StartExperiment::Request& req) {
 }
 
 
-void PositionControl::stopExp() {
+void PositionControl::stop() {
     //sub_map_div_.shutdown();
     pub_pdf_.shutdown();
     pub_position_inferred_.shutdown();
 }
 
 
-void PositionControl::start(std::vector<double>& new_priors) { 
+void PositionControl::initPriors(std::vector<double>& new_priors) { 
     if (reset_pdf_on_new_) {
         new_pdf_ = true;
         if (pois_.size()==0)
@@ -135,7 +135,7 @@ void PositionControl::act() {
     map_divider_->dividePublishMap(pdf_, best_position_finder_->pose_best);
 }
 
-const geometry_msgs::PoseStamped& PositionControl::getPositionInferred() {
+const geometry_msgs::PoseStamped& PositionControl::getPositionInferred() const {
     return position_inferred_;
 }
 
