@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="lti_rviz" pkg="rviz" type="rviz"  output="screen" 
+    <node name="lti_rviz" pkg="rviz" type="rviz"  output="screen"  respawn="true"
         args="-d $(find novelti)/rviz/run_autocam.rviz" />
 </launch>
