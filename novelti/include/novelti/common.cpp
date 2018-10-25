@@ -1,5 +1,5 @@
-#ifndef COMMON_CPP
-#define COMMON_CPP
+#ifndef NOVELTI_SYNCHRONIZABLE_NODE_INCLUDE
+#define NOVELTI_SYNCHRONIZABLE_NODE_INCLUDE
 
 #include <math.h>
 #include <ros/ros.h>
@@ -16,23 +16,30 @@ namespace novelti {
     
 
 class SynchronizableNode {
-public:
-    ros::NodeHandle node;
-    ros::ServiceServer start_service;
-    ros::ServiceServer stop_service;
-    double resolution;
-    bool check_sync_;
     
+public:
     SynchronizableNode() :
-        node("~"),
-        start_service(node.advertiseService("start", &SynchronizableNode::srvStart, this)),
-        stop_service(node.advertiseService("stop", &SynchronizableNode::srvStop, this))
+        node_("~"),
+        start_service_(node_.advertiseService("start", &SynchronizableNode::srvStart, this)),
+        stop_service_(node_.advertiseService("stop", &SynchronizableNode::srvStop, this))
     {
-        node.param<bool>("check_sync", check_sync_, true);
+        node_.param<bool>("check_sync", check_sync_, true);
     }
     
+    int run() {
+        ros::spin();
+        return 0;
+    }
+    
+protected:    
+    ros::NodeHandle node_;
+    ros::ServiceServer start_service_;
+    ros::ServiceServer stop_service_;
+    double resolution_;
+    bool check_sync_;
+    
     bool srvStart(novelti::StartExperiment::Request& req, novelti::StartExperiment::Response& resp) {
-        resolution = req.map.info.resolution;
+        resolution_ = req.map.info.resolution;
         start(req);
         ROS_INFO("%s: started a new Experiment. Init pose=(%f,%f)", getName().c_str(), req.init_pose.position.x, req.init_pose.position.y);
         return true;
@@ -42,11 +49,6 @@ public:
         stop();
         ROS_INFO("%s: stopped Experiment", getName().c_str());
         return true;
-    }
-    
-    int run() {
-        ros::spin();
-        return 0;
     }
     
     static void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y, double resol) {
@@ -62,22 +64,22 @@ public:
     }
 
     void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y) {
-        updateVertex(pose, x , y, resolution);
+        updateVertex(pose, x , y, resolution_);
     }
     
     void updatePose(geometry_msgs::PoseStamped& pose, int x, int y) {
-        updatePose(pose, x, y, resolution);
+        updatePose(pose, x, y, resolution_);
     }
 
     // void updateVertex(const geometry_msgs::Pose& pose, int& x, int& y) {
-    //     x = (int) round( pose.position.x / resolution);
-    //     y = (int) round( pose.position.y / resolution);
+    //     x = (int) round( pose.position.x / resolution_);
+    //     y = (int) round( pose.position.y / resolution_);
     // }
     
     // void updatePose(geometry_msgs::PoseStamped& pose, int x, int y) {
     //     pose.header.stamp = ros::Time::now();
-    //     pose.pose.position.x = x*resolution;
-    //     pose.pose.position.y = y*resolution;
+    //     pose.pose.position.x = x*resolution_;
+    //     pose.pose.position.y = y*resolution_;
     //     pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, -M_PI/2, 0.0);
     // }
     
