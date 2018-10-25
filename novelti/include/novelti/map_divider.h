@@ -15,10 +15,10 @@
 #include <novelti/IntMap.h>
 #include <novelti/FloatMap.h>
 #include <novelti/StartExperiment.h>
-#include <novelti/common.cpp>
+//#include <novelti/common.cpp>
 #include <CWave2.h>
 #include <novelti/Command.h>
-#include <novelti/inference_matrix.cpp>
+#include <novelti/inference_matrix.h>
 
 namespace novelti {
 
@@ -34,8 +34,8 @@ public:
     ros::Subscriber sub_pose_opt;
     ros::Subscriber sub_pdf;
     
-    novelti::FloatMapConstPtr        pdf;
-    geometry_msgs::PoseStampedConstPtr pose_best;
+    const novelti::FloatMap*           pdf;
+    const geometry_msgs::PoseStamped* pose_best;
     Point                              pt_best;
     novelti::IntMap                  map_divided;
     novelti::IntMap                  transparent_map, selection_highlight;
@@ -54,11 +54,12 @@ public:
     MapDivider(const std::string paramPrefix);
     virtual void stopExp();
     virtual void startExp(novelti::StartExperiment::Request& req);
-    void poseOptCallback(geometry_msgs::PoseStampedConstPtr pose);
+    void poseOptCallback(geometry_msgs::PoseStampedConstPtr msg);
     //void pdfCallback(novelti::FloatMapConstPtr& msg);
     //void pdfCallback(boost::shared_ptr<novelti::FloatMap const> msg){//novelti::FloatMapConstPtr& msg) {
     void pdfCallback(novelti::FloatMapConstPtr msg);
-    void noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose);
+    //void noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose);
+    void dividePublishMap(const novelti::FloatMap& pdf0, const geometry_msgs::PoseStamped& pose);
     void highlightSelection(CommandConstPtr msg);
     void divideAndPublish();
 

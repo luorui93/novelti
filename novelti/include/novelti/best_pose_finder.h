@@ -19,7 +19,7 @@
 #include <novelti/IntMap.h>
 #include <novelti/FloatMap.h>
 #include <novelti/StartExperiment.h>
-#include <novelti/common.cpp>
+//#include <novelti/common.cpp>
 #include <novelti/inference_unit.h>
 
 #ifdef DEBUG_POSE_FINDER
@@ -72,7 +72,8 @@ public:
     void startExp(novelti::StartExperiment::Request& req);
     void stopExp();
     void poseCurCallback(geometry_msgs::PoseStamped pose);
-    void pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state);
+    void findPublishBestPosition(const novelti::FloatMap& pdf);
+    //void pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state);
     void pdfCallback(novelti::FloatMapConstPtr pdf);
     bool getCurVertex(int& cx, int& cy);
     bool calcReachArea();
@@ -81,7 +82,7 @@ public:
     void moveToClosestOnMap(novelti::FloatMapConstPtr pdf);
     virtual void findBestPose(novelti::FloatMapConstPtr pdf);
     bool isOnBorder(Point p);
-    
+    void updatePose(geometry_msgs::PoseStamped& pose, int x, int y);
 };
 }
 #endif

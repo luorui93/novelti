@@ -15,9 +15,10 @@
 */
 
 #include <novelti/best_pose_finder.h>
+#include <tf/transform_datatypes.h>
 #include <limits>
 
-
+using namespace ros::this_node; //for getName
 using namespace novelti;
 
 BestPoseFinder::BestPoseFinder(const std::string paramPrefix):
@@ -105,7 +106,8 @@ void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf){
     //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
     findBestPose(pdf); //outputs to pt wrt reach_area
     pt.x+=r2a.x; pt.y+=r2a.y;
-    SynchronizableNode::updatePose(pose_best, pt.x, pt.y, resolution);
+    
+    updatePose(pose_best, pt.x, pt.y);
     pub_pose_best.publish(pose_best);
     ros::spinOnce();
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
@@ -113,7 +115,30 @@ void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf){
 }
 
 
-void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state){
+void BestPoseFinder::updatePose(geometry_msgs::PoseStamped& pose, int x, int y) {
+    pose.header.stamp = ros::Time::now();
+    pose.pose.position.x = x*resolution;
+    pose.pose.position.y = y*resolution;
+    pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, 0.0, 0.0);
+}
+
+void BestPoseFinder::findPublishBestPosition(const novelti::FloatMap& pdf){
+    ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
+    if (!calcReachArea()) //if we failed to calculate reachability area
+        return;
+    //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
+    novelti::FloatMapConstPtr pdf_ptr(&pdf);
+    findBestPose(pdf_ptr); //outputs to pt wrt reach_area
+    if (isOnBorder(pt)) {
+        pt.x+=r2a.x; pt.y+=r2a.y;
+        updatePose(pose_best, pt.x, pt.y);
+        pub_pose_best.publish(pose_best);
+        ros::spinOnce();
+        ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
+    }
+}
+
+/*void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state){
     ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
     if (!calcReachArea()) //if we failed to calculate reachability area
         return;
@@ -123,8 +148,7 @@ void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::S
         pt.x+=r2a.x; pt.y+=r2a.y;
         SynchronizableNode::updatePose(pose_best, pt.x, pt.y, resolution);
         pub_pose_best.publish(pose_best);
-    }
-    else {
+    } else {
         pose_best.header.stamp = ros::Time::now();
         pose_best.pose = pose_current;
         pub_pose_best.publish(pose_best);
@@ -132,7 +156,7 @@ void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::S
     ros::spinOnce();
     ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
     pose_best.header.seq++;
-}
+}*/
 
 bool BestPoseFinder::getCurVertex(int& cx, int& cy) {
     /* it may happen (and does happen sometimes) that due to math rounding and localization error,
@@ -140,7 +164,8 @@ bool BestPoseFinder::getCurVertex(int& cx, int& cy) {
      * In this case, we just need to find the nearest accessible vertex.*/
     double px, py;
     pose_current_lock_.lock();
-        SynchronizableNode::updateVertex(pose_current, cx, cy, resolution);
+        cx = (int) round( pose_current.position.x / resolution);
+        cy = (int) round( pose_current.position.y / resolution);
         px = pose_current.position.x;
         py = pose_current.position.y;
     pose_current_lock_.unlock();

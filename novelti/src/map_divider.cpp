@@ -19,6 +19,7 @@
 #include <novelti/map_divider.h>
 #include <time.h>
 
+using namespace ros::this_node; //for getName
 using namespace novelti;
 
 MapDivider::MapDivider(const std::string paramPrefix) : 
@@ -89,7 +90,7 @@ void MapDivider::startExp(novelti::StartExperiment::Request& req) {
 void MapDivider::poseOptCallback(geometry_msgs::PoseStampedConstPtr msg) {
     ROS_INFO("%s: received pose (SEQ==%d)", getName().c_str(), msg->header.seq);
     //vx(pose, 0.1);//(double)(pdf->info.resolution));
-    pose_best = msg;
+    pose_best = msg.get();
     if (state==ONLY_PDF) {
         state = WAITING;
         divideAndPublish();
@@ -101,7 +102,7 @@ void MapDivider::poseOptCallback(geometry_msgs::PoseStampedConstPtr msg) {
 
 void MapDivider::pdfCallback(novelti::FloatMapConstPtr msg){
     ROS_INFO("%s: received pdf (SEQ==%d)", getName().c_str(), msg->header.seq);
-    pdf = msg;
+    pdf = msg.get();
     if (state==ONLY_POSE) {
         state = WAITING;
         divideAndPublish();
@@ -110,9 +111,16 @@ void MapDivider::pdfCallback(novelti::FloatMapConstPtr msg){
     }
 }
 
-void MapDivider::noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose){
+/*void MapDivider::noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose){
     pose_best = ptr_pose;
     pdf = ptr_pdf;
+    divideAndPublish();
+}*/
+
+
+void MapDivider::dividePublishMap(const novelti::FloatMap& pdf0, const geometry_msgs::PoseStamped& pose) {
+    pose_best = &pose;
+    pdf = &pdf0;
     divideAndPublish();
 }
 
@@ -139,7 +147,10 @@ void MapDivider::divideAndPublish() {
             exit(1);
         }
     }
-    SynchronizableNode::updateVertex(pose_best->pose, pt_best.x, pt_best.y, map_divided.info.resolution);
+    
+    pt_best.x = (int) round( pose_best->pose.position.x / map_divided.info.resolution );
+    pt_best.y = (int) round( pose_best->pose.position.y / map_divided.info.resolution );
+
     ROS_INFO("%s: starting to divide", getName().c_str());
     startDivider();
     divide();
