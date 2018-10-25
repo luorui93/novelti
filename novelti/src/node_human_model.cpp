@@ -18,7 +18,7 @@
 #include <novelti/StartExperiment.h>
 #include <novelti/IntMap.h>
 #include <novelti/Command.h>
-#include <novelti/common.cpp>
+#include <novelti/synchronizable_node.h>
 
 #include <mutex>
 
@@ -42,16 +42,16 @@ public:
         SynchronizableNode()
     {
         std::string srv_name;
-        node.param<std::string>("new_goal", srv_name, "/novelti_shared_control/new_goal");
+        node_.param<std::string>("new_goal", srv_name, "/novelti_shared_control/new_goal");
         ros::service::waitForService(srv_name, -1);
-        new_goal_client_ = node.serviceClient<std_srvs::Empty>(srv_name);
+        new_goal_client_ = node_.serviceClient<std_srvs::Empty>(srv_name);
     }
     
     void start(novelti::StartExperiment::Request& req) {
         cmd_intended_ = Command();
-        pub_cmd_intended_  = node.advertise<Command>("/cmd_intended", 1, true); //latched
-        sub_map_divided_   = node.subscribe("/map_divided", 1, &SimpleHumanModel::mapDividedCallback, this);
-        sub_pose_intended_ = node.subscribe("/pose_intended", 1, &SimpleHumanModel::poseIntendedCallback, this);
+        pub_cmd_intended_  = node_.advertise<Command>("/cmd_intended", 1, true); //latched
+        sub_map_divided_   = node_.subscribe("/map_divided", 1, &SimpleHumanModel::mapDividedCallback, this);
+        sub_pose_intended_ = node_.subscribe("/pose_intended", 1, &SimpleHumanModel::poseIntendedCallback, this);
     }
     
     void stop() {
