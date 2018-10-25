@@ -69,10 +69,10 @@ public:
     DiffDriveRobotModel() :
         SynchronizableNode()
     {
-        node.param("max_vel", max_vel_,  0.5);
-        node.param("max_twist", max_twist_, 0.5);
-        node.param("pub_period", pub_period_, 0.01);
-        node.param("initial_orientation", initial_orientation_, 0.0);
+        node_.param("max_vel", max_vel_,  0.5);
+        node_.param("max_twist", max_twist_, 0.5);
+        node_.param("pub_period", pub_period_, 0.01);
+        node_.param("initial_orientation", initial_orientation_, 0.0);
         pose_current_.header.frame_id = "/map";
         active_ = false;
     }
@@ -93,10 +93,10 @@ public:
         trans_lock_.unlock();
                     
         pub_lock_.lock();
-            pub_pose_current_  = node.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
-            pub_pose_arrived_  = node.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, true); //latched
-            sub_position_desired_ = node.subscribe("/position_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
-            sub_pose_desired_ = node.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPoseCallback, this);
+            pub_pose_current_  = node_.advertise<geometry_msgs::PoseStamped>("/pose_current", 1, false); //not latched
+            pub_pose_arrived_  = node_.advertise<geometry_msgs::PoseStamped>("/pose_arrived", 1, true); //latched
+            sub_position_desired_ = node_.subscribe("/position_desired", 1, &DiffDriveRobotModel::desiredPositionCallback, this);
+            sub_pose_desired_ = node_.subscribe("/pose_desired", 1, &DiffDriveRobotModel::desiredPoseCallback, this);
         pub_lock_.unlock();
         publishCurrentPose();
         active_ = true;
@@ -166,7 +166,7 @@ public:
                 trans_point_queue_.push(trans_point);
 
                 //Translation
-                period = sqrt( (tstar.x-p.x)*(tstar.x-p.x) + (tstar.y-p.y)*(tstar.y-p.y) )*resolution/max_vel_;
+                period = sqrt( (tstar.x-p.x)*(tstar.x-p.x) + (tstar.y-p.y)*(tstar.y-p.y) )*resolution_/max_vel_;
                 trans_point.prim_id = TransitionPoint::Type::translation;
                 trans_point.finish_time += period;
                 trans_point.period = period;
@@ -260,16 +260,16 @@ public:
                         }
                         else if (type == TransitionPoint::Type::translation) {
                             pose_lock_.lock();
-                            pose_current_.pose.position.x = resolution * (tp.prev_pos.x + (tp.cur_pos.x - tp.prev_pos.x) * gamma);
-                            pose_current_.pose.position.y = resolution * (tp.prev_pos.y + (tp.cur_pos.y - tp.prev_pos.y) * gamma);
+                            pose_current_.pose.position.x = resolution_ * (tp.prev_pos.x + (tp.cur_pos.x - tp.prev_pos.x) * gamma);
+                            pose_current_.pose.position.y = resolution_ * (tp.prev_pos.y + (tp.cur_pos.y - tp.prev_pos.y) * gamma);
                             pose_lock_.unlock();
                         }
                     }
 
                     else {
                         pose_lock_.lock();
-                        pose_current_.pose.position.x = resolution * (tp.cur_pos.x);
-                        pose_current_.pose.position.y = resolution * (tp.cur_pos.y);
+                        pose_current_.pose.position.x = resolution_ * (tp.cur_pos.x);
+                        pose_current_.pose.position.y = resolution_ * (tp.cur_pos.y);
                         pose_lock_.unlock();                        
                         trans_point_queue_.pop(); //pop out the top element if the stage has completed
                     }
