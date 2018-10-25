@@ -5,14 +5,12 @@ using namespace novelti;
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "novelti_shared_control");
-    ros::NodeHandle n("~");
+    /*ros::NodeHandle n("~");
 
     std::string divMethod = "htile";
     std::string posMethod = "cog2lopt";
     n.getParam("div/method", divMethod);   
-    n.getParam("pos/method", posMethod);
+    n.getParam("pos/method", posMethod);*/
 
-    NoveltiSharedControl* nsc = new NoveltiSharedControl(divMethod,posMethod);
-    nsc->run();
-    delete(nsc);
+    NoveltiSharedControl nsc;
 }

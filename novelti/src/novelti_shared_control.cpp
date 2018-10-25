@@ -1,148 +1,84 @@
 #include <novelti/novelti_shared_control.h>
-#include "best_pose_finder_opt.cpp"
-#include "map_divider_tile.cpp"
-#include "map_divider_cwave.cpp"
-#include "map_divider_vchess.cpp"
-#include <novelti/best_pose_finder_quasi_opt.h>
+#include <novelti/pdf_utils.h>
+#include <novelti/position_control.h>
+#include <novelti/orientation_control.h>
 
 using namespace novelti;
 
-
-
-NoveltiSharedControl::NoveltiSharedControl (std::string divMethod, std::string posMethod):
-    SynchronizableNode(),
-    divMethod(divMethod),
-    posMethod(posMethod)
-{  
-    //best_pose_finder initialization
-    if      (posMethod=="no_move")
-        bpf = new BestPoseFinder("pos");
-    else if (posMethod=="ra_maxprob")   
-        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::RA_MAXPROB,"pos");
-    else if (posMethod=="maxprob_euc")  //doesn't guarantee convergance
-        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::MAXPROB_EUC,"pos");
-    else if (posMethod=="maxprob_obst") 
-        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::MAXPROB_OBST,"pos");
-    else if (posMethod=="cog_euq")      //doesn't guarantee convergance
-        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::COG_EUC,"pos");
-    else if (posMethod=="nearcog_euc")  //doesn't guarantee convergance
-        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::NEARCOG_EUC,"pos");
-    else if (posMethod=="nearcog_obst") 
-        bpf = new QuasiOptPoseFinder(QuasiOptPoseFinder::NEARCOG_OBST,"pos");
-    else if (posMethod=="cog2lopt")
-        bpf = new OptPoseFinder(OptPoseFinder::COG2LOPT,"pos");
-    else if (posMethod=="ramaxprob2lopt")
-        bpf = new OptPoseFinder(OptPoseFinder::RAMAXPROB2LOPT,"pos");
-    else if (posMethod=="maxprob2lopt")     
-        bpf = new OptPoseFinder(OptPoseFinder::MAXPROB2LOPT,"pos");
-    else if (posMethod=="gopt")
-        bpf = new OptPoseFinder(OptPoseFinder::GOPT,"pos");
-    else {
-         ROS_ERROR("%s: wrong value for 'posMethod' parameter ('%s'), will die now", getName().c_str(), posMethod.c_str());
-    }
-
-    //map_divider initialization
-    if      (divMethod=="vtile")        mdiv = new TileMapDivider(TileMapDivider::VERT,"div");
-    else if (divMethod=="htile")        mdiv = new TileMapDivider(TileMapDivider::HORIZ,"div");
-    else if (divMethod=="altertile")    mdiv = new TileMapDivider(TileMapDivider::ALTER,"div");
-    else if (divMethod=="equidist")     mdiv = new CWaveMapDivider(CWaveMapDivider::EQUIDIST,"div");
-    else if (divMethod=="extremal")     mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREMAL,"div");
-    else if (divMethod=="extredist")    mdiv = new CWaveMapDivider(CWaveMapDivider::EXTREDIST,"div");
-    else if (divMethod=="vchess")       mdiv = new VertChessMapDivider("div");
-    else if (divMethod=="nearcog_extremal") mdiv = new CWaveMapDivider(CWaveMapDivider::NEARCOG_EXTREMAL,"div");
-     else { 
-         ROS_ERROR("%s: wrong value for 'divMethod' parameter ('%s'), will die now", getName().c_str(), divMethod.c_str());
-     }
-
-     iu = new InferenceUnit("inf");
-     oc = new OrientationControl();
-     oos = new OptOrientationSelector();
+NoveltiSharedControl::NoveltiSharedControl():
+    SynchronizableNode()
+{
+    std::vector<double> mx;
+    node_.getParam("interface_matrix", mx);
+    node_.getParam("thresh_inferred", thresh_inferred_);
+    node_.getParam("thresh_relaxed",  thresh_relaxed_);
+    inf_mx_     = new InferenceMatrix(mx);
+    priors_.resize(inf_mx_->nCmds_, 1.0/(inf_mx_->nCmds_));
+    coefs_      = vector<double>(inf_mx_->nCmds_);
+    PositionControl* position_control = new PositionControl(node_);
+    units_.push_back(position_control);
+    units_.push_back(new OrientationControl(node_, *position_control));
+    units_.push_back(new ActionControl());
+    transitionMx_ = {
+        std::vector<int>(inf_mx_->nCmds_, 1),
+        std::vector<int>(inf_mx_->nCmds_, 2),
+        std::vector<int>(inf_mx_->nCmds_, 0),
+    };
 }
 
-NoveltiSharedControl::~NoveltiSharedControl () {
-    delete iu;
-    delete oc;
-    delete oos;
-    delete bpf;
-    delete mdiv;
+NoveltiSharedControl::~NoveltiSharedControl() {
+    delete inf_mx_;
+    for (auto& ref: units_)
+        delete ref;
 }
 
-FloatMapConstPtr floatMapToPtr (FloatMap map) {
-    FloatMapConstPtr ptr(new FloatMap(map));
-    return ptr;
-}
-
-IntMapConstPtr intMapToPtr (IntMap map) {
-    IntMapConstPtr ptr(new IntMap(map));
-    return ptr;
-}
-
-geometry_msgs::PoseStampedConstPtr poseStampedToPtr (geometry_msgs::PoseStamped pose) {
-    geometry_msgs::PoseStampedConstPtr ptr(new geometry_msgs::PoseStamped(pose));
-    return ptr;
-}
-
-OrientationPdfConstPtr orientationPdfToPtr (OrientationPdf pdf) {
-    OrientationPdfConstPtr ptr(new OrientationPdf(pdf));
-    return ptr;
-}
-void NoveltiSharedControl::start(novelti::StartExperiment::Request& req) {
-    ROS_INFO("Starting....");
-    iu->startExp(req);
-    ROS_INFO("Inference Unit Started...");
-    bpf->startExp(req);
-    ROS_INFO("Best Pose Finder Started...");
-    mdiv->startExp(req);
-    ROS_INFO("Map Divider Started...");
-    oc->initDisplay(orientationPdfToPtr(iu->opdf));
-    ROS_INFO("Orientation Control Started...");
-    oos->start();
-    ROS_INFO("Opt Orientation Selector Started...");
-
-    sub_cmd = node.subscribe("/cmd_detected", 1, &NoveltiSharedControl::cmdCallback, this);
-    srv_new_goal = node.advertiseService("new_goal", &NoveltiSharedControl::srvNewGoal, this);    
+void NoveltiSharedControl::start(StartExperiment::Request& req) {
+    ROS_INFO("STARTING...");
+    for (auto& p: priors_)
+        p = 1.0/priors_.size();
+    for (auto& ref: units_)
+        ref->start(req);
+    cur_ = 0;
+    startNewInference();
+    sub_cmd_ = node_.subscribe("/cmd_detected", 1, &NoveltiSharedControl::cmdCallback, this);    
 }
 
 void NoveltiSharedControl::stop() {
     ROS_INFO("STOPPING...");
-    iu->stopExp();
-    bpf->stopExp();
-    mdiv->stopExp();
-    sub_cmd.shutdown();
-    srv_new_goal.shutdown();
+    for (auto& ref: units_)
+        ref->stop();
+    sub_cmd_.shutdown();
 }
 
-bool NoveltiSharedControl::srvNewGoal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) {
-    ROS_INFO("new_goal service request received");
-    iu->srvNewGoal(req, resp);
-    //ros::Duration(60).sleep();
-    //udpate pose_beset
-    bpf->pdfCallback(floatMapToPtr(iu->pdf),iu->state);
-    //update map_divided
-    mdiv->noveltiMapCallback(floatMapToPtr(iu->pdf),poseStampedToPtr(bpf->pose_best));
-    oc->resetCanvas();
-    return true;
+void NoveltiSharedControl::startNewInference() {
+    units_[cur_]->initPriors(priors_);
+    PdfStats<double> stats(priors_);
+    if (stats.max > thresh_inferred_)
+        relaxing_ = true;
 }
 
 void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
-    if (iu->state == InferenceUnit::INFERRING_POSITION) {
-        mdiv->highlightSelection(cmd);
-        iu->noveltiInfCallback(intMapToPtr(mdiv->map_divided),cmd);
-        if (iu->state == InferenceUnit::INFERRING_ORIENTATION) { //Edit state name
-            ROS_INFO("Desired Position Inferred.");
-            oc->orientationPdfCallback(orientationPdfToPtr(iu->opdf));
+    inf_mx_->calcUpdateCoefs(priors_, cmd->cmd, coefs_);
+    units_[cur_]->update(coefs_, cmd->cmd, priors_);
+    PdfStats<double> stats(priors_);
+    if (relaxing_) { 
+        if (stats.max < thresh_relaxed_)
+            relaxing_ = false;
+    } else {
+        if (stats.max > thresh_inferred_) {
+            units_[cur_]->onInferred(stats.max_k);
+            cur_ = transitionMx_[cur_][stats.max_k];
+            startNewInference();
             return;
         }
-        bpf->pdfCallback(floatMapToPtr(iu->pdf),iu->state);
-        mdiv->noveltiMapCallback(floatMapToPtr(iu->pdf),poseStampedToPtr(bpf->pose_best));
-    } else if (iu->state == InferenceUnit::INFERRING_ORIENTATION) {
-        oc->highlightSelection(cmd);
-        iu->orientationInfCallback(oc->unit_color, cmd);
-        if (iu->state == InferenceUnit::INFERRED) {
-            ROS_INFO("Desired Orientation Inferred.");
-            return;
-        }
-        oos->orientationPdfCallback(orientationPdfToPtr(iu->opdf),poseStampedToPtr(iu->pose_inferred));
-        oc->orientationPdfCallback(orientationPdfToPtr(iu->opdf));
     }
+    units_[cur_]->act();
+}
+
+
+
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "novelti_shared_control");
+    NoveltiSharedControl nsc;
+    nsc.run();
 }
