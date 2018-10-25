@@ -48,7 +48,6 @@
     <arg name="real_robot" default="0" />
     <arg name="real_human" default="1" />
     <arg name="real_bci" default="false" />
-    <arg name="control_ui" default="keyboard"/>
     <arg name="single_node" default="1" />
     
     <arg name="new_goal_srv" default="/novelti_shared_control/new_goal" if="$(arg single_node)"/>
@@ -125,6 +124,7 @@
         <rosparam>
             key_mappings: ['y','b','g','`']   <!-- yellow, blue, green, red -->
         </rosparam>
+        <remap from="/keyboard_cmd_intended" to="ui_commander_cmd_intended"/>
     </node>
 
     <!-- Real interface or model -->
@@ -134,7 +134,6 @@
         <param if="$(arg real_human)" name="delay" value="$(arg period)"/>
         <param     if="$(arg wait_for_cmd)" name="period" value="0" />
         <param unless="$(arg wait_for_cmd)" name="period" value="$(arg period)" />
-        <param name="control_ui" value="$(arg control_ui)"/>
     </node>
     
     <!-- Shared Control -->
@@ -142,55 +141,32 @@
     <arg     if="$(arg debug_inference)" name="prefix_inference" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_inference_unit - -args" />
     <arg unless="$(arg debug_inference)" name="prefix_inference" default="" />    
     
-    <group unless="$(arg single_node)">
-        <node pkg="novelti" type="inference_unit" name="inference_unit" output="screen" required="true" launch-prefix="$(arg prefix_inference)">
-            <remap from="~interface_matrix" to="/$(arg confusion_matrix_name)"/>
-            <param name="inf/thresh_high" value="$(arg prob_thresh_high)" />
-            <param name="inf/thresh_low"  value="$(arg prob_thresh_low)" />
-            <param name="inf/eps"         value="$(arg prob_eps)" />
-            <param name="inf/interest_area_coef" value="$(arg iarea_k)" />
-            <rosparam param="inf/view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
-            <rosparam param="inf/smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
-        </node>
-        <node pkg="novelti" type="best_pose_finder" name="best_pose_finder" output="screen" required="true">
-            <param name="pos/method"      value="$(arg pos)" />
-            <param name="pos/max_vel"     value="$(arg vel)" />
-            <param name="pos/max_twist"   value="$(arg twist)" />
-            <param name="pos/safety_coef" value="$(arg ksafe)" />
-            <param name="pos/period"      value="$(arg period)" />
-        </node>
-        <node pkg="novelti" type="map_divider" name="map_divider" output="screen" required="true">
-            <param name="div/method"            value="$(arg div)" />
-        </node>
-    </group>
-
     <arg name="debug_novelti_shared_control" default="0" />
     <arg     if="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_novelti_shared_control - -args" />
     <arg unless="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="" />    
-    <group if="$(arg single_node)">
-        <node pkg="novelti" type="novelti_shared_control" name="novelti_shared_control" output="screen" required="true" launch-prefix="$(arg prefix_novelti_shared_control)">
-            <param name="inf/thresh_high"       value="$(arg prob_thresh_high)" />
-            <param name="inf/thresh_low"        value="$(arg prob_thresh_low)" />
-            <param name="inf/eps"               value="$(arg prob_eps)" />
-            <param name="inf/interest_area_coef" value="$(arg iarea_k)" />
-            <param name="inf/reset_pdf_on_new"  value="$(arg reset_pdf)" />
-            <rosparam param="inf/view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
-            <rosparam param="inf/smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
-            <remap from="~interface_matrix"     to="/$(arg confusion_matrix_name)"/>
-            <param name="pos/method"            value="$(arg pos)" />
-            <param name="pos/max_vel"           value="$(arg vel)" />
-            <param name="pos/max_twist"         value="$(arg twist)" />
-            <param name="pos/safety_coef"       value="$(arg ksafe)" />
-            <param name="pos/period"            value="$(arg period)" />
-            <remap from="pose_best"             to="position_desired" />
-            <param name="pos/pose_to_vertex_tolerance" value="$(arg pose_to_vertex_tolerance)"/>
-            <remap from="orientation_desired"   to="pose_desired" />
-            <param name="div/method"            value="$(arg div)" />
-            <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
-            <param name="ori/method"            value="$(arg os_method)" />
-            <param name="ori/command_number"    value="$(arg command_number)"/>
-        </node>
-    </group>
+        
+    <node pkg="novelti" type="novelti_shared_control" name="novelti_shared_control" output="screen" required="true" launch-prefix="$(arg prefix_novelti_shared_control)">
+        <param name="thresh_inferred"       value="$(arg prob_thresh_high)" />
+        <param name="thresh_relaxed"        value="$(arg prob_thresh_low)" />
+        <param name="inf/eps"               value="$(arg prob_eps)" />
+        <param name="inf/interest_area_coef" value="$(arg iarea_k)" />
+        <param name="inf/reset_pdf_on_new"  value="$(arg reset_pdf)" />
+        <rosparam param="inf/view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
+        <rosparam param="inf/smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
+        <remap from="~interface_matrix"     to="/$(arg confusion_matrix_name)"/>
+        <param name="pos/method"            value="$(arg pos)" />
+        <param name="pos/max_vel"           value="$(arg vel)" />
+        <param name="pos/max_twist"         value="$(arg twist)" />
+        <param name="pos/safety_coef"       value="$(arg ksafe)" />
+        <param name="pos/period"            value="$(arg period)" />
+        <remap from="pose_best"             to="position_desired" />
+        <param name="pos/pose_to_vertex_tolerance" value="$(arg pose_to_vertex_tolerance)"/>
+        <remap from="orientation_desired"   to="pose_desired" />
+        <param name="div/method"            value="$(arg div)" />
+        <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
+        <param name="ori/method"            value="$(arg os_method)" />
+        <param name="ori/command_number"    value="$(arg command_number)"/>
+    </node>
 
 
 
@@ -207,7 +183,7 @@
     
     <!-- Visualization -->
     <node name="rviz_pdf" pkg="rviz" type="rviz"  output="screen" 
-        args="-d $(find novelti)/rviz/pdf.rviz" required="true"/>
+        args="-d $(find novelti)/rviz/pdf.rviz" respawn="true" />
     <include file="$(find novelti)/launch/rviz_orientation_control.launch"/>
     <include file="$(find novelti)/launch/rviz_$(arg rviz).launch"/>
     
