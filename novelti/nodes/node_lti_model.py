@@ -24,12 +24,11 @@ class StochHmiModel:
         rospy.loginfo("\n=========INTERFACE MATRIX:====== \n" + str(interface_matrix))
         self.period = rospy.get_param('~period', 0.0)
         self.random_if_missed = rospy.get_param('~random_if_missed', False)
-        self.control_ui = rospy.get_param('~control_ui','keyboard')
         self.delay  = rospy.get_param('~delay', 0.0)
         self.n = int(sqrt(len(interface_matrix)))
         self.cmd_detected = Command()
-        self.sub = rospy.Subscriber('/'+self.control_ui+'_cmd_intended', Command, self.cmdIntendedCallback)
-        self.pub = rospy.Publisher('/'+self.control_ui+'_cmd', Command, queue_size=1, latch=True)
+        self.sub = rospy.Subscriber('/ui_commander_cmd_intended', Command, self.cmdIntendedCallback)
+        self.pub = rospy.Publisher('/ui_commander_cmd', Command, queue_size=1, latch=True)
         k=0
         self.interface_matrix_thresholds = []
         for r in range(self.n):
