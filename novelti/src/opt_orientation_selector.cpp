@@ -14,10 +14,9 @@ void OptOrientationSelector::start() {
     pub_opt_orientation = node.advertise<geometry_msgs::PoseStamped>("/orientation_desired",1,true);
 }
 
-void OptOrientationSelector::orientationPdfCallback(OrientationPdfConstPtr opdf_ptr, geometry_msgs::PoseStampedConstPtr pose_ptr) {
+void OptOrientationSelector::findOptOrientation(OrientationPdfConstPtr opdf_ptr) {
     if (method == "opt") {
         opdf = opdf_ptr;
-        pose_inferred = pose_ptr;
         selectOptIntermediateOrientation();
         publishOrientation();
     }

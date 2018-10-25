@@ -23,7 +23,7 @@ public:
 
     OptOrientationSelector();
     void start();
-    void orientationPdfCallback(OrientationPdfConstPtr opdf_ptr,geometry_msgs::PoseStampedConstPtr pose_ptr);
+    void findOptOrientation(OrientationPdfConstPtr opdf_ptr);
     void selectOptIntermediateOrientation();
     float calculateProbCost(int index);
     void publishOrientation();
