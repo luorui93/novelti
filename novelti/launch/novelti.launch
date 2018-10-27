@@ -44,16 +44,12 @@
     <!--<arg unless="$(arg show_goal)" name="rviz" default="robot_autocam" /> --> <!-- none, autocam or static -->
     <arg name="verb" default="info" />
     
-    <arg name="experiment" default="0" />
     <arg name="real_robot" default="0" />
     <arg name="real_human" default="1" />
     <arg name="real_bci" default="false" />
     <arg name="single_node" default="1" />
-    
-    <arg name="new_goal_srv" default="/novelti_shared_control/new_goal" if="$(arg single_node)"/>
-    <arg name="new_goal_srv" default="/inference_unit/new_goal" unless="$(arg single_node)" />
 
-    <arg name="confusion_matrix_name" default="mx_exp"/>
+    <arg name="confusion_matrix_file" default="$(find novelti)/test/mx/mx3cmd90.yaml"/>
     <!-- <arg name="predefined_pose_file" default="$(find novelti)/map/predefined_poses.yaml"/> -->
     <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
     <arg name="ros_bag_arg" default="-o $(arg bagpath) /rosout /map /pose_intended_goal /pose_current /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /opdf /position_inferred /final_position_arrived"/>
@@ -62,8 +58,6 @@
     
     
     <!--predefined selectable parameters -->
-    <!-- <rosparam command="load" file="$(find novelti)/map/$(arg map).paths"/> -->
-    <rosparam param="$(arg confusion_matrix_name)" command="load" file="$(env HOME)/humane_data/confusion_matrix/$(arg confusion_matrix_name).yaml" />
     <!-- load predefined poses -->
     <!-- <rosparam command="load" file="$(arg predefined_pose_file)"/> -->
     <rosparam>
@@ -72,13 +66,10 @@
             mode1: ['/rosbag_record/get_loggers', '/lti_rviz/reload_shaders']
     </rosparam>
     <!-- add /robot_model to synced_nodes if using diff_drive_model, needs to be orgnized later-->
-    <rosparam if="$(arg single_node)">
+    <rosparam>
         synced_nodes: 
             real_robot:  ['/novelti_shared_control', '/commander_sync_interface']
             <!-- robot_model: ['/novelti_shared_control', '/lti_model', '/keyboard_commander','/robot_model'] -->
-    </rosparam>
-    <rosparam unless="$(arg single_node)">
-        synced_nodes: ['/inference_unit', '/best_pose_finder', '/map_divider', '/lti_model', 'robot_model', '/human_model', ]
     </rosparam>
 
         
@@ -124,12 +115,12 @@
         <rosparam>
             key_mappings: ['y','b','g','`']   <!-- yellow, blue, green, red -->
         </rosparam>
-        <remap from="/keyboard_cmd_intended" to="ui_commander_cmd_intended"/>
+        <remap from="/keyboard_cmd_intended" to="/cmd_intended"/>
     </node>
 
     <!-- Real interface or model -->
-    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" unless="$(arg real_bci)">
-        <remap from="~interface_matrix" to="/$(arg confusion_matrix_name)"/>
+    <node unless="$(arg real_bci)" pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" >
+        <rosparam param="interface_matrix" command="load" file="$(arg confusion_matrix_file)" />
         <param unless="$(arg real_human)"     name="delay" value="0.0"/>
         <param if="$(arg real_human)" name="delay" value="$(arg period)"/>
         <param     if="$(arg wait_for_cmd)" name="period" value="0" />
@@ -153,7 +144,7 @@
         <param name="inf/reset_pdf_on_new"  value="$(arg reset_pdf)" />
         <rosparam param="inf/view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
         <rosparam param="inf/smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
-        <remap from="~interface_matrix"     to="/$(arg confusion_matrix_name)"/>
+        <rosparam param="interface_matrix" command="load" file="$(arg confusion_matrix_file)" />
         <param name="pos/method"            value="$(arg pos)" />
         <param name="pos/max_vel"           value="$(arg vel)" />
         <param name="pos/max_twist"         value="$(arg twist)" />
@@ -167,19 +158,7 @@
         <param name="ori/method"            value="$(arg os_method)" />
         <param name="ori/command_number"    value="$(arg command_number)"/>
     </node>
-
-
-
-    <node if="$(arg experiment)" pkg="novelti" type="node_experimentator.py" name="experimentator" output="screen" required="true">
-        <param name="map" value="$(find novelti)/map/$(arg map).map" />
-        <remap from="~poses" to="/paths/$(arg path)"/>
-        <!-- <remap from="~poses" to="/predefined_poses/$(arg start)"/> -->
-        <param name="resol" value="$(arg resol)" />
-        <param name="n_runs" value="$(arg tries)" />
-        <param name="success_file" value="$(arg bagpath).success" />
-        <remap from="~waited_srvs" to="$(arg waited_srvs_name)"/>
-        <remap from="~synced_nodes" to="/synced_nodes/robot_model"/>
-    </node>    
+   
     
     <!-- Visualization -->
     <node name="rviz_pdf" pkg="rviz" type="rviz"  output="screen" 

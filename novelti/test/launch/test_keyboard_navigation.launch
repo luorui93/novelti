@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!--a launch file for HUMan-Anna-Novelti-Emotiv (HUMANE) experiment -->
+<!--In this launch file we will include launch files for the following components:
+    novelti              novelti.launch  (start novelti)
+    anna                 main.launch     (start anna(sim/real) for robot experiment)
+    emotiv_epoc_driver   emotiv.launch   (start emotiv headset(composer/controlpanel) for real interface experiment
+
+    This launch file should be run by script file in scripts folder rather than directly
+ -->
+<launch>
+    <arg name="map" default="ak500inflated"/>
+    <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
+    <arg name="path_id" default="1"/>
+    <arg name="tries" default="5"/>
+    
+    <arg name="confusion_matrix_name" default="default-confusion-mx"/>
+    <arg name="map_div" default="extredist"/>
+    <arg name="smooth_rads" default="[]"/>
+    <rosparam command="load" file="$(find novelti)/map/$(arg map).paths"/>
+    <arg name="pois" default="0"/>
+
+    <remap if="$(arg pois)" from="/novelti_shared_control/inf/pois" to="/predefined_poses" />
+
+    <!-- Novelti control -->
+    <include file="$(find novelti)/launch/novelti.launch">
+        <arg name="confusion_matrix_file" value="$(find novelti)/test/mx/mx3cmd90.yaml"/>
+        <arg name="real_robot" value="0"/>
+        <arg name="real_bci"   value="0"/>  <!-- use emotiv and keyboard at the same time -->
+        <arg name="div" value="$(arg map_div)"/>
+        <!-- <arg name="predefined_pose_file" value="$(arg predefined_pose_file)"/> -->
+        <arg name="resol" value="$(arg resol)"/>
+        <arg name="smooth_rads" value="$(arg smooth_rads)"/>
+        <arg name="map" value="$(find novelti)/map/$(arg map).map"/>
+        <!-- <arg name="map" value="$(find novelti)/map/maze_scale_inflated.map"/> -->
+    </include>
+
+    
+    <node pkg="novelti" type="node_experimentator.py" name="experimentator" output="screen" required="true">
+        <param name="map" value="$(find novelti)/map/$(arg map).map" />
+        <remap from="~poses" to="/paths/$(arg path_id)"/>
+        <!-- <remap from="~poses" to="/predefined_poses/$(arg start)"/> -->
+        <param name="resol" value="$(arg resol)" />
+        <param name="n_runs" value="$(arg tries)" />
+        <rosparam>
+            waited_srvs: ['/lti_rviz/reload_shaders']
+            synced_nodes: ['/novelti_shared_control','/robot_model']
+        </rosparam>
+    </node>  
+    
+    <node pkg="rqt_console" type="rqt_console" name="rqt_console" output="screen" required="true">
+    </node> 
+    
+    <!--Commander_sync_interface node to sync different uis -->
+    <!--node pkg="novelti" name="commander_sync_interface" type="commander_sync_interface.py">
+        <param name="new_goal_srv" value="$(arg new_goal_srv)"/>
+        <param name="new_goal_key" value='3'/>
+        <remap from="/cmd" to="/ui_commander_cmd"/>
+    </node-->
+
+
+</launch>

@@ -27,7 +27,7 @@ class Experimentator (SyncingNode):
         self.pub_position_arrived = rospy.Publisher('/final_position_arrived',PoseStamped,queue_size=1, latch=True)
         self.sub_pose_inferred = rospy.Subscriber('/pose_inferred', PoseStamped, self.poseInferredCallback)
         self.sub_position_inferred = rospy.Subscriber('/position_inferred', PoseStamped, self.positionInferredCallback)
-        self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
+        #self.sub_pose_current  = rospy.Subscriber('/pose_current',  PoseStamped, self.poseCurrentCallback)
         self.sub_pose_arrived  = rospy.Subscriber('/pose_arrived',  PoseStamped, self.poseArrivedCallback)
         self.dst_first_arrival = True
     

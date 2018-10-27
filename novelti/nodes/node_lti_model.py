@@ -27,8 +27,8 @@ class StochHmiModel:
         self.delay  = rospy.get_param('~delay', 0.0)
         self.n = int(sqrt(len(interface_matrix)))
         self.cmd_detected = Command()
-        self.sub = rospy.Subscriber('/ui_commander_cmd_intended', Command, self.cmdIntendedCallback)
-        self.pub = rospy.Publisher('/ui_commander_cmd', Command, queue_size=1, latch=True)
+        self.sub = rospy.Subscriber('/cmd_intended', Command, self.cmdIntendedCallback)
+        self.pub = rospy.Publisher('/cmd_detected', Command, queue_size=1, latch=True)
         k=0
         self.interface_matrix_thresholds = []
         for r in range(self.n):

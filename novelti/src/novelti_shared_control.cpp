@@ -40,6 +40,7 @@ void NoveltiSharedControl::start(StartExperiment::Request& req) {
         ref->start(req);
     cur_ = 0;
     startNewInference();
+    ROS_INFO("%s: current probabilities: %s", getName().c_str(), InferenceMatrix::toString(priors_).c_str());
     sub_cmd_ = node_.subscribe("/cmd_detected", 1, &NoveltiSharedControl::cmdCallback, this);    
 }
 
@@ -60,6 +61,7 @@ void NoveltiSharedControl::startNewInference() {
 void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
     inf_mx_->calcUpdateCoefs(priors_, cmd->cmd, coefs_);
     units_[cur_]->update(coefs_, cmd->cmd, priors_);
+    ROS_INFO("%s: current probabilities: %s", getName().c_str(), InferenceMatrix::toString(priors_).c_str());
     PdfStats<double> stats(priors_);
     if (relaxing_) { 
         if (stats.max < thresh_relaxed_)
