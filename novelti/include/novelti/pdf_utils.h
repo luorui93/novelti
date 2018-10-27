@@ -26,8 +26,8 @@ public:
     bool update(const T prob, int k) {
         if (prob>=0) {
             total+=prob;
-            if (prob>=max) { max=prob; max_k = k; }
-            if (prob<=min) { min=prob; min_k = k; }
+            if (prob>max) { max=prob; max_k = k; }
+            if (prob<min) { min=prob; min_k = k; }
             return true;
         }
         return false;
@@ -111,6 +111,7 @@ PdfStats<T> accumulate(
             stats.update(pdf[k],k);
             accumul_probs[index_map[k]] += pdf[k];
         }
+    return stats;
 }
 
 

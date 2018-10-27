@@ -2,14 +2,14 @@
 
 using namespace novelti;
 
-OrientationControl::OrientationControl(ros::NodeHandle& node, const PositionControl& position_control) :
+OrientationControl::OrientationControl(ros::NodeHandle& node, int n_cmds, const PositionControl& position_control) :
     node_(node),
     pc_(position_control)
 {
     node_.param<float>("ori/orientation_resolution", orientation_resol_, 5.0);
     node_.param<float>("inf/eps", eps_, std::numeric_limits<float>::epsilon());
 
-    disk_div_ = new DiskDivider();
+    disk_div_ = new DiskDivider(n_cmds);
     orien_sel_ = new OptOrientationSelector();
 }
 

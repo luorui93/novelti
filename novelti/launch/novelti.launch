@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="bagpath" default="/home/yaphes/bag/" />
-    
     <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  altertile equidist extremal extredist vchess-->
     <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   no_move, ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
     <arg name="os_method"   default="opt" />   <!--opt_orientation_selector method: still opt -->
@@ -34,9 +32,6 @@
     <arg name="tries" default="1" />
     
     <arg name="ori_resol" default="5.0"/>
-    <arg name="command_number" default="3"/>
-
-    <arg name="bag" default="0" />
     <arg name="by_key" default="0" />
    
     <arg name="rviz" default="robot_autocam"/>
@@ -47,24 +42,13 @@
     <arg name="real_robot" default="0" />
     <arg name="real_human" default="1" />
     <arg name="real_bci" default="false" />
-    <arg name="single_node" default="1" />
 
     <arg name="confusion_matrix_file" default="$(find novelti)/test/mx/mx3cmd90.yaml"/>
-    <!-- <arg name="predefined_pose_file" default="$(find novelti)/map/predefined_poses.yaml"/> -->
-    <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
-    <arg name="ros_bag_arg" default="-o $(arg bagpath) /rosout /map /pose_intended_goal /pose_current /pose_inferred /cmd_intended /cmd_detected /pdf /map_divided /parameters /pose_arrived /opdf /position_inferred /final_position_arrived"/>
     <!--arg name="monitor" default="1" /- ->
     <!- -arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
     
     
     <!--predefined selectable parameters -->
-    <!-- load predefined poses -->
-    <!-- <rosparam command="load" file="$(arg predefined_pose_file)"/> -->
-    <rosparam>
-        waited_srvs: 
-            mode0: ['/lti_rviz/reload_shaders']
-            mode1: ['/rosbag_record/get_loggers', '/lti_rviz/reload_shaders']
-    </rosparam>
     <!-- add /robot_model to synced_nodes if using diff_drive_model, needs to be orgnized later-->
     <rosparam>
         synced_nodes: 
@@ -75,9 +59,6 @@
         
     <!-- rviz window for real experiment -->
     <!-- <node if="$(arg real_robot)" name="robot_rviz" pkg="rviz" type="rviz"  output="screen" args="-d $(find novelti)/rviz/robot.rviz" /> -->
-    <!-- Recording -->
-    <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true" args="$(arg ros_bag_arg)">
-    </node>
 
     <!-- Real robot or model-->
     <node if="$(arg real_robot)" pkg="novelti" type="node_mediator.py" name="node_mediator" output="screen" required="true">
@@ -86,8 +67,8 @@
         <param name="resolution" value="$(arg resol)" />
         <param name="real_robot" value="$(arg real_robot)" />
         <remap from="/map" to="/map_inflated" />   <!-- What's this for? -->
-        <remap from="~synced_nodes" to="/synced_nodes/real_robot"/>
         <rosparam>
+            synced_nodes: ['/novelti_shared_control', '/commander_sync_interface']
             waited_srvs:  ['/lti_rviz/reload_shaders']
         </rosparam>
     </node>
@@ -128,10 +109,6 @@
     </node>
     
     <!-- Shared Control -->
-    <arg name="debug_inference" default="0" />
-    <arg     if="$(arg debug_inference)" name="prefix_inference" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_inference_unit - -args" />
-    <arg unless="$(arg debug_inference)" name="prefix_inference" default="" />    
-    
     <arg name="debug_novelti_shared_control" default="0" />
     <arg     if="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_novelti_shared_control - -args" />
     <arg unless="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="" />    
@@ -156,7 +133,6 @@
         <param name="div/method"            value="$(arg div)" />
         <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
         <param name="ori/method"            value="$(arg os_method)" />
-        <param name="ori/command_number"    value="$(arg command_number)"/>
     </node>
    
     

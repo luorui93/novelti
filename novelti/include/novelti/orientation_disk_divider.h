@@ -24,7 +24,7 @@ struct EndPoint {
 class DiskDivider {
 public:
 
-    DiskDivider();
+    DiskDivider(int);
     void initDisplay(OrientationPdfConstPtr opdf);
     void orientationPdfCallback(OrientationPdfConstPtr pdf);
     void setColor(int x,int y,int color);
@@ -44,7 +44,7 @@ public:
     IntMap disk,selection_highlight,transparent_disk;
     novelti::OrientationPdfConstPtr opdf_ptr;
     double radius;
-    int n_cmd;
+    int n_cmd_;
     int color_order;
     double resol,x_center,y_center;
 

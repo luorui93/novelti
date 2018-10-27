@@ -1,2 +1,6 @@
-b opt_orientation_selector.cpp:48
+#b novelti::NoveltiSharedControl::cmdCallback
+b novelti::PositionControl::update
+b novelti::PositionControl::getIndexMap
+b novelti::PdfUtils::accumulate
+b pdf_utils.h:108
 r

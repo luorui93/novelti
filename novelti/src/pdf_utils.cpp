@@ -1,3 +1,5 @@
+#include <novelti/pdf_utils.h>
+
 
 using namespace novelti;
 
@@ -21,7 +23,7 @@ setDeterministic(std::vector<T>& pdf, int k) {
 
 // Normalizes pdf (so that it sums up to 1)
 template <class T>
-Stats normalize(std::vector<T>& pdf, const T current_total) {
+void normalize(std::vector<T>& pdf, const T current_total) {
     for (auto& p: pdf) //normalize
         if (p>=0)
             p /= current_total;
@@ -30,7 +32,7 @@ Stats normalize(std::vector<T>& pdf, const T current_total) {
 
 // Normalizes pdf (so that it sums up to 1)
 template <class T>
-Stats normalize(std::vector<T>& pdf) {
+void normalize(std::vector<T>& pdf) {
     T total = 0.0;
     for (const auto& p: pdf) //normalize
         if (p>=0)
@@ -54,27 +56,6 @@ void denullifyNormalize(std::vector<T>& pdf, const T eps) {
     for (auto& p: pdf) //normalize
         if (p>=0)
             p = p<eps ? eps : c*p;
-}
-
-
-// Takes large pdf, same size index_maps, calculates accumulative probabilities
-// values in pdf with prob<0 are ignored
-// inputs: pdf, index_map
-// output: accumul_probs
-// Also calculates statistics (min, max, total probs, etc)
-template <class T>
-Stats accumulate(
-        const std::vector<T>& pdf,          // input
-        const std::vector<int>& index_map,  // input
-        std::vector<double> accumul_probs   // output
-) {
-    Stats stats;
-    std::fill(accumul_probs.begin(), accumul_probs.end(), 0.0); //accumul_probs = 0-vector
-    for (int k=index_map.size()-1; k>=0; k--)
-        if (pdf[k]>=0) {
-            stats.update(pdf[k],k);
-            accumul_probs[index_map[k]] += pdf[k];
-        }
 }
 
 
@@ -107,6 +88,28 @@ public:
         }
         return false;
     }
+}
+
+
+// Takes large pdf, same size index_maps, calculates accumulative probabilities
+// values in pdf with prob<0 are ignored
+// inputs: pdf, index_map
+// output: accumul_probs
+// Also calculates statistics (min, max, total probs, etc)
+template <class T>
+Stats<T> accumulate(
+        const std::vector<T>& pdf,          // input
+        const std::vector<int>& index_map,  // input
+        std::vector<double> accumul_probs   // output
+) {
+    Stats<T> stats;
+    std::fill(accumul_probs.begin(), accumul_probs.end(), 0.0); //accumul_probs = 0-vector
+    for (int k=index_map.size()-1; k>=0; k--)
+        if (pdf[k]>=0) {
+            stats.update(pdf[k],k);
+            accumul_probs[index_map[k]] += pdf[k];
+        }
+    return stats;
 }
 
 

@@ -4,8 +4,9 @@
 
 using namespace novelti;
 
-DiskDivider::DiskDivider():
-    node("~") 
+DiskDivider::DiskDivider(int n_cmd):
+    node("~"),
+    n_cmd_(n_cmd)
 {
     node.param("ori/compass_radius", radius, 100.0);
     node.param("ori/command_number", n_cmd, 4);
@@ -28,9 +29,9 @@ void DiskDivider::initDisplay(OrientationPdfConstPtr opdf) {
     transparent_disk = disk;
 
     unit_color = std::vector<int>(opdf->data.size(),-1);
-    arc_vector = std::vector<novelti::Arc>(n_cmd);
+    arc_vector = std::vector<novelti::Arc>(n_cmd_);
 
-    optimal_color_pdf = std::vector<float>(n_cmd,1.0/n_cmd);
+    optimal_color_pdf = std::vector<float>(n_cmd_,1.0/n_cmd_);
     cur_color_pdf = std::vector<float>(optimal_color_pdf.size(),0.0);
 
     x_center = radius;
@@ -86,7 +87,7 @@ void DiskDivider::markUnitColor() {   //update color for minimal unit (resolutio
     std::fill(cur_color_pdf.begin(),cur_color_pdf.end(),0.0);
     for (int i=0; i<opdf_ptr->data.size();i++) {
         cur_color_pdf[cur_color] += opdf_ptr->data[i];
-        if (cur_color_pdf[cur_color] > optimal_color_pdf[cur_color] + std::numeric_limits<float>::epsilon() && cur_color < n_cmd - 1) {  //TODO: a better way to add epsilon
+        if (cur_color_pdf[cur_color] > optimal_color_pdf[cur_color] + std::numeric_limits<float>::epsilon() && cur_color < n_cmd_ - 1) {  //TODO: a better way to add epsilon
 
             cur_color_pdf[cur_color] -= opdf_ptr->data[i];
             updateOptimalPdf(cur_color);
@@ -115,7 +116,7 @@ void DiskDivider::updateArc() {   //update arc color
             arc_vector[cur_color].color = cur_color;
             arc_vector[cur_color].upper_angle += resol * M_PI/180;
         }
-        else if (cur_color < n_cmd - 1) {
+        else if (cur_color < n_cmd_ - 1) {
             arc_vector[cur_color+1].lower_angle = arc_vector[cur_color].upper_angle;
             arc_vector[cur_color+1].upper_angle = arc_vector[cur_color+1].lower_angle + resol*M_PI/180;
             cur_color++;

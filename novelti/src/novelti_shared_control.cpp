@@ -17,7 +17,7 @@ NoveltiSharedControl::NoveltiSharedControl():
     coefs_      = vector<double>(inf_mx_->nCmds_);
     PositionControl* position_control = new PositionControl(node_);
     units_.push_back(position_control);
-    units_.push_back(new OrientationControl(node_, *position_control));
+    units_.push_back(new OrientationControl(node_, inf_mx_->nCmds_, *position_control));
     units_.push_back(new ActionControl());
     transitionMx_ = {
         std::vector<int>(inf_mx_->nCmds_, 1),
@@ -40,7 +40,9 @@ void NoveltiSharedControl::start(StartExperiment::Request& req) {
         ref->start(req);
     cur_ = 0;
     startNewInference();
-    ROS_INFO("%s: current probabilities: %s", getName().c_str(), InferenceMatrix::toString(priors_).c_str());
+    ROS_INFO("%s: current probabilities: %s", 
+        getName().c_str(),                        
+        InferenceMatrix::toString(priors_).c_str());
     sub_cmd_ = node_.subscribe("/cmd_detected", 1, &NoveltiSharedControl::cmdCallback, this);    
 }
 
@@ -53,15 +55,17 @@ void NoveltiSharedControl::stop() {
 
 void NoveltiSharedControl::startNewInference() {
     units_[cur_]->initPriors(priors_);
+    units_[cur_]->act();
     PdfStats<double> stats(priors_);
-    if (stats.max > thresh_inferred_)
-        relaxing_ = true;
+    relaxing_ = (stats.max > thresh_inferred_);
 }
 
 void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
     inf_mx_->calcUpdateCoefs(priors_, cmd->cmd, coefs_);
     units_[cur_]->update(coefs_, cmd->cmd, priors_);
-    ROS_INFO("%s: current probabilities: %s", getName().c_str(), InferenceMatrix::toString(priors_).c_str());
+    ROS_INFO("%s: current probabilities after update: %s", 
+             getName().c_str(),
+             InferenceMatrix::toString(priors_).c_str());
     PdfStats<double> stats(priors_);
     if (relaxing_) { 
         if (stats.max < thresh_relaxed_)

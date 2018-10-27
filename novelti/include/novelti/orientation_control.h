@@ -55,7 +55,7 @@ public:
     OrientationPdf opdf_;
     const PositionControl& pc_; 
     
-    OrientationControl(ros::NodeHandle& node, const PositionControl& position_control);
+    OrientationControl(ros::NodeHandle& node, int n_cmds, const PositionControl& position_control);
     //InferenceUnit(const std::string paramPrefix);
     void start(novelti::StartExperiment::Request& req);
     void stop();
