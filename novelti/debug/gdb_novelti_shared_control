@@ -1,6 +1,7 @@
-#b novelti::NoveltiSharedControl::cmdCallback
+b novelti::NoveltiSharedControl::cmdCallback
 b novelti::PositionControl::update
-b novelti::PositionControl::getIndexMap
-b novelti::PdfUtils::accumulate
-b pdf_utils.h:108
+#b novelti::PositionControl::getIndexMap
+#b novelti::PdfUtils::accumulate
+#b pdf_utils.h:108
+b novelti::PositionControl::act
 r
