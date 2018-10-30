@@ -1,6 +1,9 @@
 #ifndef NOVELTI_PDF_UTILS_H
 #define NOVELTI_PDF_UTILS_H
 
+#include <string>
+#include <vector>
+
 namespace novelti {
 
 // Class to keep pdf statistics:
@@ -102,7 +105,7 @@ template <class T>
 PdfStats<T> accumulate(
         const std::vector<T>& pdf,          // input
         const std::vector<int>& index_map,  // input
-        std::vector<double> accumul_probs   // output
+        std::vector<double>& accumul_probs   // output
 ) {
     PdfStats<T> stats;
     std::fill(accumul_probs.begin(), accumul_probs.end(), 0.0); //accumul_probs = 0-vector
@@ -137,6 +140,14 @@ void update(
     for (int k=index_map.size()-1; k>0; k--)
         if (pdf[k]>=0)
             pdf[k] *= coefs[index_map[k]];
+}
+
+template <class T>
+std::string toString(const std::vector<T>& probs) {
+    std::string s;
+    for (const auto& p: probs)
+        s += std::to_string(p)+", ";
+    return "["+ s +"]";
 }
 
 } //PdfUtils
