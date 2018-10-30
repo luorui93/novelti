@@ -101,10 +101,11 @@ void BestPoseFinder::poseCurCallback(geometry_msgs::PoseStamped pose) {
 
 void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf){
     ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
+    pdf_ = pdf.get();
     if (!calcReachArea()) //if we failed to calculate reachability area
         return;
     //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
-    findBestPose(pdf); //outputs to pt wrt reach_area
+    findBestPose(); //outputs to pt wrt reach_area
     pt.x+=r2a.x; pt.y+=r2a.y;
     
     updatePose(pose_best, pt.x, pt.y);
@@ -122,20 +123,24 @@ void BestPoseFinder::updatePose(geometry_msgs::PoseStamped& pose, int x, int y) 
     pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0.0, 0.0, 0.0);
 }
 
-void BestPoseFinder::findPublishBestPosition(const novelti::FloatMap& pdf){
+void BestPoseFinder::calculate(const novelti::FloatMap& pdf){
     ROS_INFO("%s: received pdf, starting to look for best pose", getName().c_str());
+    pdf_ = &pdf;
     if (!calcReachArea()) //if we failed to calculate reachability area
         return;
     //ROS_INFO("%s: starting to look for the best pose", getName().c_str());
-    novelti::FloatMapConstPtr pdf_ptr(&pdf);
-    findBestPose(pdf_ptr); //outputs to pt wrt reach_area
-    if (isOnBorder(pt)) {
-        pt.x+=r2a.x; pt.y+=r2a.y;
-        updatePose(pose_best, pt.x, pt.y);
+    findBestPose(); //outputs to pt wrt reach_area
+    pt.x+=r2a.x; pt.y+=r2a.y;
+    updatePose(pose_best, pt.x, pt.y);
+    ROS_INFO("%s: found best vertex=(%d,%d), best pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
+}
+
+void BestPoseFinder::publish() {
+    //if (isOnBorder(pt)) {
         pub_pose_best.publish(pose_best);
         ros::spinOnce();
-        ROS_INFO("%s: found best vertex=(%d,%d), published pose=(%f,%f)", getName().c_str(), pt.x, pt.y, pose_best.pose.position.x, pose_best.pose.position.y);
-    }
+        ROS_INFO("%s: published best pose=(%f,%f)", getName().c_str(), pose_best.pose.position.x, pose_best.pose.position.y);
+    //}
 }
 
 /*void BestPoseFinder::pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state){
@@ -295,14 +300,14 @@ void BestPoseFinder::moveToClosestInReachAreaObst() {
     pt = out;
 }
 
-void BestPoseFinder::moveToClosestOnMap(novelti::FloatMapConstPtr pdf) {
+void BestPoseFinder::moveToClosestOnMap() {
     //input (pt)  wrt to map
     //output (pt) wrt to reach_area    
     Point out;
     double d, dmin = std::numeric_limits<double>::max();
-    for (int x=0; x<pdf->info.width; x++) {
-        for (int y=0; y<pdf->info.height; y++) {
-            if (pdf->data[x+y*pdf->info.width] >= 0.0) {
+    for (int x=0; x<pdf_->info.width; x++) {
+        for (int y=0; y<pdf_->info.height; y++) {
+            if (pdf_->data[x+y*pdf_->info.width] >= 0.0) {
                 d = sqrt((x-pt.x)*(x-pt.x)+(y-pt.y)*(y-pt.y));
                 if (d < dmin) {
                     out.x=x; out.y=y;
@@ -322,7 +327,7 @@ void BestPoseFinder::moveToClosestOnMap(novelti::FloatMapConstPtr pdf) {
 // }
 
 
-void BestPoseFinder::findBestPose(novelti::FloatMapConstPtr pdf1) { //no move
+void BestPoseFinder::findBestPose() { //no move
     if (!getCurVertex(pt.x, pt.y))
         return;
     pt.x -= r2a.x;

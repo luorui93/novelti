@@ -13,7 +13,6 @@ public:
     int glob_max_attempts;
     std::default_random_engine generator;
     double meanDist;
-    novelti::FloatMapConstPtr pdf;
     Method method_;
     
     OptPoseFinder(Method method) :
@@ -90,19 +89,19 @@ public:
     }
     
     double findNearCog2LocalOptPose() {
-        findCogOnPdf(pdf);              PUB_DEBUG_POSE(pt.x,pt.y, true);
-        moveToClosestOnMap(pdf);        PUB_DEBUG_POSE(pt.x,pt.y, true);
+        findCogOnPdf();                 PUB_DEBUG_POSE(pt.x,pt.y, true);
+        moveToClosestOnMap();           PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
         return slideToLocalMin();
     }
     
     double findRaMaxprob2localOptPose() {
-        findMaxprobInReachArea(pdf);    PUB_DEBUG_POSE(pt.x,pt.y, false);
+        findMaxprobInReachArea();       PUB_DEBUG_POSE(pt.x,pt.y, false);
         return slideToLocalMin();
     }
             
     double findMaxprob2localOptPose() {
-        findMaxprobInPdf(pdf);          PUB_DEBUG_POSE(pt.x,pt.y, true);
+        findMaxprobInPdf();             PUB_DEBUG_POSE(pt.x,pt.y, true);
         moveToClosestInReachAreaObst(); PUB_DEBUG_POSE(pt.x,pt.y, false);
         return slideToLocalMin();
     }
@@ -153,8 +152,7 @@ public:
         pt = opt_pt;
     }
     
-    void findBestPose(novelti::FloatMapConstPtr pdf1) {
-        pdf = pdf1; //COG2LOPT, RAMAXPROB2LOPT, MAXPROB2LOPT, GOPT
+    void findBestPose() {
         switch (method_) {
             case COG2LOPT: 
                 findNearCog2LocalOptPose(); break;
@@ -170,12 +168,12 @@ public:
     void onSetPointDistance(Star& star, OctPoint& op, bool is_nbp, Point& p, int old_dist, int new_dist) {
         if (old_dist != MAP_POINT_UNEXPLORED)
             new_dist-=old_dist;
-        meanDist += pdf->data[p.x + p.y*pdf->info.width] * new_dist;
+        meanDist += pdf_->data[p.x + p.y*pdf_->info.width] * new_dist;
     };
     void onDistanceCorrection(Star& parent_star, Point& p, int old_dist, int new_dist) {
         if (old_dist != MAP_POINT_UNEXPLORED)
             new_dist-=old_dist;
-        meanDist += pdf->data[p.x + p.y*pdf->info.width] * new_dist;
+        meanDist += pdf_->data[p.x + p.y*pdf_->info.width] * new_dist;
     };
 };
 

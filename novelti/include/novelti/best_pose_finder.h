@@ -66,21 +66,24 @@ public:
     std::mutex pose_current_lock_;
     geometry_msgs::PoseStamped pose_best;
     novelti::FloatMap reach_area;
+    const novelti::FloatMap* pdf_;
      
     BestPoseFinder();
     BestPoseFinder(const std::string paramPrefix);
     void startExp(novelti::StartExperiment::Request& req);
     void stopExp();
     void poseCurCallback(geometry_msgs::PoseStamped pose);
-    void findPublishBestPosition(const novelti::FloatMap& pdf);
-    //void pdfCallback(novelti::FloatMapConstPtr pdf, InferenceUnit::State iu_state);
+    void calculate(const novelti::FloatMap& pdf);
+    void publish();
     void pdfCallback(novelti::FloatMapConstPtr pdf);
+    
+protected:    
     bool getCurVertex(int& cx, int& cy);
     bool calcReachArea();
     void moveToClosestInReachAreaEuc();
     void moveToClosestInReachAreaObst();
-    void moveToClosestOnMap(novelti::FloatMapConstPtr pdf);
-    virtual void findBestPose(novelti::FloatMapConstPtr pdf);
+    void moveToClosestOnMap();
+    virtual void findBestPose();
     bool isOnBorder(Point p);
     void updatePose(geometry_msgs::PoseStamped& pose, int x, int y);
 };
