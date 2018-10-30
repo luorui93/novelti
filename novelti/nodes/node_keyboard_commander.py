@@ -22,21 +22,22 @@ class KeyboardCommander:
         self.pub_keyboard_cmd = rospy.Publisher('/keyboard_cmd_intended', Command, queue_size=1)
 
 def getKey():
+    global settings
     tty.setraw(sys.stdin.fileno())
     select.select([sys.stdin], [], [], 0)
     key = sys.stdin.read(1)
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-settings = None
-
 def exitGracefully(signum, frame):
+    global settings
     rospy.logwarn("Caught SIGINT, gracefully dying...")
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     exit(0)
 
 if __name__ == "__main__":
     global settings
+    settings = None
     signal.signal(signal.SIGINT, exitGracefully)
 
     settings = termios.tcgetattr(sys.stdin)
