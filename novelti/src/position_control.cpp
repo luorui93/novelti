@@ -106,17 +106,22 @@ void PositionControl::initPriors(std::vector<double>& new_priors) {
         else
             setPdfFromPOIs();
     }
+    best_position_finder_->calculate(pdf_);
+    map_divider_->divide(pdf_, best_position_finder_->pose_best);
     stats_ = PdfUtils::accumulate<float>(pdf_.data, getIndexMap(), new_priors);
 }
 
 
 void PositionControl::update(const std::vector<double>& coefs, const int cmd, std::vector<double>& new_priors) {
-    //mdiv->highlightSelection(cmd);
+    map_divider_->highlightSelection(cmd);
     new_pdf_ = false;
     PdfUtils::update<float>(pdf_.data, getIndexMap(), coefs);
     if (needsSmoothening())
         smoothen();
     PdfUtils::denullifyNormalize<float>(pdf_.data, eps_);
+    
+    best_position_finder_->calculate(pdf_);
+    map_divider_->divide(pdf_, best_position_finder_->pose_best);
     stats_ = PdfUtils::accumulate<float>(pdf_.data, getIndexMap(), new_priors);
 }
 
@@ -135,8 +140,8 @@ void PositionControl::onInferred(int inferredCmd) {
 void PositionControl::act() {
     //if (visual)
         publishPdf();
-    best_position_finder_->findPublishBestPosition(pdf_);
-    map_divider_->dividePublishMap(pdf_, best_position_finder_->pose_best);
+    best_position_finder_->publish();
+    map_divider_->publish();
 }
 
 const geometry_msgs::PoseStamped& PositionControl::getPositionInferred() const {
