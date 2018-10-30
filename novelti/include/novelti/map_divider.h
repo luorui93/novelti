@@ -60,7 +60,9 @@ public:
     void pdfCallback(novelti::FloatMapConstPtr msg);
     //void noveltiMapCallback(novelti::FloatMapConstPtr ptr_pdf, geometry_msgs::PoseStampedConstPtr ptr_pose);
     void dividePublishMap(const novelti::FloatMap& pdf0, const geometry_msgs::PoseStamped& pose);
-    void highlightSelection(CommandConstPtr msg);
+    void divide(const novelti::FloatMap& pdf0, const geometry_msgs::PoseStamped& pose);
+    void publish();
+    void highlightSelection(int cmd);
     void divideAndPublish();
 
     std::vector<double> probs_scaled;

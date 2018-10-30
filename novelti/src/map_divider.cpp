@@ -124,9 +124,27 @@ void MapDivider::dividePublishMap(const novelti::FloatMap& pdf0, const geometry_
     divideAndPublish();
 }
 
-void MapDivider::highlightSelection(novelti::CommandConstPtr msg){
-    int cmd = msg->cmd;
+void MapDivider::divide(const novelti::FloatMap& pdf0, const geometry_msgs::PoseStamped& pose) {
+    pose_best = &pose;
+    pdf = &pdf0;
+    pt_best.x = (int) round( pose_best->pose.position.x / map_divided.info.resolution );
+    pt_best.y = (int) round( pose_best->pose.position.y / map_divided.info.resolution );
 
+    ROS_INFO("%s: starting to divide", getName().c_str());
+    startDivider();
+    divide();
+    endDivider();
+}
+
+void MapDivider::publish() {
+    map_divided.header.stamp = ros::Time::now();
+    pub_map_div.publish(map_divided);
+    //ros::spinOnce();
+    ROS_INFO("%s: published divided map", getName().c_str());
+}
+
+
+void MapDivider::highlightSelection(int cmd){
     selection_highlight.data = map_divided.data;
     for (std::vector<int>::iterator it=selection_highlight.data.begin(); it != selection_highlight.data.end(); it++) {
         if (*it == cmd)
@@ -155,7 +173,7 @@ void MapDivider::divideAndPublish() {
     startDivider();
     divide();
     endDivider();
-    ROS_INFO("%s: probs_actual: [%f, %f, %f, %f]", getName().c_str(), probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
+    //ROS_INFO("%s: probs_actual: [%f, %f, %f, %f]", getName().c_str(), probs_actual[0], probs_actual[1], probs_actual[2], probs_actual[3]);
     map_divided.header.stamp = ros::Time::now();
     pub_map_div.publish(map_divided);
     //ros::spinOnce();
