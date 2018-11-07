@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
       Splitter Ratio: 0.641667008
-    Tree Height: 173
+    Tree Height: 359
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties

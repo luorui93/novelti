@@ -64,7 +64,7 @@ class Experimentator (SyncingNode):
 
     def poseInferredCallback(self, msg):
         if self.state=="POSITION_INFERRED":
-            rospy.loginfo("%s: POSITION_INFERRED->INFERRED detected" % (rospy.get_name()))
+            rospy.loginfo("%s: POSITION_INFERRED->POSE_INFERRED detected" % (rospy.get_name()))
             self.pose_inferred = msg.pose
             self.state="INFERRED"
             self.onPoseInferred()

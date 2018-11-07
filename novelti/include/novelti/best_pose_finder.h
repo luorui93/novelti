@@ -66,7 +66,7 @@ public:
     std::mutex pose_current_lock_;
     geometry_msgs::PoseStamped pose_best;
     novelti::FloatMap reach_area;
-    const novelti::FloatMap* pdf_;
+    novelti::FloatMap const * pdf_;
      
     BestPoseFinder();
     BestPoseFinder(const std::string paramPrefix);

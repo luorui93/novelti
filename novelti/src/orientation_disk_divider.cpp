@@ -16,7 +16,8 @@ DiskDivider::DiskDivider(int n_cmd):
 
 } 
 
-void DiskDivider::initDisplay(OrientationPdfConstPtr opdf) {
+void DiskDivider::initDisplay(const OrientationPdf& opdf) {
+    opdf_ = &opdf;
     disk = IntMap();
     disk.header.frame_id = "/map";
     disk.info.width = 2*radius + 3;
@@ -30,7 +31,7 @@ void DiskDivider::initDisplay(OrientationPdfConstPtr opdf) {
     selection_highlight = disk;
     transparent_disk = disk;
 
-    unit_color = std::vector<int>(opdf->data.size(),-1);
+    unit_color = std::vector<int>(opdf_->data.size(),-1);
     arc_vector = std::vector<novelti::Arc>(n_cmd_);
 
     optimal_color_pdf = std::vector<float>(n_cmd_,1.0/n_cmd_);
@@ -39,7 +40,7 @@ void DiskDivider::initDisplay(OrientationPdfConstPtr opdf) {
     x_center = radius;
     y_center = radius;
 
-    opdf_ptr = opdf;
+    
     markUnitColor();
     updateArc();
     drawSector();
@@ -50,8 +51,8 @@ void DiskDivider::resetDisk() {
     pub_disk.publish(transparent_disk);
 }
 
-void DiskDivider::orientationPdfCallback(OrientationPdfConstPtr opdf) {
-    opdf_ptr = opdf;
+void DiskDivider::orientationPdfCallback(const OrientationPdf& opdf) {
+    opdf_ = &opdf;
     divideAndPublish();
 }   
 
@@ -87,15 +88,15 @@ void DiskDivider::updateOptimalPdf(int cur_color) {  //Try to divide region as b
 void DiskDivider::markUnitColor() {   //update color for minimal unit (resolution)
     int cur_color = 0;
     std::fill(cur_color_pdf.begin(),cur_color_pdf.end(),0.0);
-    for (int i=0; i<opdf_ptr->data.size();i++) {
-        cur_color_pdf[cur_color] += opdf_ptr->data[i];
+    for (int i=0; i<opdf_->data.size();i++) {
+        cur_color_pdf[cur_color] += opdf_->data[i];
         if (cur_color_pdf[cur_color] > optimal_color_pdf[cur_color] + std::numeric_limits<float>::epsilon() && cur_color < n_cmd_ - 1) {  //TODO: a better way to add epsilon
 
-            cur_color_pdf[cur_color] -= opdf_ptr->data[i];
+            cur_color_pdf[cur_color] -= opdf_->data[i];
             updateOptimalPdf(cur_color);
             //ROS_WARN("turning point: %d",i);
             cur_color++;
-            cur_color_pdf[cur_color] += opdf_ptr->data[i];
+            cur_color_pdf[cur_color] += opdf_->data[i];
         }
         
         unit_color[i] = cur_color;
@@ -143,13 +144,13 @@ void DiskDivider::drawSector() {
     for (int i=0; i < arc_vector.size();i++) {
         if (!(arc_vector[i].lower_angle == arc_vector[i].upper_angle) ){
         // ROS_WARN("----------------------Paint sector %d", i);
-//             for (auto pt: cwave::SectorPoints(cwave::Point(x_center,y_center), arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius,10000))
-// -                setColor(pt.x,pt.y,arc_vector[i].color);
+            for (auto pt: cwave::SectorPoints(cwave::Point(x_center,y_center), arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius,10000))
+                setColor(pt.x,pt.y,arc_vector[i].color);
 
-            cwave::SectorArcs sectorArcs(arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius, 10000);
-            for (const auto& arc: sectorArcs)
-                for (const auto& vx: cwave::ArcVertices(arc))
-                    setColor(vx.x,vx.y,arc_vector[i].color);
+            // cwave::SectorArcs sectorArcs(arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius, 10000);
+            // for (const auto& arc: sectorArcs)
+            //     for (const auto& vx: cwave::ArcVertices(arc))
+            //         setColor(vx.x,vx.y,arc_vector[i].color);
         }
     }
 }    

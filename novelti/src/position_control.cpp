@@ -130,6 +130,7 @@ void PositionControl::onInferred(int inferredCmd) {
     int y = stats_.max_k / pdf_.info.width;
     int x = stats_.max_k % pdf_.info.width;
     position_inferred_.header.stamp = ros::Time::now();
+    position_inferred_.header.frame_id = "/map";
     position_inferred_.pose.position.x = x*pdf_.info.resolution;
     position_inferred_.pose.position.y = y*pdf_.info.resolution;
     pub_position_inferred_.publish(position_inferred_);

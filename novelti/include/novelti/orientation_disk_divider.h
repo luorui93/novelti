@@ -25,8 +25,8 @@ class DiskDivider {
 public:
 
     DiskDivider(int);
-    void initDisplay(OrientationPdfConstPtr opdf);
-    void orientationPdfCallback(OrientationPdfConstPtr pdf);
+    void initDisplay(const OrientationPdf& opdf);
+    void orientationPdfCallback(const OrientationPdf& opdf);
     void setColor(int x,int y,int color);
     void updateOptimalPdf(int cur_color);
     void markUnitColor();
@@ -42,7 +42,7 @@ public:
     ros::Publisher pub_disk,pub_selection_highlight;
 
     IntMap disk,selection_highlight,transparent_disk;
-    novelti::OrientationPdfConstPtr opdf_ptr;
+    novelti::OrientationPdf const * opdf_;
     double radius;
     int n_cmd_;
     int color_order;

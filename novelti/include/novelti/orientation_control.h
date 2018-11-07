@@ -35,19 +35,11 @@ public:
     ros::Publisher      pub_opdf_;
     ros::Publisher      pub_pose_inf_;
     
-    OrientationPdf  opdf;
-    std::vector<int> orientation_divided;
-    geometry_msgs::PoseStamped pose_inferred;
-    
-    std::vector<double> interface_matrix;
-    std::vector<double> priors;
-    std::vector<double> posteriors;
-    std::vector<double> coefs;
+    geometry_msgs::PoseStamped pose_inferred_;
     
     float uniform_prob_;
     float eps_;
-    double max_oprob_;
-    int max_oprob_k_;
+    PdfStats<float> stats_;
     float orientation_resol_;
     float orientation_inferred_;
     DiskDivider* disk_div_;

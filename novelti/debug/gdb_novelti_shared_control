@@ -1,7 +1,11 @@
-b novelti::NoveltiSharedControl::cmdCallback
-b novelti::PositionControl::update
+#b novelti::NoveltiSharedControl::cmdCallback
+#b novelti::PositionControl::update
 #b novelti::PositionControl::getIndexMap
 #b novelti::PdfUtils::accumulate
 #b pdf_utils.h:108
-b novelti::PositionControl::act
+#b orientation_control.cpp:48
+#b novelti::OrientationControl::initPriors
+#b novelti::DiskDivider::drawSector
+#b novelti::OrientationControl::update
+#b orientation_control.cpp:57
 r

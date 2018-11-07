@@ -14,8 +14,8 @@ public:
     ros::NodeHandle node;
     ros::Publisher pub_opt_orientation;
     
-    OrientationPdfConstPtr opdf;
-    geometry_msgs::PoseStampedConstPtr pose_inferred;
+    OrientationPdf const * opdf_;
+    geometry_msgs::PoseStamped pose_desired_;
     int min_index;
     float resol;
     std::string method;
@@ -23,7 +23,8 @@ public:
 
     OptOrientationSelector();
     void start();
-    void findOptOrientation(OrientationPdfConstPtr opdf_ptr);
+    void setPositionInferred(const geometry_msgs::PoseStamped&);
+    void findOptOrientation(const OrientationPdf& opdf);
     void selectOptIntermediateOrientation();
     float calculateProbCost(int index);
     void publishOrientation();

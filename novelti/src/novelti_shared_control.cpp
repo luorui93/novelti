@@ -78,7 +78,7 @@ void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
         }
     } else {
         if (stats.max > thresh_inferred_) {
-            ROS_INFO("inferring -> inferred, starting new inferece");
+            ROS_INFO("inferring -> inferred, starting new inference");
             units_[cur_]->onInferred(stats.max_k);
             cur_ = transitionMx_[cur_][stats.max_k];
             startNewInference();
