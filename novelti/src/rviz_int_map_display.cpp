@@ -646,6 +646,8 @@ void IntMapDisplay::showMap()
 {
   if (current_map_.data.empty())
   {
+    manual_object_->setVisible( false );
+    context_->queueRender();   
     return;
   }
 
