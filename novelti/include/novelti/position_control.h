@@ -44,6 +44,7 @@ protected:
     MapDivider*     map_divider_;   
     ros::Publisher  pub_pdf_;
     ros::Publisher  pub_position_inferred_;
+    ros::Publisher  pub_position_desired_;
     FloatMap        pdf_;
     geometry_msgs::PoseStamped position_inferred_;
 

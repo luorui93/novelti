@@ -113,7 +113,7 @@ public:
     }
     
     void desiredPositionCallback(geometry_msgs::PoseStampedConstPtr pose_des) {
-        ROS_WARN("robot_model: recieved desired position: (%f,%f)", pose_des->pose.position.x, pose_des->pose.position.y);
+        ROS_WARN("robot_model: recieved desired position: (%f,%f), timestamp: %d, now: %f", pose_des->pose.position.x, pose_des->pose.position.y, pose_des->header.stamp.sec, ros::Time::now().toSec());
         Point des;
         pose_lock_.lock();
             updateVertex(pose_des->pose, des.x, des.y);
@@ -186,7 +186,11 @@ public:
 
     void desiredPoseCallback(geometry_msgs::PoseStampedConstPtr pose_des) {
         desiredPositionCallback(pose_des);
-        ROS_WARN("robot_model: recieved desired orientation: %f",tf::getYaw(pose_des->pose.orientation));
+        ROS_WARN("robot_model: received desired pose with position (%f,%f) and orientation %f rad",
+                 pose_des->pose.position.x, 
+                 pose_des->pose.position.y, 
+                 tf::getYaw(pose_des->pose.orientation
+        ));
         //Do one more final rotation
         TransitionPoint trans_point;
         double theta,period;
@@ -210,7 +214,7 @@ public:
         trans_point.cur_pos = trans_point_queue_.back().cur_pos;
         trans_point.prev_pos = trans_point_queue_.back().prev_pos;
         trans_point_queue_.push(trans_point);      
-        ROS_WARN("Last element in the queue: %f", trans_point_queue_.back().cur_orientation);
+//         ROS_WARN("Last element in the queue: %f", trans_point_queue_.back().cur_orientation);
         traj_moving = true;
         trans_lock_.unlock(); 
     }

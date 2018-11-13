@@ -31,7 +31,7 @@
         <arg name="resol" value="$(arg resol)"/>
         <arg name="smooth_rads" value="$(arg smooth_rads)"/>
         <arg name="map" value="$(find novelti)/map/$(arg map).map"/>
-        <arg name="debug_novelti_shared_control" value="1" />
+        <arg name="debug_novelti_shared_control" value="0" />
         <!-- <arg name="map" value="$(find novelti)/map/maze_scale_inflated.map"/> -->
     </include>
 

@@ -156,6 +156,13 @@ void MapDivider::highlightSelection(int cmd){
     pub_selection_highlight.publish(transparent_map);
 }
 
+void MapDivider::clearAndPublish() {
+    IntMap clearedMap;
+    clearedMap.header = map_divided.header;
+    clearedMap.header.stamp = ros::Time::now();
+    pub_map_div.publish(clearedMap);
+}
+
 void MapDivider::divideAndPublish() {
     if (isNode) {
         if (false && (map_divided.header.seq != pdf->header.seq || map_divided.header.seq != pose_best->header.seq)) {

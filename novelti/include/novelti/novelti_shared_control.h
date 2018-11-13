@@ -5,7 +5,7 @@
 #include <novelti/inference_unit.h>
 #include <novelti/synchronizable_node.h>
 #include <novelti/inference_matrix.h>
-
+#include <novelti/pdf_utils.h>
 #include <novelti/Command.h>
 // #include <novelti/FloatMap.h>
 
@@ -17,7 +17,9 @@ public:
 protected:    
     void start(StartExperiment::Request& req) {};
     void stop() {};
-    void initPriors(std::vector<double>& priors) { /* equal*/ }
+    void initPriors(std::vector<double>& priors) { 
+        PdfUtils::setUniform(priors, 1.0/priors.size());
+    }
     void update(const std::vector<double>& coefs, const int cmd, std::vector<double>& priors) {
         for (int k=0; k<coefs.size(); k++)
             priors[k] *= coefs[k];

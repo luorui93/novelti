@@ -84,7 +84,6 @@
         <param name="pub_period"  value="$(arg trobot)" />
     </node>
 
-    <node pkg="topic_tools" type="relay" name="position_topic_relay" output="screen" required="true" args="/position_inferred /position_desired"/>
     <node pkg="topic_tools" type="relay" name="pose_topic_relay" output="screen" required="true" args="/pose_inferred /pose_desired"/>
 
 

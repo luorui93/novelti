@@ -64,7 +64,7 @@ public:
     void publish();
     void highlightSelection(int cmd);
     void divideAndPublish();
-
+    void clearAndPublish();
     std::vector<double> probs_scaled;
     int cur_region;
     double prob;

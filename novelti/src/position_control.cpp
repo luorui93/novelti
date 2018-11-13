@@ -84,6 +84,7 @@ void PositionControl::start(StartExperiment::Request& req) {
     uniform_prob_       = 1.0/total_vx;
     pub_pdf_            = node_.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_position_inferred_   = node_.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, true); //latched to make sure topic_tools relay can receive the message.
+    pub_position_desired_ = node_.advertise<geometry_msgs::PoseStamped>("/pose_desired", 1, false);
     best_position_finder_->startExp(req);
     map_divider_ ->startExp(req);
 }
@@ -93,6 +94,7 @@ void PositionControl::stop() {
     //sub_map_div_.shutdown();
     pub_pdf_.shutdown();
     pub_position_inferred_.shutdown();
+    pub_position_desired_.shutdown();
     best_position_finder_->stopExp();
     map_divider_ ->stopExp();    
 }
@@ -133,15 +135,23 @@ void PositionControl::onInferred(int inferredCmd) {
     position_inferred_.header.frame_id = "/map";
     position_inferred_.pose.position.x = x*pdf_.info.resolution;
     position_inferred_.pose.position.y = y*pdf_.info.resolution;
+    pub_position_desired_.publish(position_inferred_);
     pub_position_inferred_.publish(position_inferred_);
-    ROS_INFO("%s: published /pose_inferred, vertex=(%d,%d), pose=(%f,%f)", 
+    map_divider_->clearAndPublish();
+    ROS_INFO("%s: POSITION INFERRED, vertex=(%d,%d), pose=(%f,%f)", 
              getName().c_str(), x, y, position_inferred_.pose.position.x, position_inferred_.pose.position.y);    
 }
 
 void PositionControl::act() {
     //if (visual)
         publishPdf();
-    best_position_finder_->publish();
+    position_inferred_.header.stamp = ros::Time::now();
+    position_inferred_.header.frame_id = "/map";
+    position_inferred_.pose = (best_position_finder_->pose_best).pose;
+    pub_position_desired_.publish(position_inferred_);
+    ROS_INFO("%s: published /position_desired, pose=(%f,%f)", 
+             getName().c_str(), position_inferred_.pose.position.x, position_inferred_.pose.position.y);  
+    //best_position_finder_->publish();
     map_divider_->publish();
 }
 

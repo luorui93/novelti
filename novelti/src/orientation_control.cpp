@@ -18,7 +18,7 @@ void OrientationControl::start(novelti::StartExperiment::Request& req) {
     opdf_.header.frame_id = "/orientation_display";
     opdf_.data = std::vector<float>(360 / orientation_resol_,0.0);
 
-    pub_pose_inf_ = node_.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, true);
+    pub_pose_inf_ = node_.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false);
     pub_opdf_     = node_.advertise<OrientationPdf>("/opdf", 1, true);
 
     disk_div_->initDisplay(opdf_);
