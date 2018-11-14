@@ -144,13 +144,13 @@ void DiskDivider::drawSector() {
     for (int i=0; i < arc_vector.size();i++) {
         if (!(arc_vector[i].lower_angle == arc_vector[i].upper_angle) ){
         // ROS_WARN("----------------------Paint sector %d", i);
-            for (auto pt: cwave::SectorPoints(cwave::Point(x_center,y_center), arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius,10000))
-                setColor(pt.x,pt.y,arc_vector[i].color);
+//             for (auto pt: cwave::SectorPoints(cwave::Point(x_center,y_center), arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius,10000))
+//                 setColor(pt.x,pt.y,arc_vector[i].color);
 
-            // cwave::SectorArcs sectorArcs(arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius, 10000);
-            // for (const auto& arc: sectorArcs)
-            //     for (const auto& vx: cwave::ArcVertices(arc))
-            //         setColor(vx.x,vx.y,arc_vector[i].color);
+            cwave::SectorArcs sectorArcs(arc_vector[i].lower_angle, arc_vector[i].upper_angle, radius, 10000);
+            for (const auto& arc: sectorArcs)
+                for (const auto& vx: cwave::ArcVertices(arc))
+                    setColor(x_center+vx.x, y_center+vx.y, arc_vector[i].color);
         }
     }
 }    
