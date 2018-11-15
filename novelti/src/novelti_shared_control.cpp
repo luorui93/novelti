@@ -13,6 +13,8 @@ NoveltiSharedControl::NoveltiSharedControl():
     node_.getParam("thresh_inferred", thresh_inferred_);
     node_.getParam("thresh_relaxed",  thresh_relaxed_);
     inf_mx_     = new InferenceMatrix(mx);
+    inf_mx_->findOptimalPriors(probs_optimal_);
+    node_.setParam("/probs_optimal", probs_optimal_);
     priors_.resize(inf_mx_->nCmds_, 1.0/(inf_mx_->nCmds_));
     coefs_      = vector<double>(inf_mx_->nCmds_);
     PositionControl* position_control = new PositionControl(node_);

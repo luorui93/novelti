@@ -498,6 +498,34 @@ Visualization Manager:
       Region 5 color: 255; 0; 0
       Topic: /map
       Value: false
+    - Alpha: 0.699999988
+      Class: novelti/IntMap
+      Color Scheme: regions
+      Draw Behind: true
+      Enabled: true
+      Name: /orientation_divided
+      Region 0 color: 255; 245; 6
+      Region 1 color: 117; 6; 235
+      Region 2 color: 232; 136; 12
+      Region 3 color: 255; 0; 0
+      Region 4 color: 0; 255; 65
+      Region 5 color: 255; 0; 0
+      Topic: /orientation_divided
+      Value: true
+    - Alpha: 1
+      Class: novelti/IntMap
+      Color Scheme: regions
+      Draw Behind: false
+      Enabled: true
+      Name: /highlight_orientation
+      Region 0 color: 0; 0; 0
+      Region 1 color: 255; 255; 255
+      Region 2 color: 0; 0; 0
+      Region 3 color: 255; 0; 0
+      Region 4 color: 0; 255; 65
+      Region 5 color: 255; 0; 0
+      Topic: /highlight_orientation
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 202; 202; 202
@@ -522,7 +550,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.00500001013
+      Angle: 1.39698386e-06
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
@@ -532,11 +560,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Scale: 27.1718712
+      Scale: 16.4148731
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 22.5759563
-      Y: 19.5959339
+      X: 25.6853542
+      Y: 14.5430536
     Saved: ~
 Window Geometry:
   Displays:

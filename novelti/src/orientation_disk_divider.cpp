@@ -11,20 +11,20 @@ DiskDivider::DiskDivider(int n_cmd):
     n_cmd_(n_cmd)
 {
     node.param("ori/compass_radius", radius, 100.0);
-    node.param("ori/command_number", n_cmd, 4);
     node.param("ori/orientation_resolution", resol, 5.0);
+    node.getParam("/probs_optimal", optimal_color_pdf);
 
 } 
 
-void DiskDivider::initDisplay(const OrientationPdf& opdf) {
+void DiskDivider::initDisplay(const OrientationPdf& opdf, const geometry_msgs::PoseStamped& position_inferred) {
     opdf_ = &opdf;
     disk = IntMap();
     disk.header.frame_id = "/map";
     disk.info.width = 2*radius + 3;
     disk.info.height = 2*radius + 3;
     disk.info.resolution = 0.1;
-    disk.info.origin.position.x = 0.0;
-    disk.info.origin.position.y = 0.0;
+    disk.info.origin.position.x = position_inferred.pose.position.x - radius * disk.info.resolution;
+    disk.info.origin.position.y = position_inferred.pose.position.y - radius * disk.info.resolution;
     disk.data = std::vector<int>(disk.info.width*disk.info.height, 255);
     pub_disk = node.advertise<novelti::IntMap>("/orientation_divided", 1, true);
     pub_selection_highlight = node.advertise<novelti::IntMap>("/highlight_orientation",1,false);
@@ -34,8 +34,8 @@ void DiskDivider::initDisplay(const OrientationPdf& opdf) {
     unit_color = std::vector<int>(opdf_->data.size(),-1);
     arc_vector = std::vector<novelti::Arc>(n_cmd_);
 
-    optimal_color_pdf = std::vector<float>(n_cmd_,1.0/n_cmd_);
-    cur_color_pdf = std::vector<float>(optimal_color_pdf.size(),0.0);
+    //optimal_color_pdf = std::vector<float>(n_cmd_,1.0/n_cmd_);
+    cur_color_pdf = std::vector<double>(optimal_color_pdf.size(),0.0);
 
     x_center = radius;
     y_center = radius;

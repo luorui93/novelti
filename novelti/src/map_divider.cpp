@@ -26,11 +26,7 @@ MapDivider::MapDivider(const std::string paramPrefix) :
     node("~"),
     isNode(false)
 {
-    std::vector<double> interface_matrix;
-    node.getParam("interface_matrix", interface_matrix);
-    InferenceMatrix inf(interface_matrix);
-    inf.findOptimalPriors(probs_optimal);
-    node.setParam("/probs_optimal",probs_optimal);
+    node.getParam("/probs_optimal",probs_optimal);
     for (const auto i:probs_optimal) {
         std::cout<< i << " ";
     }

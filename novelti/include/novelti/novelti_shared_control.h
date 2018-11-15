@@ -41,6 +41,7 @@ protected:
     double thresh_inferred_;
     double thresh_relaxed_;
     InferenceMatrix*    inf_mx_;
+    std::vector<double> probs_optimal_;
     std::vector<std::string> names_;
     std::vector<double> priors_;
     std::vector<double> coefs_;

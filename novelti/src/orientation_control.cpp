@@ -21,10 +21,6 @@ void OrientationControl::start(novelti::StartExperiment::Request& req) {
     pub_pose_inf_ = node_.advertise<geometry_msgs::PoseStamped>("/pose_inferred", 1, false);
     pub_opdf_     = node_.advertise<OrientationPdf>("/opdf", 1, true);
 
-    disk_div_->initDisplay(opdf_);
-    ROS_INFO("Orientation Control Started...");
-    orien_sel_->start();
-    ROS_INFO("Opt Orientation Selector Started...");
 }
 
 void OrientationControl::stop() {
@@ -37,6 +33,8 @@ const std::vector<int>& OrientationControl::getOrientationColor() {
 }
 
 void OrientationControl::initPriors(std::vector<double>& new_priors) {
+    disk_div_->initDisplay(opdf_,pc_.getPositionInferred());
+    orien_sel_->start();
     orien_sel_->setPositionInferred(pc_.getPositionInferred());
     uniform_prob_ = 1.0 / opdf_.data.size(); 
     PdfUtils::setUniform(opdf_.data, uniform_prob_);
@@ -65,6 +63,7 @@ void OrientationControl::onInferred(int inferredCmd) {
     pose_inferred_ = pc_.getPositionInferred();
     pose_inferred_.pose.orientation = tf::createQuaternionMsgFromYaw(orientation_inferred_);
     pub_pose_inf_.publish(pose_inferred_);
+    disk_div_->resetDisk();
 }
 
 void OrientationControl::act() {    
