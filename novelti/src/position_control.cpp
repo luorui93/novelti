@@ -84,7 +84,7 @@ void PositionControl::start(StartExperiment::Request& req) {
     uniform_prob_       = 1.0/total_vx;
     pub_pdf_            = node_.advertise<FloatMap>("/pdf", 1, true); //not latched
     pub_position_inferred_   = node_.advertise<geometry_msgs::PoseStamped>("/position_inferred", 1, true); //latched to make sure topic_tools relay can receive the message.
-    pub_position_desired_ = node_.advertise<geometry_msgs::PoseStamped>("/pose_desired", 1, false);
+    pub_position_desired_ = node_.advertise<geometry_msgs::PoseStamped>("/position_desired", 1, false);
     best_position_finder_->startExp(req);
     map_divider_ ->startExp(req);
 }

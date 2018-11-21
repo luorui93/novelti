@@ -11,7 +11,7 @@ OptOrientationSelector::OptOrientationSelector():
 }
 
 void OptOrientationSelector::start() {
-    pub_opt_orientation = node.advertise<geometry_msgs::PoseStamped>("/orientation_desired",1,true);
+    pub_opt_orientation = node.advertise<geometry_msgs::PoseStamped>("/orientation_desired",1,false);
 }
 
 void OptOrientationSelector::findOptOrientation(const OrientationPdf& opdf) {

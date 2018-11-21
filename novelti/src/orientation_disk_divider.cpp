@@ -34,7 +34,6 @@ void DiskDivider::initDisplay(const OrientationPdf& opdf, const geometry_msgs::P
     unit_color = std::vector<int>(opdf_->data.size(),-1);
     arc_vector = std::vector<novelti::Arc>(n_cmd_);
 
-    //optimal_color_pdf = std::vector<float>(n_cmd_,1.0/n_cmd_);
     cur_color_pdf = std::vector<double>(optimal_color_pdf.size(),0.0);
 
     x_center = radius;

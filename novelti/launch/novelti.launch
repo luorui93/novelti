@@ -84,7 +84,7 @@
         <param name="pub_period"  value="$(arg trobot)" />
     </node>
 
-    <node pkg="topic_tools" type="relay" name="pose_topic_relay" output="screen" required="true" args="/pose_inferred /pose_desired"/>
+    <!-- <node pkg="topic_tools" type="relay" name="pose_topic_relay" output="screen" required="true" args="/pose_inferred /pose_desired"/> -->
 
 
     <!-- Real human or model -->
@@ -138,7 +138,7 @@
     <!-- Visualization -->
     <node name="rviz_pdf" pkg="rviz" type="rviz"  output="screen" 
         args="-d $(find novelti)/rviz/pdf.rviz" respawn="true" />
-    <include file="$(find novelti)/launch/rviz_orientation_control.launch"/>
+    <!-- <include file="$(find novelti)/launch/rviz_orientation_control.launch"/> -->
     <include file="$(find novelti)/launch/rviz_$(arg rviz).launch"/>
     
 
