@@ -18,4 +18,13 @@
     </description>
     <message_type>novelti/FloatMap</message_type>
   </class>
+  
+  <class 
+        name="novelti/Fixed"
+        type="rviz_fixed_view_controller::FixedViewController"
+        base_class_type="rviz::ViewController">
+    <description>
+      A view controller that simply follows a TF frame.
+    </description>
+  </class>
 </library>

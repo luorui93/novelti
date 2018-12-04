@@ -50,7 +50,7 @@
 #include "rviz/load_resource.h"
 #include "rviz/render_panel.h"
 
-#include "rviz_fixed_view_controller/rviz_fixed_view_controller.h"
+#include "novelti/rviz_fixed_view_controller.h"
 
 using namespace rviz;
 

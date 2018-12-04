@@ -46,7 +46,9 @@ add_definitions(-DQT_NO_KEYWORDS)
 qt5_wrap_cpp(MOC_FILES
   include/${PROJECT_NAME}/rviz_int_map_display.h
   include/${PROJECT_NAME}/rviz_float_map_display.h
+  include/${PROJECT_NAME}/rviz_fixed_view_controller.h
 )
+
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
@@ -293,9 +295,13 @@ target_link_libraries(human_model
 add_dependencies(human_model ${PROJECT_NAME}_generate_messages_cpp)
 
 
-add_library(novelti_rviz_plugin ${SOURCE_FILES})
+add_library(novelti_rviz_plugin ${SOURCE_FILES} src/rviz_fixed_view_controller.cpp)
 target_link_libraries(novelti_rviz_plugin ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
 add_dependencies(novelti_rviz_plugin ${PROJECT_NAME}_generate_messages_cpp)
+
+# add_library(rviz_fixed_view_controller src/rviz_fixed_view_controller.cpp)
+# target_link_libraries(rviz_fixed_view_controller ${QT_LIBRARIES} ${OGRE_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 
 
 ######################### TOOLS ##################################
