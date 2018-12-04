@@ -272,10 +272,9 @@ target_compile_definitions(novelti_shared_control
 target_link_libraries(novelti_shared_control
     ${catkin_LIBRARIES}
     ${CWAVE_LIB_DIR}/libcwaveproc.a
-    ${CWAVE_LIB_DIR}/libcwavesector.a
     ${CWAVE_LIB_DIR}/libcwavesector-3.2.a
 )
-add_dependencies(novelti_shared_control ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwaveproc.a ${CWAVE_LIB_DIR}/libcwavesector.a ${CWAVE_LIB_DIR}/libcwavesector-3.2.a)
+add_dependencies(novelti_shared_control ${PROJECT_NAME}_generate_messages_cpp ${CWAVE_LIB_DIR}/libcwavesector.a ${CWAVE_LIB_DIR}/libcwavesector-3.2.a)
 
 
 add_executable(diff_drive_robot_model src/node_robot_model_diff_drive.cpp)
