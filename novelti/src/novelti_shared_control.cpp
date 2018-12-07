@@ -54,7 +54,7 @@ void NoveltiSharedControl::stop() {
 }
 
 void NoveltiSharedControl::startNewInference() {
-    ROS_INFO(">>>>>>>>>>>>>>>>>> Starting new inference: %s<<<<<<<<<<<<<<<<<<<", names_[cur_].c_str());
+    ROS_INFO("%s: >>>>>>>>>>>>>>>>>> Starting new inference: %s<<<<<<<<<<<<<<<<<<<", getName().c_str(), names_[cur_].c_str());
     units_[cur_]->initPriors(priors_);
     units_[cur_]->act();
     PdfStats<double> stats(priors_);

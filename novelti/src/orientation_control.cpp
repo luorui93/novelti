@@ -59,7 +59,7 @@ void OrientationControl::update(const std::vector<double>& coefs, const int cmd,
 
 void OrientationControl::onInferred(int inferredCmd) {
     orientation_inferred_ = stats_.max_k * orientation_resol_ * M_PI / 180;
-    ROS_WARN("Orientation Inferred: %f", orientation_inferred_);
+    ROS_INFO("%s: ORIENTATION INFERRED: %f", getName().c_str(), orientation_inferred_);
     pose_inferred_ = pc_.getPositionInferred();
     pose_inferred_.pose.orientation = tf::createQuaternionMsgFromYaw(orientation_inferred_);
     pub_pose_inf_.publish(pose_inferred_);
