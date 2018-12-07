@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 <launch>
+    <!--
+    
+    Requires a source of input from /cmd_detected   
+
+    -->
+    
     <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  altertile equidist extremal extredist vchess-->
     <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   no_move, ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
     <arg name="os_method"   default="opt" />   <!--opt_orientation_selector method: still opt -->
@@ -9,14 +15,10 @@
     <arg name="dst3" default="goal3"/>
     <arg name="vel"   default="1.0" />       <!-- robot velocity in m/s -->
     <arg name="twist" default="0.52" />       <!-- robot rotation speed in rad/s -->
-    <arg name="wait_for_cmd" default="1" />
     <arg name="period" default="1.0" />       <!-- interface cmd generation period-->
-    <arg name="lti_default_cmd" default="prev"/>
     <arg name="reset_pdf"    default="true" /> 
     <arg name="pub_random_goal"    default="false" /> 
     <arg name="pose_to_vertex_tolerance" default="5" />
-    <arg name="button_key" default="5" />
-    <arg name="keyboard_mapping" default="['y','b','g','`']"/> <!-- yellow, blue, green, red -->
     <arg name="iarea_k" default="0.5" />
     <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
     <arg name="smooth_rads" default="[]" /> <!--0,0,1,2,2,2]" /--> 
@@ -35,7 +37,6 @@
     <arg name="tries" default="1" />
     
     <arg name="ori_resol" default="5.0"/>
-    <arg name="by_key" default="0" />
    
     <arg name="rviz" default="robot_autocam"/>
     <!--<arg if="$(arg show_goal)"     name="rviz" default="robot_autocam_w_goal" /> --> <!-- none, autocam or static -->
@@ -54,7 +55,7 @@
     <!-- add /robot_model to synced_nodes if using diff_drive_model, needs to be orgnized later-->
     <rosparam>
         synced_nodes: 
-            real_robot:  ['/novelti_shared_control', '/commander_sync_interface']
+            real_robot:  ['/novelti_shared_control']
             <!-- robot_model: ['/novelti_shared_control', '/lti_model', '/keyboard_commander','/robot_model'] -->
     </rosparam>
 
@@ -90,23 +91,9 @@
 
 
     <!-- Real human or model -->
-    <node unless="$(arg real_human)" pkg="novelti" type="human_model" name="human_model" output="screen" required="true" > 
+    <!--node unless="$(arg real_human)" pkg="novelti" type="human_model" name="human_model" output="screen" required="true" > 
         <param name="new_goal"      value="$(arg new_goal_srv)"/>
-    </node>
-    <node unless="$(arg real_bci)" pkg="novelti" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
-        <rosparam param="key_mappings" subst_value="true">$(arg keyboard_mapping)</rosparam>
-        <remap from="/keyboard_cmd_intended" to="/cmd_intended"/>
-    </node>
-
-    <!-- Real interface or model -->
-    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" >
-        <rosparam param="interface_matrix" command="load" file="$(arg confusion_matrix_file)" />
-        <param unless="$(arg real_human)"     name="delay" value="0.0"/>
-        <param if="$(arg real_human)" name="delay" value="$(arg period)"/>
-        <param     if="$(arg wait_for_cmd)" name="period" value="0" />
-        <param unless="$(arg wait_for_cmd)" name="period" value="$(arg period)" />
-        <param unless="$(arg wait_for_cmd)" name="default_cmd" value="$(arg lti_default_cmd)" />
-    </node>
+    </node> TODO: create a separate file for auto test -->
     
     <!-- Shared Control -->
     <arg name="debug_novelti_shared_control" default="0" />

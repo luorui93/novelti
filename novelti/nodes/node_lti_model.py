@@ -63,7 +63,7 @@ class StochHmiModel:
             rospy.sleep(self.period) 
             self.cmd_detected.header.stamp = rospy.Time.now()
             self.cmd_detected.cmd = self.cmd_intended
-            #self.cmd_detected.cmd = self.randomize(self.cmd_intended)
+            self.cmd_detected.cmd = self.randomize(self.cmd_intended)
             #rospy.loginfo("%s: number of connections=%d" % (rospy.get_name(), self.pub.get_num_connections()))
             self.pub.publish(self.cmd_detected)
             rospy.loginfo("%s: published detected command, intended=%d, detected=%d (SEQ==%d)", rospy.get_name(), self.cmd_intended, self.cmd_detected.cmd, self.cmd_detected.header.seq)

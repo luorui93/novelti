@@ -13,7 +13,7 @@
     <arg name="path_id" default="1"/>
     <arg name="tries" default="5"/>
     <arg name="use_emotiv" default="false"/>
-    <arg name="confusion_matrix_file" default="$(find novelti)/test/mx/mx3cmd90.yaml"/>
+    <arg name="confusion_matrix_file" default="$(find novelti)/test/mx/mx2cmd95.yaml"/>
     <arg name="map_div" default="extredist"/>
     <arg name="smooth_rads" default="[]"/>
     <rosparam command="load" file="$(find novelti)/map/$(arg map).paths"/>
@@ -32,16 +32,11 @@
         <arg name="smooth_rads" value="$(arg smooth_rads)"/>
         <arg name="map" value="$(find novelti)/map/$(arg map).map"/>
         <arg name="debug_novelti_shared_control" value="0" />
-        <!--arg unless="$(arg use_emotiv)" name="wait_for_cmd" value="0" />
-        <arg unless="$(arg use_emotiv)" name="period" value="4.0" />
-        <arg unless="$(arg use_emotiv)" name="lti_default_cmd" value="1"/>
-        <arg unless="$(arg use_emotiv)" name="keyboard_mapping" value="['5']" /-->
-        <!-- <arg name="map" value="$(find novelti)/map/maze_scale_inflated.map"/> -->
     </include>
 
     
-    <arg name="keyboard_mapping" default="['y','b','g','`']"/> <!-- yellow, blue, green, red -->
-    
+    <arg name="keyboard_mapping" default="['5']"/> <!-- yellow, blue, green, red -->
+
     <node pkg="novelti" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
         <rosparam param="key_mappings" subst_value="true">$(arg keyboard_mapping)</rosparam>
         <remap from="/keyboard_cmd_intended" to="/cmd_intended"/>
@@ -49,9 +44,9 @@
 
     <!-- Real interface or model -->
     <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" >
-        <rosparam param="interface_matrix" command="load" file="$(arg confusion_matrix_file)" />
+        <rosparam param="interface_matrix" subst_value="true">[1.0, 0.0, 0.0, 1.0]</rosparam>
         <param name="period" value="$(arg period)" />
-        <!--param unless="$(arg wait_for_cmd)" name="default_cmd" value="$(arg lti_default_cmd)" /-->
+        <param name="default_cmd" value="1" />
     </node>
     
     
