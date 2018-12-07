@@ -23,7 +23,7 @@ class StochHmiModel:
         interface_matrix = rospy.get_param('~interface_matrix', [])
         rospy.loginfo("\n=========INTERFACE MATRIX:====== \n" + str(interface_matrix))
         self.period = rospy.get_param('~period', 0.0)
-        self.random_if_missed = rospy.get_param('~random_if_missed', False)
+        self.default_cmd = rospy.get_param('~default_cmd', "prev")
         self.delay  = rospy.get_param('~delay', 0.0)
         self.n = int(sqrt(len(interface_matrix)))
         self.cmd_detected = Command()
@@ -62,12 +62,21 @@ class StochHmiModel:
         while(not rospy.is_shutdown()):
             rospy.sleep(self.period) 
             self.cmd_detected.header.stamp = rospy.Time.now()
-            self.cmd_detected.cmd = self.randomize(self.cmd_intended)
+            self.cmd_detected.cmd = self.cmd_intended
+            #self.cmd_detected.cmd = self.randomize(self.cmd_intended)
             #rospy.loginfo("%s: number of connections=%d" % (rospy.get_name(), self.pub.get_num_connections()))
             self.pub.publish(self.cmd_detected)
             rospy.loginfo("%s: published detected command, intended=%d, detected=%d (SEQ==%d)", rospy.get_name(), self.cmd_intended, self.cmd_detected.cmd, self.cmd_detected.header.seq)
-            if self.random_if_missed:
+            if self.default_cmd == 'prev':
+                pass
+            elif self.default_cmd == 'rand':
                 self.cmd_intended = random.randint(0,self.n)
+            else:
+                try:
+                    self.cmd_intended = int(self.default_cmd)
+                except ValueError:
+                    rospy.logerr("Invalid lti model default command. Use prev, rand or any integer") 
+                    exit(1)
                 
     
     def cmdIntendedCallback(self, msg):

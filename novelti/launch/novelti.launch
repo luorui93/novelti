@@ -11,14 +11,17 @@
     <arg name="twist" default="0.52" />       <!-- robot rotation speed in rad/s -->
     <arg name="wait_for_cmd" default="1" />
     <arg name="period" default="1.0" />       <!-- interface cmd generation period-->
+    <arg name="lti_default_cmd" default="prev"/>
     <arg name="reset_pdf"    default="true" /> 
     <arg name="pub_random_goal"    default="false" /> 
     <arg name="pose_to_vertex_tolerance" default="5" />
-
+    <arg name="button_key" default="5" />
+    <arg name="keyboard_mapping" default="['y','b','g','`']"/> <!-- yellow, blue, green, red -->
     <arg name="iarea_k" default="0.5" />
     <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
     <arg name="smooth_rads" default="[]" /> <!--0,0,1,2,2,2]" /--> 
     <arg name="show_goal" default="false" />
+    <arg name="confusion_matrix_file" default=""/>
 
     <arg name="prob_thresh_high" default="0.90" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
     <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
@@ -43,7 +46,6 @@
     <arg name="real_human" default="1" />
     <arg name="real_bci" default="false" />
 
-    <arg name="confusion_matrix_file" default="$(find novelti)/test/mx/mx3cmd90.yaml"/>
     <!--arg name="monitor" default="1" /- ->
     <!- -arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
     
@@ -92,19 +94,18 @@
         <param name="new_goal"      value="$(arg new_goal_srv)"/>
     </node>
     <node unless="$(arg real_bci)" pkg="novelti" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
-        <rosparam>
-            key_mappings: ['y','b','g','`']   <!-- yellow, blue, green, red -->
-        </rosparam>
+        <rosparam param="key_mappings" subst_value="true">$(arg keyboard_mapping)</rosparam>
         <remap from="/keyboard_cmd_intended" to="/cmd_intended"/>
     </node>
 
     <!-- Real interface or model -->
-    <node unless="$(arg real_bci)" pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" >
+    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" >
         <rosparam param="interface_matrix" command="load" file="$(arg confusion_matrix_file)" />
         <param unless="$(arg real_human)"     name="delay" value="0.0"/>
         <param if="$(arg real_human)" name="delay" value="$(arg period)"/>
         <param     if="$(arg wait_for_cmd)" name="period" value="0" />
         <param unless="$(arg wait_for_cmd)" name="period" value="$(arg period)" />
+        <param unless="$(arg wait_for_cmd)" name="default_cmd" value="$(arg lti_default_cmd)" />
     </node>
     
     <!-- Shared Control -->

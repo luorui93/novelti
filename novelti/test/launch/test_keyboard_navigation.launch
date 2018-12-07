@@ -12,7 +12,7 @@
     <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
     <arg name="path_id" default="1"/>
     <arg name="tries" default="5"/>
-    
+    <arg name="use_emotiv" default="false"/>
     <arg name="confusion_matrix_name" default="default-confusion-mx"/>
     <arg name="map_div" default="extredist"/>
     <arg name="smooth_rads" default="[]"/>
@@ -25,13 +25,16 @@
     <include file="$(find novelti)/launch/novelti.launch">
         <arg name="confusion_matrix_file" value="$(find novelti)/test/mx/mx3cmd90.yaml"/>
         <arg name="real_robot" value="0"/>
-        <arg name="real_bci"   value="0"/>  <!-- use emotiv and keyboard at the same time -->
         <arg name="div" value="$(arg map_div)"/>
         <!-- <arg name="predefined_pose_file" value="$(arg predefined_pose_file)"/> -->
         <arg name="resol" value="$(arg resol)"/>
         <arg name="smooth_rads" value="$(arg smooth_rads)"/>
         <arg name="map" value="$(find novelti)/map/$(arg map).map"/>
         <arg name="debug_novelti_shared_control" value="0" />
+        <arg unless="$(arg use_emotiv)" name="wait_for_cmd" value="0" />
+        <arg unless="$(arg use_emotiv)" name="period" value="4.0" />
+        <arg unless="$(arg use_emotiv)" name="lti_default_cmd" value="1"/>
+        <arg unless="$(arg use_emotiv)" name="keyboard_mapping" value="['5']" />
         <!-- <arg name="map" value="$(find novelti)/map/maze_scale_inflated.map"/> -->
     </include>
 
@@ -47,16 +50,13 @@
             synced_nodes: ['/novelti_shared_control','/robot_model']
         </rosparam>
     </node>  
+
+    <!--Emotiv color legend display -->
+    <node pkg="humane" name="legend_display" type="legend_display.py" 
+        args="user_name 500 10 800"/>
     
     <!--node pkg="rqt_console" type="rqt_console" name="rqt_console" output="screen" required="true">
     </node--> 
-    
-    <!--Commander_sync_interface node to sync different uis -->
-    <!--node pkg="novelti" name="commander_sync_interface" type="commander_sync_interface.py">
-        <param name="new_goal_srv" value="$(arg new_goal_srv)"/>
-        <param name="new_goal_key" value='3'/>
-        <remap from="/cmd" to="/ui_commander_cmd"/>
-    </node-->
 
 
 </launch>

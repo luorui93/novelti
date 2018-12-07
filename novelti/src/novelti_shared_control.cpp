@@ -23,10 +23,11 @@ NoveltiSharedControl::NoveltiSharedControl():
     units_.push_back(new OrientationControl(node_, inf_mx_->nCmds_, *position_control));
     names_ = {"Action Control", "Position Control", "Orientation Control"};
     transitionMx_ = {
-        std::vector<int>(inf_mx_->nCmds_, 1),
+        std::vector<int>(inf_mx_->nCmds_, 0),
         std::vector<int>(inf_mx_->nCmds_, 2),
         std::vector<int>(inf_mx_->nCmds_, 0),
     };
+    transitionMx_[0][0]=1;
 }
 
 NoveltiSharedControl::~NoveltiSharedControl() {
