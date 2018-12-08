@@ -66,6 +66,8 @@
     <node pkg="humane" name="legend_display" type="legend_display.py" 
         args="user_name 500 10 800"/>
     
+    <include file="$(find novelti)/launch/two_rviz_windows.launch" />
+    
     <!--node pkg="rqt_console" type="rqt_console" name="rqt_console" output="screen" required="true">
     </node--> 
 

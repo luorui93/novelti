@@ -38,9 +38,6 @@
     
     <arg name="ori_resol" default="5.0"/>
    
-    <arg name="rviz" default="robot_autocam"/>
-    <!--<arg if="$(arg show_goal)"     name="rviz" default="robot_autocam_w_goal" /> --> <!-- none, autocam or static -->
-    <!--<arg unless="$(arg show_goal)" name="rviz" default="robot_autocam" /> --> <!-- none, autocam or static -->
     <arg name="verb" default="info" />
     
     <arg name="real_robot" default="0" />
@@ -71,8 +68,8 @@
         <param name="real_robot" value="$(arg real_robot)" />
         <remap from="/map" to="/map_inflated" />   <!-- What's this for? -->
         <rosparam>
-            synced_nodes: ['/novelti_shared_control', '/commander_sync_interface']
-            waited_srvs:  ['/lti_rviz/reload_shaders']
+            synced_nodes: ['/novelti_shared_control']
+            waited_srvs:  []
         </rosparam>
     </node>
     
@@ -122,15 +119,6 @@
         <param name="ori/method"            value="$(arg os_method)" />
     </node>
    
-    
-    <!-- Visualization -->
-    <node name="rviz_pdf" pkg="rviz" type="rviz"  output="screen" 
-        args="-d $(find novelti)/rviz/pdf.rviz" respawn="true" />
-    <!-- <include file="$(find novelti)/launch/rviz_orientation_control.launch"/> -->
-    <include file="$(find novelti)/launch/rviz_$(arg rviz).launch"/>
-    
-
-
    <!-- Monitoring - ->
     <node if="$(arg monitor)" pkg="novelti" type="node_monitor.py" name="monitor" output="screen">
         <param name="output_prefix" value="$(arg monitor_output_prefix)"/>

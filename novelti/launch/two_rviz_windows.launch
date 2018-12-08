@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Visualization -->
+    <node name="rviz_full_map_divided" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find novelti)/rviz/full_map_divided.rviz" respawn="true" />
+    
+    <node name="rviz_zoom_map_divided" pkg="rviz" type="rviz"  output="screen" respawn="true" 
+        args="-d $(find novelti)/rviz/zoom_map_divided.rviz" />
+
+</launch>
