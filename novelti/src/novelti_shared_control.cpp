@@ -67,7 +67,7 @@ void NoveltiSharedControl::startNewInference() {
 }
 
 void NoveltiSharedControl::cmdCallback(CommandConstPtr cmd) {
-    ROS_INFO("Detected command: %d", cmd->cmd);
+    ROS_INFO("%s: Detected command: %d", getName().c_str(), cmd->cmd);
     inf_mx_->calcUpdateCoefs(priors_, cmd->cmd, coefs_);
     units_[cur_]->update(coefs_, cmd->cmd, priors_);
     ROS_INFO("%s: current probabilities after update: %s", 
