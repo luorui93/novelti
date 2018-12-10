@@ -57,7 +57,7 @@
         <param name="resol" value="$(arg resol)" />
         <param name="n_runs" value="$(arg tries)" />
         <rosparam>
-            waited_srvs: ['/lti_rviz/reload_shaders']
+            waited_srvs: []
             synced_nodes: ['/novelti_shared_control','/robot_model']
         </rosparam>
     </node>  
