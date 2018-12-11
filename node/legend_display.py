@@ -17,18 +17,17 @@ USAGE:
 if __name__ == "__main__":
     rospy.init_node('legend_display')
     key_mappings = rospy.get_param('/key_mappings',
-                                   {"smirk_left":     0,
-                                    "smirk_right":    1,
-                                    "raise_eyebrow":  2,
-                                    "right_wink":     3})
-
+                                   {"press button":     0,
+                                    "don't press":    1})
+    color_rgbs   = rospy.get_param('color_rgbs', ["#ffff00","#0000ff","#00ff00","#ff0000"])
+    color_names  = rospy.get_param('color_names', ["yellow", "blue", "green", "red"])
+    
     width = int(sys.argv[2])
     window_x = int(sys.argv[3])
     window_y = int(sys.argv[4])
 
-    color_rgbs = [(255, 255, 0), (0, 0, 255), (0, 255, 0), (255, 0, 0)]
-    color_names = ["yellow", "blue", "green", "red"]
-    expressions = ["clench", "smirk left", "smirk right", "raise eyebrow"]
+    #color_rgbs = [(255, 255, 0), (0, 0, 255), (0, 255, 0), (255, 0, 0)]
+    #color_names = ["yellow", "blue", "green", "red"]
 
     w = 0.01*width  # canvas.winfo_width()
     h = 0.01*200  # canvas.winfo_height()
@@ -66,39 +65,22 @@ if __name__ == "__main__":
     canvas.create_text(w*patch_x, h*header_y,
                         font=fontBold, anchor=SW, text="sample")
     canvas.create_text(w*expr_x,  h*header_y,
-                        font=fontBold, anchor=SW, text="expression")
+                        font=fontBold, anchor=SW, text="action")
 
     for k in sorted(mappings.keys()):
         row_y = h*(row1_y+k*offset_y)
         canvas.create_text(w*name_x,  row_y, font=fontNorm,
                             anchor=SW, text=color_names[k])
-        color = '#%02x%02x%02x' % color_rgbs[k]
         canvas.create_rectangle(
             w*patch_x,
             row_y + h*patch_offest_y,
             w*(patch_x+patch_w),
             row_y-h*(patch_h-patch_offest_y),
-            fill=color)
+            fill=color_rgbs[k])
         canvas.create_text(w*expr_x,  row_y, font=fontNorm,
                             anchor=SW, text=mappings[k])
     root.update()
     #root.mainloop()
 
     rospy.spin()
-    # draw header:
-    # color name color expression
 
-    """
-        text_file.write(tmpl1 % {"height" : 110 + dy*len(color_rgbs) })
-        for k in sorted(mappings.keys()):
-            text_file.write(tmpl2 % {
-                "y":    110+k*dy, 
-                "recy": 70+k*dy, 
-                "r":    color_rgbs[k][0], 
-                "g":    color_rgbs[k][1], 
-                "b":    color_rgbs[k][2],
-                "expr": mappings[k],
-                "name": color_names[k]
-            })
-        text_file.write(tmpl3)
-    """
