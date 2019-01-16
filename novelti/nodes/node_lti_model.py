@@ -27,7 +27,8 @@ class StochHmiModel:
         self.delay  = rospy.get_param('~delay', 0.0)
         self.n = int(sqrt(len(interface_matrix)))
         self.cmd_detected = Command()
-        self.sub = rospy.Subscriber('/cmd_intended', Command, self.cmdIntendedCallback)
+        self.callbackRunning = False
+        self.sub = rospy.Subscriber('/cmd_intended', Command, self.cmdIntendedCallback, queue_size=1, buff_size=10000)
         self.pub = rospy.Publisher('/cmd_detected', Command, queue_size=1, latch=True)
         k=0
         self.interface_matrix_thresholds = []
@@ -80,6 +81,10 @@ class StochHmiModel:
                 
     
     def cmdIntendedCallback(self, msg):
+        # if self.callbackRunning:
+        #     return
+        # else:
+        #     self.callbackRunning = True
         is_fisrt_msg = (self.cmd_intended is None)
         self.cmd_intended = msg.cmd
         if self.period==0.0:
