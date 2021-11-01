@@ -1,0 +1,4 @@
+decision_period: 2.0
+measurement_period: 3.0
+confidence_threshold: 0.0
+pulse_threshold: 4

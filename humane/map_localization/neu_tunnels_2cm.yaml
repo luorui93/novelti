@@ -1,0 +1,7 @@
+image: neu_tunnels_2cm.pgm
+resolution: 0.020000
+origin: [0.0, 0.0, 0.000000]
+negate: 0
+occupied_thresh: 0.6
+free_thresh: 0.1
+

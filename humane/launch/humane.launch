@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<!--a launch file for HUMan-Anna-Novelti-Emotiv (HUMANE) experiment -->
+<!--In this launch file we will include launch files for the following components:
+    novelti              novelti.launch  (start novelti)
+    anna                 main.launch     (start anna(sim/real) for robot experiment)
+    emotiv_epoc_driver   emotiv.launch   (start emotiv headset(composer/controlpanel) for real interface experiment
+
+    This launch file should be run by script file in scripts folder rather than directly
+ -->
+<launch>
+    <arg name="emotiv_source" default="composer"/>
+    <arg name="use_emotiv" default="true"/>
+    <arg name="use_novelti" default="true"/>
+    <arg name="use_assistive" default="true"/>
+    <arg name="use_auto" default="true"/>
+    <arg name="anna_rviz" default="false"/>
+    <arg name="sim" default="true"/>
+    <arg name="map_name" default="neu_tunnels_2cm"/>
+    <!-- <arg name="map_name" default="maze"/> -->
+    <arg name="user_id" default="default"/>
+    <arg name="map_div" default="extredist"/>
+    <arg name="predefined_pose_file" default="$(find humane)/map/predefined_poses.yaml"/>
+    <arg name="map_resolution" default="0.1" />
+    <arg name="new_goal_srv" default="/novelti_shared_control/new_goal"/>
+    <arg name="base_linear_velocity" default="0.3"/>
+    <arg name="base_angular_velocity" default="0.05"/>
+    <arg name="cmd_latch" default="4.0"/>
+    <arg name="smooth_rads" default="[0,1,1,2,2]"/><!--[0,1,1,2,2]" -->
+    <arg name="gazebo_frame_offset" default="-x 47.14 -y 47.06"/>
+    <arg name="path" default="a2b"/>
+    <arg name="pois" default="0"/>
+    <arg name="emotiv_config_file" default="$(env HOME)/anna_ws/src/humane/config/emotiv_config.yaml"/>
+    <arg name="button_default_cmd" default="1"/>
+    <!-- <arg name="gazebo_frame_offset" default="-x 17.0 -y 19" /> -->
+
+    <arg name="bag" default="0"/>
+    <arg name="waited_srvs_name" default="/waited_srvs/mode$(arg bag)" />
+    <!-- <arg name="cmd_mapping_file" default="$(env HOME)/humane_data/emotiv_cmd_mapping/default_mapping.yaml"/> -->
+
+    <remap from="/amcl/initial_pose_x" to="$(eval '/predefined_poses/'+arg('path').split('2')[0]+'/x')" />
+    <remap from="/amcl/initial_pose_y" to="$(eval '/predefined_poses/'+arg('path').split('2')[0]+'/y')" />
+    <remap from="/amcl/initial_pose_a" to="$(eval '/predefined_poses/'+arg('path').split('2')[0]+'/yaw')" />
+
+    <remap if="$(arg pois)" from="/novelti_shared_control/inf/pois" to="/predefined_poses" />
+
+    <arg name="decision_time" default="2"/>
+    <arg name="measurement_time" default="3"/>
+    <arg name="period" default="$(eval arg('decision_time')+arg('measurement_time'))"/>
+    
+    <rosparam command="load" file="$(arg predefined_pose_file)"/>
+    <!-- Anna config -->
+        <!-- use steering control-->
+        <include unless="$(arg use_novelti)" file="$(find anna)/launch/main.launch">
+            <arg name="ui" value="0" />
+            <arg name="rviz" value="$(arg anna_rviz)" />   
+            <arg name="emotiv_source" value="$(arg emotiv_source)"/>
+            <arg name="assist" value="$(arg use_assistive)" />
+            <arg name="auto" value="$(arg use_auto)" />
+            <arg name="cliff" value="0" />
+            <arg name="loc" value="1" />
+            <arg name="base_sim" value="$(arg sim)" />
+            <arg name="map_file" value="$(find humane)/map_localization/$(arg map_name).yaml" />
+        </include>
+
+        <node unless="$(arg use_novelti)" name="steering_control_node" pkg="anna" type="node_steering_control.py">
+            <remap from="/cmd" to="/cmd_detected"/>
+            <remap from="/cmd_vel" to="/rough_cmd_vel" />
+            <param name="cmd_latch_time" value="$(arg cmd_latch)"/>
+            <param name="base_linear_velocity" value="$(arg base_linear_velocity)" />
+            <param name="base_angular_velocity" value="$(arg base_angular_velocity)" />
+        </node>
+
+        <!-- use novelti control-->
+        <include if="$(arg use_novelti)" file="$(find anna)/launch/main.launch">
+            <!--If we use novelti, the ui.launch file in anna package will not be called, thus ui is set to 0 -->
+            <arg name="ui" value="0" />
+            <arg name="rviz" value="$(arg anna_rviz)" />   
+            <arg name="assist" value="$(arg use_assistive)" />
+            <arg name="auto" value="$(arg use_auto)" />
+            <arg name="cliff" value="0" />
+            <arg name="loc" value="1" />
+            <arg name="base_sim" value="$(arg sim)" />
+            <arg name="map_file" value="$(find humane)/map_localization/$(arg map_name).yaml" />
+        </include>
+
+    <!--Customized gazebo model spawner to set initial pose based on predefined_pose.yaml -->
+    <node if="$(arg sim)" name="urdf_spawner" pkg="humane" type="spawn_model_parameter_server.py" respawn="false" output="screen" 
+        args="-urdf -model anna -param robot_description -gazebo_namespace gazebo_server $(arg gazebo_frame_offset)">
+        <remap from="~start_x" to="$(eval '/predefined_poses/'+arg('path').split('2')[0]+'/x')" />
+        <remap from="~start_y" to="$(eval '/predefined_poses/'+arg('path').split('2')[0]+'/y')" />
+        <remap from="~start_yaw" to="$(eval '/predefined_poses/'+arg('path').split('2')[0]+'/yaw')" />
+        <param name="start_z" value="1.0"/>
+    </node>
+
+    <!-- Emotiv driver. Only called directly when using novelti, otherwise, it's called from anna: main.launch-->
+    <include if="$(arg use_emotiv)" file="$(find emotiv_epoc_driver)/launch/emotiv_commander.launch">     
+        <arg name="inputSource" value="$(arg emotiv_source)" />
+        <arg name="emotiv_config_file" value="$(arg emotiv_config_file)"/>
+        <arg name="cmd_mapping_file" value="$(env HOME)/humane_data/emotiv_cmd_mapping/$(arg user_id)_mapping.yaml"/>
+        <!--Wether wait for start_emotiv_srv service -->
+        <arg name="wait_for_start" value="true"/>
+    </include>
+    <remap if="$(arg use_emotiv)" from="/emotiv_cmd" to="/cmd_detected"/>
+    
+    <node unless="$(arg use_novelti)" name="steering_mediator" type="steering_mediator.py" pkg="humane" output="screen" required="true"/>
+
+    <!--Emotiv color legend display -->
+    <node pkg="humane" name="legend_display" type="legend_display.py" 
+        args="user_name 500 10 800"/>
+    <!-- Novelti control (keyboard commander will always be started)-->
+    <include if="$(arg use_novelti)" file="$(find novelti)/launch/novelti.launch">
+        <arg name="real_robot" value="1"/>
+        <arg     if="$(arg use_emotiv)" name="confusion_matrix_file" value="$(env HOME)/humane_data/confusion_matrix/$(arg user_id)_emotiv.yaml"/>
+        <arg unless="$(arg use_emotiv)" name="confusion_matrix_file" value="$(env HOME)/humane_data/confusion_matrix/$(arg user_id)_button.yaml"/>
+        <arg name="div" value="$(arg map_div)"/>
+        <!-- <arg name="predefined_pose_file" value="$(arg predefined_pose_file)"/> -->
+        <arg name="resol" value="$(arg map_resolution)"/>
+        <arg name="smooth_rads" value="$(arg smooth_rads)"/>
+        <arg name="ksafe" value="1.3" />
+        <arg name="period" value="$(arg period)" />
+        <arg name="map" value="$(find humane)/map/neu_tunnels_10cm_inf7_edited.map"/>
+        <!-- <arg name="map" value="$(find novelti)/map/maze_scale_inflated.map"/> -->
+    </include>
+
+
+    <node pkg="novelti" type="node_keyboard_commander.py" name="keyboard_commander" output="screen" required="true">
+        <rosparam      if="$(arg use_emotiv)" param="key_mappings" subst_value="true">['y','b','g','r']</rosparam>
+        <rosparam  unless="$(arg use_emotiv)" param="key_mappings" subst_value="true">['5']</rosparam>
+        <remap from="/keyboard_cmd_intended" to="/cmd_intended"/>
+    </node>
+
+    <node pkg="novelti" type="node_lti_model.py" name="lti_model" output="screen" required="true" >
+        <rosparam if="$(arg use_emotiv)" param="interface_matrix" command="load" file="$(env HOME)/humane_data/confusion_matrix/$(arg user_id)_emotiv.yaml" />
+        <rosparam param="interface_matrix" subst_value="true">[1.0, 0.0, 0.0, 1.0]</rosparam>
+        <param     if="$(arg use_emotiv)" name="delay" value="$(arg period)" />
+        <param unless="$(arg use_emotiv)" name="period" value="$(arg period)" />
+        <param unless="$(arg use_emotiv)" name="default_cmd" value="$(arg button_default_cmd)" />
+    </node>
+    
+    <!--Commander_sync_interface node to sync different uis -->
+    <!-- <node if="$(arg use_novelti)" pkg="novelti" name="commander_sync_interface" type="commander_sync_interface.py">
+        <param name="new_goal_srv" value="$(arg new_goal_srv)"/>
+        <param name="new_goal_key" value='3'/>
+        <remap from="/cmd" to="/ui_commander_cmd"/>
+    </node> -->
+
+    <include file="$(find humane)/launch/status_reporter.launch"/>
+    
+    <node pkg="humane" name="pose_displayer" type="displayed_pose_publisher.py">
+        <remap from="~predefined_poses" to="/predefined_poses"/>
+        <param name="poses_to_display" value="$(eval arg('path').replace('2', ','))"/>
+    </node>
+
+
+    <!-- Recording -->
+    <arg name="ros_bag_topics" default="
+
+        /cmd_detected /cmd_intended /keyboard_cmd /keyboard_cmd_intended /rough_cmd_vel /cmd_vel /emotiv_commander/confidence /emotiv_epoc_driver/output /emotiv_cmd /cmd
+        
+        /amcl_pose /pose_current /pose_desired /pose_inferred /position_desired /position_inferred  /pose_start
+        /displayed_pose_a /displayed_pose_b /displayed_pose_c /displayed_pose_d /displayed_pose_e /initialpose
+
+        /move_base/global_costmap/costmap    /move_base/global_costmap/footprint 
+        /move_base/local_costmap/costmap    /move_base/local_costmap/footprint
+        /assistive_drive_node/local_costmap/costmap  /assistive_drive_node/local_costmap/footprint
+        /lidar_battery_sym/scan    /lidar_footplate/scan  /odom   /tf  /tf_static
+
+        /map /map_divided /map_inflated /opdf /orientation_divided /pdf  
+
+        /rosout /robotsound /parameters"/>
+    <arg name="bag_file" default=""/>
+    <arg name="ros_bag_arg" default="-O $(arg bag_file) $(arg ros_bag_topics)"/>
+
+    <node if="$(arg bag)"  pkg="rosbag" type="record" name="rosbag_record" required="true"
+            args="$(arg ros_bag_arg)">
+    </node>
+    <node if="$(arg bag)"  pkg="novelti" type="node_param_publisher.py" name="node_param_publisher">
+        <param name="user_id" value="$(arg user_id)" />
+        <param name="emotiv_source" value="$(arg emotiv_source)" />
+        <param name="use_novelti" value="$(arg use_novelti)"/>
+        <param name="use_auto" value="$(arg use_auto)"/>
+        <param name="use_assistive" value="$(arg use_assistive)" />
+        <param name="run_simulation" value="$(arg sim)" />
+        <param name="gazebo_frame_offset" value="$(arg gazebo_frame_offset)" />
+        <param name="rosbag_node_name" value="rosbag_record" />
+        <!-- remapped parameters (by default not save on param server-->
+        <param name="map_name" value="$(arg map_name)" />
+        <param name="path" value="$(arg path)"/>
+        <param name="predefined_poses" value="$(arg predefined_pose_file)"/>
+        <param name="waited_srvs_name" value="$(arg waited_srvs_name)" />
+        <param name="sim" value="$(arg sim)" />
+        <param name="map_div" value="$(arg map_div)" />
+        <param name="novelti_commit"     command="git --git-dir=$(find novelti)/../.git --work-tree=$(find novelti)/..  log --format='%H' -n 1" />
+        <param name="novelti_commit_log" command="git --git-dir=$(find novelti)/../.git --work-tree=$(find novelti)/..  log -n 1" />
+        <param name="comp_id" command="cat /var/lib/dbus/machine-id" /> <!-- http://0pointer.de/blog/projects/ids.html -->
+        <param name="use_emotiv" value="$(arg use_emotiv)" />
+        <param name="launch_args" value="user_id:=$(arg user_id) sim:=$(arg sim) bag:=$(arg bag) use_novelti:=$(arg use_novelti) use_assistive:=$(arg use_assistive) use_auto:=$(arg use_auto) emotiv_source:=$(arg emotiv_source) use_emotiv:=$(arg use_emotiv) bag_file:=$(arg bag_file) path:=$(arg path)"/>
+    </node>
+    
+    <node name="rviz_full_map_divided" pkg="rviz" type="rviz"  output="screen" 
+        args="-d $(find humane)/rviz/full_map_divided.rviz" respawn="true" />
+    
+    <node name="rviz_zoom_map_divided" pkg="rviz" type="rviz"  output="screen" respawn="true" 
+        args="-d $(find humane)/rviz/zoom_map_divided.rviz" />
+    
+</launch>

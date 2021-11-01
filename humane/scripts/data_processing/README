@@ -1,0 +1,22 @@
+All related functions are in plot_figure.py
+Two data (file ids) may be used:
+rui-rob-novel-emotiv-c2a-1-2019_01_23_19_31_13
+rui-rob-novel-button-c2a-1-2019_01_23_18_40_03
+
+
+1. Change global variable cache_path in plot_figure.py to the location of pickle file
+2. To plot figures for distance, entropy, and trajectories, plot_novelti_entries() in plot_figure.py is called:
+
+        bagplot.plotMap(database,fig.ax_left)
+        bagplot.plotMapInflated(database,fig.ax_left)
+        l1 = bagplot.plotDistance(entry,fig.ax_right_up,color_list[index][0],'position distance')
+        l2 = bagplot.plotAngDistance(entry,twin_ax_up,color_list[index][1],'angular distance')
+        l3 = bagplot.plotEntropy(entry,fig.ax_right_down,color_list[index][0],'position entropy')
+        l4 = bagplot.plotAngEntropy(entry,twin_ax_down,color_list[index][1],'angular entropy')
+        
+        The above functions are called to plot corresponding figures.
+        bagplot is the module bagplot.py in the directory
+        database is the variable storing pickle data
+        all fig.axes are just axes objects
+        entry can be obtained from database.queryByFileId(). Provide the file id to obtain the entry data. file id is the bag file name.
+
