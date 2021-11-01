@@ -52,6 +52,7 @@ from nav_msgs.msg import OccupancyGrid
 from novelti.SyncingNode import SyncingNode
 
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from std_srvs.srv import Empty
 
 class Mediator (SyncingNode):
     GOAL_STATUSES = ["PENDING         = 0   # The goal has yet to be processed by the action server",
@@ -155,6 +156,8 @@ class Mediator (SyncingNode):
         if self.state == "WAIT4START":
             self.state = "RUNNING"
             self.startNovelti(msg)
+            #start service for emotiv
+            self.readyForEmotiv = rospy.Service("start_emotiv_srv", Empty, self.empty_handler)
 
     def positionDesiredCallback(self, msg):
         rospy.loginfo("Received position desired: (%f,%f)" % (msg.pose.position.x, msg.pose.position.y))
@@ -181,6 +184,8 @@ class Mediator (SyncingNode):
     def actionFeedbackCallback(self, msg):
         self.latestPose = msg
 
+    def empty_handler(self, req):
+        return True
 if __name__=="__main__":
     rospy.init_node('node_mediator')
     e = Mediator()

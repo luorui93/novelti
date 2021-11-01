@@ -27,21 +27,22 @@ void incorrect_usage(const char* msg, char* exec_file) {
     exit(1);
 }
 
-int pose_to_vertex_tolerance = 4;
+int pose_to_vertex_tolerance = 20;
 
 double getDistance(cwave::CompoundMap& cmap, int& cx,int& cy) {
     int dx, dy, xmin=cx, ymin=cy;
     double d, dmin = std::numeric_limits<double>::max();
+
     if (cmap.getPoint(cx,cy) == cwave::MAP_POINT_UNEXPLORED) {
-        //ROS_WARN("SEARCH for accessible vertex center=(%d,%d)", cx,cy);
+        //printf("SEARCH for accessible vertex center=(%d,%d)\n", cx,cy);
         for (int x=max(0,cx-pose_to_vertex_tolerance); x<=min(cmap.width()-1, cx+pose_to_vertex_tolerance); x++) {
             for (int y=max(0,cy-pose_to_vertex_tolerance); y<=min(cmap.height()-1, cy+pose_to_vertex_tolerance); y++) {
-                //ROS_WARN("try: (%d,%d)", x,y);
+                //printf("try: (%d,%d)\n", x,y);
                 if (cmap.getPoint(x,y) != cwave::MAP_POINT_UNEXPLORED) {
                     dx = cx-x;
                     dy = cy-y;
                     d = dx*dx + dy*dy;
-                    //ROS_WARN("accessible! d=%f, dmin=%f", d, dmin);
+                    //printf("accessible! d=%f, dmin=%f\n", d, dmin);
                     if (d<dmin) {
                         dmin = d;
                         xmin = x;
@@ -50,8 +51,11 @@ double getDistance(cwave::CompoundMap& cmap, int& cx,int& cy) {
                 }
             }
         }
-        if (dmin == std::numeric_limits<double>::max())
-            exit(77);//("%s: could not find an accessible vertex nearby current pose (x,y)=(%f,%f), checked %d vertices in all directions", getName().c_str(), px, py, pose_to_vertex_tolerance);
+        if (dmin == std::numeric_limits<double>::max()) {
+            //printf("could not find an accessible vertex nearby current pose");
+            return -1;
+            //exit(77);//("%s: could not find an accessible vertex nearby current pose (x,y)=(%f,%f), checked %d vertices in all directions", getName().c_str(), px, py, pose_to_vertex_tolerance);
+        }
     }
     return cmap.getExactDist(xmin, ymin);
 }

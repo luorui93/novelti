@@ -15,11 +15,10 @@
     <arg name="use_emotiv" default="false"/>
     <arg name="confusion_matrix_file" default="$(find novelti)/test/mx/mx3cmd90.yaml"/>
     <arg name="map_div" default="extredist"/>
-    <arg name="smooth_rads" default="[]"/>
+    <arg name="smooth_rads" default="[0,1,1,2,2]"/>
     <rosparam command="load" file="$(find novelti)/map/$(arg map).paths"/>
     <arg name="pois" default="0"/>
     <arg name="period" default="3"/>
-
     <remap if="$(arg pois)" from="/novelti_shared_control/inf/pois" to="/predefined_poses" />
 
     <!-- Novelti control -->
@@ -67,10 +66,10 @@
         </rosparam>
     </node>  
 
-    <!--Emotiv color legend display -->
+    <!-- Emotiv color legend display
     <node pkg="humane" name="legend_display" type="legend_display.py" 
         args="user_name 500 10 800"/>
-    
+     -->
     
     <include file="$(find novelti)/launch/two_rviz_windows.launch" />
     
