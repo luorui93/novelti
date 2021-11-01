@@ -1,0 +1,6 @@
+#b novelti::InferenceUnit::stop
+#b novelti::SynchronizableNode::srvStop
+#b novelti::InferenceUnit::srvNewGoal
+#b novelti::InferenceUnit::publishViewTf
+b inference_unit.cpp:410
+r

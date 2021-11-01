@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<launch>
+    <!--
+    
+    Requires a source of input from /cmd_detected   
+
+    -->
+    
+    <arg name="div"   default="extredist" />     <!-- map division policy:       vtile  htile  altertile equidist extremal extredist vchess-->
+    <arg name="pos"   default="nearcog_obst" />  <!-- best_pose_finder method:   no_move, ra_maxprob  maxprob_euq  maxprob_obst  cog_euq  nearcog_euq  nearcog_obst  cog2lopt  cog2gopt -->
+    <arg name="os_method"   default="opt" />   <!--opt_orientation_selector method: still opt -->
+    <arg name="start" default="start_point"/>  <!--kitchen1,office1-->
+    <arg name="dst1" default="goal1" />
+    <arg name="dst2" default="goal2" />
+    <arg name="dst3" default="goal3"/>
+    <arg name="vel"   default="1.0" />       <!-- robot velocity in m/s -->
+    <arg name="twist" default="0.52" />       <!-- robot rotation speed in rad/s -->
+    <arg name="period" default="1.0" />       <!-- interface cmd generation period-->
+    <arg name="reset_pdf"    default="true" /> 
+    <arg name="pub_random_goal"    default="false" /> 
+    <arg name="pose_to_vertex_tolerance" default="5" />
+    <arg name="iarea_k" default="0.5" />
+    <arg name="view_sizes" default="[16, 32, 64, 128, 256]" />
+    <arg name="smooth_rads" default="[]" /> <!--0,0,1,2,2,2]" /--> 
+    <arg name="show_goal" default="false" />
+    <arg name="confusion_matrix_file" default=""/>
+
+    <arg name="prob_thresh_high" default="0.90" />    <!-- if (vertex prob >= prob_thresh_high), then it's inferred as the destination -->
+    <arg name="prob_thresh_low"  default="0.5" />     <!-- if (vertex prob <= prob_thresh_low),  then prob_thresh_high is considered again -->
+    <arg name="prob_eps"         default="1.0e-8" /> <!-- inference_unit doesn't let probability of any vertex to be lower than prob_eps -->
+    <arg name="ksafe" default="2" />
+    <arg name="trobot" default="0.025" />
+    
+    <arg name="map"   default="$(find novelti)/map/maze_scale_inflated.map" /> <!-- base name of the map from the map directory (without extension .map) -->
+    <arg name="path"  default="0" />        <!-- index of the path from map/YOUR_MAP_NAME.paths file, this is used for automatic test with experimentator-->
+    <arg name="resol" default="0.1" />      <!-- size of a cell on the grid map (in meters) -->
+    <arg name="tries" default="1" />
+    
+    <arg name="ori_resol" default="5.0"/>
+   
+    <arg name="verb" default="info" />
+    
+    <arg name="real_robot" default="0" />
+    <arg name="real_human" default="1" />
+    <arg name="real_bci" default="false" />
+
+    <!--arg name="monitor" default="1" /- ->
+    <!- -arg name="monitor_output_prefix" default="$(arg output_dir)/$(arg output_file_prefix)_statistics_" /-->
+    
+    
+    <!--predefined selectable parameters -->
+    <!-- add /robot_model to synced_nodes if using diff_drive_model, needs to be orgnized later-->
+    <rosparam>
+        synced_nodes: 
+            real_robot:  ['/novelti_shared_control']
+            <!-- robot_model: ['/novelti_shared_control', '/lti_model', '/keyboard_commander','/robot_model'] -->
+    </rosparam>
+
+        
+    <!-- rviz window for real experiment -->
+    <!-- <node if="$(arg real_robot)" name="robot_rviz" pkg="rviz" type="rviz"  output="screen" args="-d $(find novelti)/rviz/robot.rviz" /> -->
+
+    <!-- Real robot or model-->
+    <node if="$(arg real_robot)" pkg="novelti" type="node_mediator.py" name="node_mediator" output="screen" required="true">
+        <param name="pub_random_goal" value="$(arg pub_random_goal)" />
+        <param name="map"        value="$(arg map)" />
+        <param name="resolution" value="$(arg resol)" />
+        <param name="real_robot" value="$(arg real_robot)" />
+        <remap from="/map" to="/map_inflated" />   <!-- What's this for? -->
+        <rosparam>
+            synced_nodes: ['/novelti_shared_control']
+            waited_srvs:  []
+        </rosparam>
+    </node>
+    
+    <arg name="debug_diff_drive_robot_model" default="0" />
+    <arg     if="$(arg debug_diff_drive_robot_model)" name="prefix_diff_drive_robot_model" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_diff_drive_robot_model - -args" />
+    <arg unless="$(arg debug_diff_drive_robot_model)" name="prefix_diff_drive_robot_model" default="" />    
+    <node unless="$(arg real_robot)" pkg="novelti" type="diff_drive_robot_model" name="robot_model" output="screen" required="true"  launch-prefix="$(arg prefix_diff_drive_robot_model)" >
+        <!-- <remap from="/position_desired" to="/position_inferred" /> -->
+        <!-- <remap from="/pose_desired" to="/pose_inferred" /> -->
+        <param name="max_vel"     value="$(arg vel)" />
+        <param name="max_twist"   value="$(arg twist)"/>
+        <param name="pub_period"  value="$(arg trobot)" />
+    </node>
+
+    <!-- <node pkg="topic_tools" type="relay" name="pose_topic_relay" output="screen" required="true" args="/pose_inferred /pose_desired"/> -->
+
+
+    <!-- Real human or model -->
+    <!--node unless="$(arg real_human)" pkg="novelti" type="human_model" name="human_model" output="screen" required="true" > 
+        <param name="new_goal"      value="$(arg new_goal_srv)"/>
+    </node> TODO: create a separate file for auto test -->
+    
+    <!-- Shared Control -->
+    <arg name="debug_novelti_shared_control" default="0" />
+    <arg     if="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_novelti_shared_control - -args" />
+    <arg unless="$(arg debug_novelti_shared_control)" name="prefix_novelti_shared_control" default="" />    
+        
+    <node pkg="novelti" type="novelti_shared_control" name="novelti_shared_control" output="screen" required="true" launch-prefix="$(arg prefix_novelti_shared_control)">
+        <param name="thresh_inferred"       value="$(arg prob_thresh_high)" />
+        <param name="thresh_relaxed"        value="$(arg prob_thresh_low)" />
+        <param name="inf/eps"               value="$(arg prob_eps)" />
+        <param name="inf/interest_area_coef" value="$(arg iarea_k)" />
+        <param name="inf/reset_pdf_on_new"  value="$(arg reset_pdf)" />
+        <rosparam param="inf/view_sizes"  subst_value="true">$(arg view_sizes)</rosparam>
+        <rosparam param="inf/smooth_rads" subst_value="true">$(arg smooth_rads)</rosparam>
+        <rosparam param="interface_matrix" command="load" file="$(arg confusion_matrix_file)" />
+        <param name="pos/method"            value="$(arg pos)" />
+        <param name="pos/max_vel"           value="$(arg vel)" />
+        <param name="pos/max_twist"         value="$(arg twist)" />
+        <param name="pos/safety_coef"       value="$(arg ksafe)" />
+        <param name="pos/period"            value="$(arg period)" />
+        <remap from="pose_best"             to="position_desired" />
+        <param name="pos/pose_to_vertex_tolerance" value="$(arg pose_to_vertex_tolerance)"/>
+        <remap from="orientation_desired"   to="pose_desired" />
+        <param name="div/method"            value="$(arg div)" />
+        <param name="ori/orientation_resolution" value="$(arg ori_resol)"/>
+        <param name="ori/method"            value="$(arg os_method)" />
+    </node>
+   
+   <!-- Monitoring - ->
+    <node if="$(arg monitor)" pkg="novelti" type="node_monitor.py" name="monitor" output="screen">
+        <param name="output_prefix" value="$(arg monitor_output_prefix)"/>
+    </node>-->
+
+</launch>

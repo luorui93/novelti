@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<launch>
+
+  <node name="keyboard_commander" pkg="novelti" type="node_keyboard_commander.py" output="screen">
+        <rosparam>
+            key_mappings: ['i',',','j','l','k']   <!-- forward,backward,left,right,stop -->
+        </rosparam>
+  </node>
+
+</launch>

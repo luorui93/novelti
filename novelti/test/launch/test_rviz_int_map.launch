@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="novelti" type="test_rviz_int_map.py" name="test_rviz_int_map" output="screen" >
+    </node>
+
+    <!-- Visualization -->
+    <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
+            args="-d $(find novelti)/test/rviz/test_rviz_int_map.rviz" >
+    </node>
+    
+</launch>

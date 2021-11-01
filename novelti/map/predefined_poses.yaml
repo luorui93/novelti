@@ -1,0 +1,6 @@
+predefined_poses: {
+  start_point: {x: 20.7, y: 7.51, yaw: 0.0}, 
+  goal1: {x: 3.0, y: 28.26, yaw: 1.0}, 
+  goal2: {x: 21.51,y: 20.69, yaw: 0.75}, 
+  goal3: {x: 14.89, y: 13.49, yaw: 0}
+}

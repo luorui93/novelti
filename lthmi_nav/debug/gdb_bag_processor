@@ -1,8 +1,0 @@
-define sp
-    b cwave:: Walker::setPoint
-end
-
-b lthmi_nav:: MsgProcessor::calculateDist
-b cwave::CWave2::addStar
-sp
-r

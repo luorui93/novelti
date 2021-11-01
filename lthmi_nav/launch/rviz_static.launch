@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <node name="lthmi_rviz" pkg="rviz" type="rviz"  output="screen" 
-        args="-d $(find lthmi_nav)/rviz/run_static.rviz" />
-</launch>

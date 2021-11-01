@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="map" default="ak500inflated" />
+    <arg name="div" default="extermal" />
+    <arg name="delay" default="0.0" />
+    <arg name="px" default="0" />  <!-- both 0 means random -->
+    <arg name="py" default="0" />  <!-- both 0 means random -->
+    <arg name="pdf_seed" default="-1" /> <!-- negative means random -->
+    
+    
+    <arg name="gdb" default="0" />
+    <arg name="verb" default="info" />
+    
+    <!-- Check ROSCONSOLE_MIN_SEVERITY value in CMakeList.txt for given node. More on that in http://wiki.ros.org/rosconsole -->
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find novelti)/debug/rosconsole_conf_verb_$(arg verb).conf"/> 
+    <arg     if="$(arg gdb)" name="prefix" default="xterm -geometry 170x30+10+20 -e gdb -x=$(find novelti)/debug/gdb_map_divider - -args" />
+    <arg unless="$(arg gdb)" name="prefix" default="" />
+    
+    
+    <node pkg="novelti" type="test_map_divider.py" name="test_map_divider" 
+            output="screen" required="true">
+        <param name="map" value="$(find novelti)/map/$(arg map).map" />
+        <param name="resolution" value="0.1" />
+        <param name="n_experiments" value="10" />
+        <param name="n_poses" value="10" />
+        <param name="delay" value="$(arg delay)" />
+        <param name="pose_x" value="$(arg px)" />
+        <param name="pose_y" value="$(arg py)" />
+        <param name="pdf_seed" value="$(arg pdf_seed)" />
+        <rosparam>
+            synced_nodes: ['/map_divider']
+            waited_srvs:  ['/rviz/reload_shaders']
+        </rosparam>
+    </node>
+
+    <node pkg="novelti" name="map_divider" type="map_divider"  output="screen"
+            launch-prefix="$(arg prefix)">
+        <param name="method" value="$(arg div)" />
+        <rosparam>
+            probs_optimal: [0.25, 0.25, 0.25, 0.25]
+        </rosparam>
+    </node>
+    
+    <node name="rviz" pkg="rviz" type="rviz"  output="screen" 
+            args="-d $(find novelti)/test/rviz/test_map_divider.rviz" >
+    </node>
+    
+</launch>
